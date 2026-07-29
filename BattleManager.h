@@ -16,9 +16,13 @@ public:
 
 	void AddPlayer(Player* player);
 	void AddMonster(Monster* monster);
-	void BattleEnd(bool isWin);
+	void BattleEnd();
 
-    void applyAttack(IDamageAble* target, int damage);
+	bool IsMonstersDead() const;
+    bool IsPlayersDead() const;
+
+	void PlayerHitMonster(Monster* target, int damage);
+    void MonsterHitPlayer(Player* target, int damage);
 
 private:
 	std::vector<Player*> players;

@@ -29,22 +29,49 @@ void BattleManager::AddMonster(Monster* enemy)
     monsters.push_back(enemy);
 }
 
-void BattleManager::BattleEnd(bool isWin)
+void BattleManager::BattleEnd()
 {
-    if (isWin)
-    {
-        for (int i = 0; i < players.size(); i++)
-        {
-            
-        }
-    }
     players.clear();
     monsters.clear();
     earnGold = 0;
     earnExp = 0;
 }
 
-void BattleManager::applyAttack(IDamageAble* target, int damage)
+bool BattleManager::IsMonstersDead() const
 {
+    for (int i = 0; i < monsters.size(); i++)
+    {
+        if (monsters[i])
+        {
+            return false;
+        }
+    }
 
+    return true;
+}
+
+bool BattleManager::IsPlayersDead() const
+{
+    for (int i = 0; i < players.size(); i++)
+    {
+        if (players[i])
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void BattleManager::PlayerHitMonster(Monster* target, int damage)
+{
+    //1. 데미지 준다
+    //2. 몬스터 사망 확인
+    //3. 몬스터의 드랍 아이템과 골드를 적립한다
+    //4. 킬 카운트를 높인다.
+}
+
+void BattleManager::MonsterHitPlayer(Player* target, int damage)
+{
+    //1. 데미지를 준다
 }
