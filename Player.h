@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <string>
 using namespace std;
 
@@ -16,22 +16,22 @@ class Player
    public:
     Player(const string& playerName);
 
-    string GetName();      // ÀÌ¸§ ¾ò±â
-    int GetLevel();        // ·¹º§ ¾ò±â
-    void AddExp(int exp);  // °æÇèÄ¡ Ãß°¡
+    string GetName();      // ì´ë¦„ ì–»ê¸°
+    int GetLevel();        // ë ˆë²¨ ì–»ê¸°
+    void AddExp(int exp);  // ê²½í—˜ì¹˜ ì¶”ê°€
 
-    void TakeDamage(int damage);  // ÇÇ°İ
+    void TakeDamage(int damage);  // í”¼ê²©
     int GetPower();
 
-    void ShowStatus();  // Á¤º¸ Ãâ·Â
+    void ShowStatus();  // ì •ë³´ ì¶œë ¥
 
-    void HealHP(int hp);  // Ã¼·Â È¸º¹
+    void HealHP(int hp);  // ì²´ë ¥ íšŒë³µ
     bool IsDead();
-    bool IsFullHP();     // ÃÖ´ëÃ¼·Â ¿©ºÎ
-    int GetMissingHP();  // ºÎÁ·ÇÑ Ã¼·Â °ª
+    bool IsFullHP();     // ìµœëŒ€ì²´ë ¥ ì—¬ë¶€
+    int GetMissingHP();  // ë¶€ì¡±í•œ ì²´ë ¥ ê°’
 
-    void AddPower(int power);     // °ø°İ·Â Áõ°¡ (¾ÆÀÌÅÛ ¹öÇÁ, ÆÄÆ¼ ·¹º§¾÷ µî¿¡ »ç¿ë)
-    void RemovePower(int power);  // °ø°İ·Â µÇµ¹¸®±â (¹öÇÁ Á¾·á ½Ã ¾ÆÀÌÅÛ ÂÊ¿¡¼­ È£Ãâ)
+    void AddPower(int power);     // ê³µê²©ë ¥ ì¦ê°€ (ì•„ì´í…œ ë²„í”„, íŒŒí‹° ë ˆë²¨ì—… ë“±ì— ì‚¬ìš©)
+    void RemovePower(int power);  // ê³µê²©ë ¥ ë˜ëŒë¦¬ê¸° (ë²„í”„ ì¢…ë£Œ ì‹œ ì•„ì´í…œ ìª½ì—ì„œ í˜¸ì¶œ)
 
    private:
     void LevelUp();
