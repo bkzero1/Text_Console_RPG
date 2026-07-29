@@ -29,10 +29,18 @@ void BattleManager::AddMonster(Monster* enemy)
     monsters.push_back(enemy);
 }
 
-void BattleManager::BattleEnd()
+void BattleManager::BattleEnd(bool isWin)
 {
+    if (isWin)
+    {
+        for (int i = 0; i < players.size(); i++)
+        {
+            players[i];
+        }
+    }
     players.clear();
     monsters.clear();
+    dealPies.clear();
     earnGold = 0;
     earnExp = 0;
 }
@@ -76,4 +84,14 @@ void BattleManager::PlayerHitMonster(Monster* target, int damage)
 void BattleManager::MonsterHitPlayer(Player* target, int damage)
 {
     //1. 데미지를 준다
+}
+
+int BattleManager::GetEarnGold() const
+{
+    return earnGold;
+}
+
+std::map<EItemID, int> BattleManager::GetEarnItems() const
+{
+    return earnItems;
 }

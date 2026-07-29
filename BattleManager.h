@@ -16,13 +16,16 @@ public:
 
 	void AddPlayer(Player* player);
 	void AddMonster(Monster* monster);
-	void BattleEnd();
+	void BattleEnd(bool isWin);
 
 	bool IsMonstersDead() const;
     bool IsPlayersDead() const;
 
 	void PlayerHitMonster(Monster* target, int damage);
     void MonsterHitPlayer(Player* target, int damage);
+
+	int GetEarnGold() const;
+	std::map<EItemID, int> GetEarnItems() const;
 
 private:
 	std::vector<Player*> players;
