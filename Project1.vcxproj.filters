@@ -19,6 +19,12 @@
     <Filter Include="헤더 파일\BattlePhase">
       <UniqueIdentifier>{247c308b-64da-4c62-be92-17b75b2163c3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\RpgLogger">
+      <UniqueIdentifier>{736e9cbf-5e56-4c8b-8a0b-c598dba93434}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\RpgLogger">
+      <UniqueIdentifier>{47ba66aa-988e-4252-85c3-4cd52ccff0b4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BattleManager.cpp">
@@ -26,6 +32,12 @@
     </ClCompile>
     <ClCompile Include="EnemyPool.cpp">
       <Filter>소스 파일\BattlePhase</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="RpgLogger.cpp">
+      <Filter>소스 파일\RpgLogger</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -35,5 +47,11 @@
     <ClInclude Include="EnemyPool.h">
       <Filter>헤더 파일\BattlePhase</Filter>
     </ClInclude>
+    <ClInclude Include="RpgLogger.h">
+      <Filter>헤더 파일\RpgLogger</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".clang-format" />
   </ItemGroup>
 </Project>
