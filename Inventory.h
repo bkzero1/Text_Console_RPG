@@ -5,6 +5,13 @@
 
 #include "InventorySlot.h"
 
+enum class EInventorySortKey
+{
+    NAME,
+    COUNT,
+    PRICE,
+};
+
 class Inventory
 {
    private:
@@ -29,5 +36,7 @@ class Inventory
     int GetItemCount(EItemID itemID) const;
     std::map<EItemID, int> GetConsumableItems() const;
 
-    void ShowInventory() const;
+    void ShowInventory() const;  // 인벤토리 출력
+
+    void SortInventory(EInventorySortKey sortKey, bool reverse = false);  // 인벤토리 정렬
 };

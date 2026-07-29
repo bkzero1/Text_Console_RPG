@@ -143,3 +143,42 @@ void Inventory::ShowInventory() const
     std::cout << "  [골드] " << gold << " G          [슬롯] " << slots.size() << " / " << maxSlots << "\n";
     std::cout << "========================================" << "\n";
 }
+
+void Inventory::SortInventory(EInventorySortKey sortKey, bool reverse)
+{
+    switch (sortKey)
+    {
+        case EInventorySortKey::NAME:
+            if (!reverse)
+            {
+                std::sort(slots.begin(), slots.end(), InventorySlot::COMPARE_BY_NAME);
+            }
+            else
+            {
+                std::sort(slots.rbegin(), slots.rend(), InventorySlot::COMPARE_BY_NAME);
+            }
+            break;
+        case EInventorySortKey::COUNT:
+            if (!reverse)
+            {
+                std::sort(slots.begin(), slots.end(), InventorySlot::COMPARE_BY_COUNT);
+            }
+            else
+            {
+                std::sort(slots.rbegin(), slots.rend(), InventorySlot::COMPARE_BY_COUNT);
+            }
+            break;
+        case EInventorySortKey::PRICE:
+            if (!reverse)
+            {
+                std::sort(slots.begin(), slots.end(), InventorySlot::COMPARE_BY_PRICE);
+            }
+            else
+            {
+                std::sort(slots.rbegin(), slots.rend(), InventorySlot::COMPARE_BY_PRICE);
+            }
+            break;
+        default:
+            break;
+    }
+}
