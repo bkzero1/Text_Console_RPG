@@ -19,6 +19,12 @@
     <Filter Include="헤더 파일\BattlePhase">
       <UniqueIdentifier>{247c308b-64da-4c62-be92-17b75b2163c3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\Player">
+      <UniqueIdentifier>{1fdb4c8f-a43a-498a-9537-e3f2421cc781}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Player">
+      <UniqueIdentifier>{30ec674f-09b7-4339-bd0d-8b933a40ea2b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BattleManager.cpp">
@@ -27,6 +33,9 @@
     <ClCompile Include="EnemyPool.cpp">
       <Filter>소스 파일\BattlePhase</Filter>
     </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>소스 파일\Player</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BattleManager.h">
@@ -34,6 +43,9 @@
     </ClInclude>
     <ClInclude Include="EnemyPool.h">
       <Filter>헤더 파일\BattlePhase</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>헤더 파일\Player</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
