@@ -83,12 +83,12 @@ void Inventory::AddGold(int gold)
     this->gold += gold;
 }
 
-bool Inventory::AddItem(EItemID itemID)
+int Inventory::AddItem(EItemID itemID, int count)
 {
     // 아이템 넣을 자리 없음
     if (maxSlots == 0 || slotCapacity == 0)
     {
-        return false;
+        return count;
     }
 
     // 슬롯 순회하여 추가
@@ -97,24 +97,51 @@ bool Inventory::AddItem(EItemID itemID)
         // 동일 아이템 & 공간 여유 -> 아이템 추가 성공
         if (slot.id == itemID && slot.count < slotCapacity)
         {
-            slot.count++;
-            return true;
+            int marginCount = slotCapacity - slot.count;  // 슬롯 최대까지 남은 개수
+            int addCount = std::min(marginCount, count);  // 추가 가능한 개수
+
+            // 아이템 추가
+            slot.count += addCount;
+            count -= addCount;
+            itemCounts[itemID] += addCount;
+
+            // 전부 추가 완료
+            if (count == 0)
+            {
+                return 0;
+            }
         }
     }
 
     // 새로운 슬롯으로 추가
-    if (slots.size() < maxSlots)
+    while (slots.size() < maxSlots)
     {
-        slots.push_back(InventorySlot(itemID));
-        return true;
+        int addCount = std::min(count, slotCapacity);  // 슬롯 내 아이템 개수
+
+        // 새 슬롯과 함께 아이템 추가
+        slots.push_back(InventorySlot(itemID, addCount));
+        count -= addCount;
+        itemCounts[itemID] += addCount;
+
+        // 전부 추가 완료
+        if (count == 0)
+        {
+            return 0;
+        }
     }
 
-    // 아이템 추가 실패
-    return false;
+    // 추가하지 못하고 남은 개수 반환
+    return count;
 }
 
-void Inventory::ConsumeItem(EItemID itemID, int count)
+bool Inventory::ConsumeItem(EItemID itemID, int count)
 {
+    // 개수가 부족하여 소모 실패
+    if (count > itemCounts[itemID])
+    {
+        return false;
+    }
+
     // 슬롯 순회하여 제거
     for (InventorySlot& slot : slots)
     {
@@ -125,6 +152,7 @@ void Inventory::ConsumeItem(EItemID itemID, int count)
             int removeCount = std::min(slot.count, count);  // 현재 슬롯에서 제거 가능한 개수
             slot.count -= removeCount;
             count -= removeCount;
+            itemCounts[itemID] -= removeCount;
 
             // 제거 완료
             if (count == 0)
@@ -136,25 +164,33 @@ void Inventory::ConsumeItem(EItemID itemID, int count)
 
     // 빈 슬롯 제거
     ClearEmptySlots();
+
+    // 주어진 개수만큼 아이템 소모 완료
+    return true;
 }
 
 int Inventory::GetItemCount(EItemID itemID) const
 {
-    // 아이템 개수
-    int count = 0;
-
-    // 슬롯 순회하여 개수 확인
-    for (const InventorySlot& slot : slots)
+    // 아이템이 없음 - 0개
+    if (itemCounts.find(itemID) == itemCounts.end())
     {
-        // 동일 아이템 -> 개수 추가
-        if (slot.id == itemID)
-        {
-            count += slot.count;
-        }
+        return 0;
     }
 
-    // 아이템 총 개수 반환
-    return count;
+    // 아이템 개수 반환
+    return itemCounts.at(itemID);
+}
+
+bool Inventory::HasItem(EItemID itemID, int count) const
+{
+    // 아이템이 없음 - 0개
+    if (itemCounts.find(itemID) == itemCounts.end())
+    {
+        return false;
+    }
+
+    // 개수 비교
+    return itemCounts.at(itemID) >= count;
 }
 
 std::map<EItemID, int> Inventory::GetConsumableItems() const
