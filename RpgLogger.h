@@ -15,10 +15,10 @@ class RpgLogger
 {
    public:
     // Queue에 쌓인 전체 로그 출력
-    void ShowLogs();
+    void ShowLogs() const;
 
     // 킬 로그 출력
-    void ShowKillLogs();
+    void ShowKillLogs() const;
 
     // Queue에 로그 추가(10개 까지), 해당 로그 바로 출력
     void AddLog(std::string log);

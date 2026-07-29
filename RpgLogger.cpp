@@ -15,7 +15,7 @@ std::map<EMonsterID, std::string> convertMonsterString = {
     {EMonsterID::NONE, "NONE"}, {EMonsterID::GOBLIN, "GOBLIN"}, {EMonsterID::ORC, "ORK"}};
 }  // namespace Test
 
-void RpgLogger::ShowLogs()
+void RpgLogger::ShowLogs() const
 {
     std::cout << "------------- Recent Logs -------------" << std::endl;
 
@@ -29,7 +29,7 @@ void RpgLogger::ShowLogs()
     std::cout << "---------------------------------------" << std::endl;
 }
 
-void RpgLogger::ShowKillLogs()
+void RpgLogger::ShowKillLogs() const
 {
     std::cout << "------------- Monster Kill Count -------------" << std::endl;
 
