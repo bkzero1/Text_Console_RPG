@@ -1,4 +1,5 @@
 ﻿#include "BattleManager.h"
+#include "Item.h"
 
 void BattleManager::AddPlayer(Player* player)
 {
@@ -28,8 +29,22 @@ void BattleManager::AddMonster(Monster* enemy)
     monsters.push_back(enemy);
 }
 
-void BattleManager::BattleEnd()
+void BattleManager::BattleEnd(bool isWin)
 {
+    if (isWin)
+    {
+        for (int i = 0; i < players.size(); i++)
+        {
+            
+        }
+    }
     players.clear();
     monsters.clear();
+    earnGold = 0;
+    earnExp = 0;
+}
+
+void BattleManager::applyAttack(IDamageAble* target, int damage)
+{
+
 }
