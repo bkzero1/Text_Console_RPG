@@ -125,12 +125,18 @@
   <ItemGroup>
     <ClInclude Include="BattleManager.h" />
     <ClInclude Include="EnemyPool.h" />
+    <ClInclude Include="Inventory.h" />
     <ClInclude Include="Item.h" />
+    <ClInclude Include="ItemUseHandler.h" />
+    <ClInclude Include="InventorySlot.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BattleManager.cpp" />
     <ClCompile Include="EnemyPool.cpp" />
+    <ClCompile Include="Inventory.cpp" />
     <ClCompile Include="Item.cpp" />
+    <ClCompile Include="ItemUseHandler.cpp" />
+    <ClCompile Include="InventorySlot.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
