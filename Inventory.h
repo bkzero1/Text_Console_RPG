@@ -36,7 +36,7 @@ class Inventory
     bool ConsumeItem(EItemID itemID, int count = 1);  // 아이템 소모 (부족하면 false 반환, 충분하면 개수 차감 후 true 반환)
 
     int GetItemCount(EItemID itemID) const;             // 아이템 개수 반환
-    bool HasItem(EItemID itemID, int count = 1) const;  // 아이템을 지정된 개수만큼 가지고 있는지 여부 반환
+    int GetMaxAddableItemCount(EItemID itemID) const;   // 아이템 추가 가능한 최대 개수 반환
     std::map<EItemID, int> GetConsumableItems() const;  // 사용 가능한 아이템 및 개수 반환
 
     void ShowInventory() const;  // 인벤토리 출력

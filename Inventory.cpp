@@ -181,16 +181,23 @@ int Inventory::GetItemCount(EItemID itemID) const
     return itemCounts.at(itemID);
 }
 
-bool Inventory::HasItem(EItemID itemID, int count) const
+int Inventory::GetMaxAddableItemCount(EItemID itemID) const
 {
-    // 아이템이 없음 - 0개
-    if (itemCounts.find(itemID) == itemCounts.end())
+    int count = 0;  // 추가 가능한 최대 개수
+
+    // 빈 슬롯 확인
+    count += slotCapacity * (maxSlots - slots.size());
+
+    // 기존 슬롯 확인
+    for (const InventorySlot& slot : slots)
     {
-        return false;
+        if (slot.id == itemID)  // 동일 아이템 확인
+        {
+            count += slotCapacity - slot.count;  // 여유 개수만큼 추가
+        }
     }
 
-    // 개수 비교
-    return itemCounts.at(itemID) >= count;
+    return count;
 }
 
 std::map<EItemID, int> Inventory::GetConsumableItems() const
