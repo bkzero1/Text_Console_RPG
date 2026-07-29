@@ -129,6 +129,9 @@
     <ClInclude Include="Monster.h" />
     <ClInclude Include="Item.h" />
     <ClInclude Include="RpgLogger.h" />
+    <ClInclude Include="Inventory.h" />
+    <ClInclude Include="ItemUseHandler.h" />
+    <ClInclude Include="InventorySlot.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BattleManager.cpp" />
@@ -137,6 +140,9 @@
     <ClCompile Include="Monster.cpp" />
     <ClCompile Include="Item.cpp" />
     <ClCompile Include="RpgLogger.cpp" />
+    <ClCompile Include="Inventory.cpp" />
+    <ClCompile Include="ItemUseHandler.cpp" />
+    <ClCompile Include="InventorySlot.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
