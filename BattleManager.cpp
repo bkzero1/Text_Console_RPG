@@ -41,6 +41,7 @@ bool BattleManager::IsMonstersDead() const
 {
     for (int i = 0; i < monsters.size(); i++)
     {
+        //ToDo : IsDead로 변경
         if (monsters[i])
         {
             return false;
@@ -54,6 +55,7 @@ bool BattleManager::IsPlayersDead() const
 {
     for (int i = 0; i < players.size(); i++)
     {
+        //ToDo : IsDead로 변경
         if (players[i])
         {
             return false;
