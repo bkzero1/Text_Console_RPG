@@ -2,9 +2,8 @@
 
 #include <vector>
 
-class EnemyPool;
 class Player;
-class Enemy;
+class Monster;
 
 class BattleManager
 {
@@ -13,11 +12,11 @@ public:
 	BattleManager(const BattleManager&) = delete;
 
 	void AddPlayer(Player* player);
-	void AddEnemy(Enemy* enemy);
+	void AddMonster(Monster* monster);
 	void BattleEnd();
 
 private:
 	std::vector<Player*> players;
-	std::vector<Enemy*> enemies;
+	std::vector<Monster*> monsters;
 };
 

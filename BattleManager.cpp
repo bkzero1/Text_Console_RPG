@@ -14,22 +14,22 @@ void BattleManager::AddPlayer(Player* player)
     players.push_back(player);
 }
 
-void BattleManager::AddEnemy(Enemy* enemy)
+void BattleManager::AddMonster(Monster* enemy)
 {
-    for (int i = 0; i < enemies.size(); i++)
+    for (int i = 0; i < monsters.size(); i++)
     {
-        if (enemies[i])
+        if (monsters[i])
         {
             continue;
         }
-        enemies[i] = enemy;
+        monsters[i] = enemy;
         return;
     }
-    enemies.push_back(enemy);
+    monsters.push_back(enemy);
 }
 
 void BattleManager::BattleEnd()
 {
     players.clear();
-    enemies.clear();
+    monsters.clear();
 }
