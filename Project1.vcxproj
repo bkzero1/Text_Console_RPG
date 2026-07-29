@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -125,14 +125,27 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BattleManager.h" />
-    <ClInclude Include="EnemyPool.h" />
+    <ClInclude Include="MonsterPool.h" />
+    <ClInclude Include="FMonsterData.h" />
+    <ClInclude Include="Monster.h" />
+    <ClInclude Include="Item.h" />
     <ClInclude Include="RpgLogger.h" />
+    <ClInclude Include="Inventory.h" />
+    <ClInclude Include="ItemUseHandler.h" />
+    <ClInclude Include="InventorySlot.h" />
+    <ClInclude Include="Player.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BattleManager.cpp" />
-    <ClCompile Include="EnemyPool.cpp" />
+    <ClCompile Include="MonsterPool.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Monster.cpp" />
+    <ClCompile Include="Item.cpp" />
     <ClCompile Include="RpgLogger.cpp" />
+    <ClCompile Include="Inventory.cpp" />
+    <ClCompile Include="ItemUseHandler.cpp" />
+    <ClCompile Include="InventorySlot.cpp" />
+    <ClCompile Include="Player.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />

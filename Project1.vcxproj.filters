@@ -19,11 +19,23 @@
     <Filter Include="헤더 파일\BattlePhase">
       <UniqueIdentifier>{247c308b-64da-4c62-be92-17b75b2163c3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="소스 파일\RpgLogger">
-      <UniqueIdentifier>{736e9cbf-5e56-4c8b-8a0b-c598dba93434}</UniqueIdentifier>
+    <Filter Include="소스 파일\Item">
+      <UniqueIdentifier>{106b1980-3c36-407a-8d19-d12170156258}</UniqueIdentifier>
     </Filter>
-    <Filter Include="헤더 파일\RpgLogger">
-      <UniqueIdentifier>{47ba66aa-988e-4252-85c3-4cd52ccff0b4}</UniqueIdentifier>
+    <Filter Include="헤더 파일\Item">
+      <UniqueIdentifier>{8917743f-40dd-4753-a850-c369eb8d9292}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Inventory">
+      <UniqueIdentifier>{6d3f2bcc-2b94-442f-9ae4-5f1ac9e75634}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Inventory">
+      <UniqueIdentifier>{52277024-1793-4d81-b1f0-358649d93b40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Player">
+      <UniqueIdentifier>{1fdb4c8f-a43a-498a-9537-e3f2421cc781}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Player">
+      <UniqueIdentifier>{30ec674f-09b7-4339-bd0d-8b933a40ea2b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -36,8 +48,23 @@
     <ClCompile Include="main.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="RpgLogger.cpp">
-      <Filter>소스 파일\RpgLogger</Filter>
+    <ClCompile Include="Monster.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Item.cpp">
+      <Filter>소스 파일\Item</Filter>
+    </ClCompile>
+    <ClCompile Include="ItemUseHandler.cpp">
+      <Filter>소스 파일\Item</Filter>
+    </ClCompile>
+    <ClCompile Include="Inventory.cpp">
+      <Filter>소스 파일\Inventory</Filter>
+    </ClCompile>
+    <ClCompile Include="InventorySlot.cpp">
+      <Filter>소스 파일\Inventory</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>소스 파일\Player</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -47,11 +74,26 @@
     <ClInclude Include="EnemyPool.h">
       <Filter>헤더 파일\BattlePhase</Filter>
     </ClInclude>
-    <ClInclude Include="RpgLogger.h">
-      <Filter>헤더 파일\RpgLogger</Filter>
+    <ClInclude Include="Monster.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include=".clang-format" />
+    <ClInclude Include="FMonsterData.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Item.h">
+      <Filter>헤더 파일\Item</Filter>
+    </ClInclude>
+    <ClInclude Include="ItemUseHandler.h">
+      <Filter>헤더 파일\Item</Filter>
+    </ClInclude>
+    <ClInclude Include="InventorySlot.h">
+      <Filter>헤더 파일\Inventory</Filter>
+    </ClInclude>
+    <ClInclude Include="Inventory.h">
+      <Filter>헤더 파일\Inventory</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>헤더 파일\Player</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
