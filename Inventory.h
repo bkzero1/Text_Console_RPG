@@ -20,9 +20,11 @@ class Inventory
     int maxSlots;      // 인벤토리 최대 슬롯 수
     int slotCapacity;  // 각 슬롯 최대 용량
 
-    std::vector<InventorySlot> slots;  // 아이템 슬롯들
+    std::map<EItemID, int> itemCounts;  // 아이템 개수들
+    std::vector<InventorySlot> slots;   // 아이템 슬롯들
 
-    void CompactInventory();  // 인벤토리 압축 (빈 슬롯 제거)
+    void ClearEmptySlots();   // 빈 슬롯 제거
+    void CompactInventory();  // 인벤토리 정리 (동일 아이템 슬롯 합치기 & 빈 슬롯 제거)
 
    public:
     Inventory();
@@ -30,11 +32,12 @@ class Inventory
     int GetGold() const;
     void AddGold(int gold);
 
-    bool AddItem(EItemID itemID);
-    void ConsumeItem(EItemID itemID, int count = 1);
+    int AddItem(EItemID itemID, int count = 1);       // 아이템 추가 (추가하지 못하고 남은 개수 반환)
+    bool ConsumeItem(EItemID itemID, int count = 1);  // 아이템 소모 (부족하면 false 반환, 충분하면 개수 차감 후 true 반환)
 
-    int GetItemCount(EItemID itemID) const;
-    std::map<EItemID, int> GetConsumableItems() const;
+    int GetItemCount(EItemID itemID) const;             // 아이템 개수 반환
+    int GetMaxAddableItemCount(EItemID itemID) const;   // 아이템 추가 가능한 최대 개수 반환
+    std::map<EItemID, int> GetConsumableItems() const;  // 사용 가능한 아이템 및 개수 반환
 
     void ShowInventory() const;  // 인벤토리 출력
 
