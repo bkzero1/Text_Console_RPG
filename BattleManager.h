@@ -1,10 +1,12 @@
 ﻿#pragma once
 
 #include <vector>
+#include <map>
 
-class EnemyPool;
 class Player;
-class Enemy;
+class Monster;
+class IDamageAble;
+enum class EItemID;
 
 class BattleManager
 {
@@ -13,11 +15,25 @@ public:
 	BattleManager(const BattleManager&) = delete;
 
 	void AddPlayer(Player* player);
-	void AddEnemy(Enemy* enemy);
-	void BattleEnd();
+	void AddMonster(Monster* monster);
+	void BattleEnd(bool isWin);
+
+	bool IsMonstersDead() const;
+    bool IsPlayersDead() const;
+
+	void PlayerHitMonster(Monster* target, int damage);
+    void MonsterHitPlayer(Player* target, int damage);
+
+	int GetEarnGold() const;
+	std::map<EItemID, int> GetEarnItems() const;
 
 private:
 	std::vector<Player*> players;
-	std::vector<Enemy*> enemies;
+	std::vector<Monster*> monsters;
+
+    std::map<Player*, int> dealPies; //데미지 기여
+    int earnExp = 0;
+    int earnGold = 0;
+    std::map<EItemID, int> earnItems;
 };
 
