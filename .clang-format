@@ -1,0 +1,8 @@
+BasedOnStyle: Google
+IndentWidth: 4
+UseTab: Always
+BreakBeforeBraces: Allman
+ColumnLimit: 0
+PointerAlignment: Right
+SpaceBeforeParens: ControlStatements
+MaxEmptyLinesToKeep: 1
