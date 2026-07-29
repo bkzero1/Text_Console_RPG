@@ -129,6 +129,7 @@
     <ClInclude Include="Item.h" />
     <ClInclude Include="ItemUseHandler.h" />
     <ClInclude Include="InventorySlot.h" />
+    <ClInclude Include="Player.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BattleManager.cpp" />
@@ -137,6 +138,7 @@
     <ClCompile Include="Item.cpp" />
     <ClCompile Include="ItemUseHandler.cpp" />
     <ClCompile Include="InventorySlot.cpp" />
+    <ClCompile Include="Player.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
