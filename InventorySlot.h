@@ -8,4 +8,6 @@ struct InventorySlot
     int count;   // 아이템 개수
 
     InventorySlot(EItemID id, int count = 1);
+
+    bool IsEmpty() const;
 };
