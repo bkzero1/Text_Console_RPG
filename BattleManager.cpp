@@ -5,28 +5,27 @@ void BattleManager::AddPlayer(Player* player)
 {
     for (int i = 0; i < players.size(); i++)
     {
-        if (players[i])
+        if (players[i] == player)
         {
-            continue;
+            //중복 플레이어 할당 방지
+            return;
         }
-        players[i] = player;
-        return;
+        
     }
     players.push_back(player);
 }
 
-void BattleManager::AddMonster(Monster* enemy)
+void BattleManager::AddMonster(Monster* monster)
 {
     for (int i = 0; i < monsters.size(); i++)
     {
-        if (monsters[i])
+        if (monsters[i] == monster)
         {
-            continue;
+            //중복 몬스터 할당 방지
+            return;
         }
-        monsters[i] = enemy;
-        return;
     }
-    monsters.push_back(enemy);
+    monsters.push_back(monster);
 }
 
 void BattleManager::BattleEnd(bool isWin)
@@ -35,6 +34,7 @@ void BattleManager::BattleEnd(bool isWin)
     {
         for (int i = 0; i < players.size(); i++)
         {
+            //ToDo : 경험치 전달
             players[i];
         }
     }
