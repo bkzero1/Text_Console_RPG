@@ -37,6 +37,12 @@
     <Filter Include="헤더 파일\Player">
       <UniqueIdentifier>{30ec674f-09b7-4339-bd0d-8b933a40ea2b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\Monster">
+      <UniqueIdentifier>{aeca294a-9a00-4fc1-a712-b123c73cf30b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Monster">
+      <UniqueIdentifier>{d6358ddf-9fb5-4754-9726-448d5182245d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BattleManager.cpp">
@@ -75,7 +81,7 @@
       <Filter>헤더 파일\BattlePhase</Filter>
     </ClInclude>
     <ClInclude Include="Monster.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>헤더 파일\Monster</Filter>
     </ClInclude>
     <ClInclude Include="FMonsterData.h">
       <Filter>헤더 파일</Filter>
