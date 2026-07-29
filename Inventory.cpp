@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <iostream>
 
-void Inventory::CompactInventory()
+void Inventory::ClearEmptySlots()
 {
     // 슬롯 순회하며 빈 슬롯 제거
     for (auto iter = slots.begin(); iter != slots.end();)
@@ -19,6 +19,53 @@ void Inventory::CompactInventory()
             iter++;
         }
     }
+}
+
+void Inventory::CompactInventory()
+{
+    // 앞 슬롯부터 채우기
+    for (int i = 0; i < slots.size(); i++)
+    {
+        InventorySlot& targetSlot = slots[i];
+
+        // 반 슬롯이면 넘어가기
+        if (targetSlot.IsEmpty())
+        {
+            continue;
+        }
+
+        // 슬롯이 가득 찬 상태면 넘어가기
+        if (targetSlot.count == slotCapacity)
+        {
+            continue;
+        }
+
+        // 뒤에 있는 슬롯을 검사하여 같은 아이템이면 합치기
+        for (int j = i + 1; j < slots.size(); j++)
+        {
+            InventorySlot& sourceSlot = slots[j];
+
+            // 아이템을 이동시킬 슬롯이 비어있지 않고 동일한 아이템인지 확인
+            if (!sourceSlot.IsEmpty() && sourceSlot.id == targetSlot.id)
+            {
+                int marginCount = slotCapacity - targetSlot.count;        // 슬롯 최대까지 남은 개수
+                int moveCount = std::min(marginCount, sourceSlot.count);  // 이동 가능한 개수
+
+                // 아이템 이동
+                targetSlot.count += moveCount;
+                sourceSlot.count -= moveCount;
+
+                // targetSlot이 가득참 -> 다음 targetSlot 설정
+                if (targetSlot.count == slotCapacity)
+                {
+                    break;
+                }
+            }
+        }
+    }
+
+    // 빈 슬롯 제거
+    ClearEmptySlots();
 }
 
 Inventory::Inventory()
@@ -87,8 +134,8 @@ void Inventory::ConsumeItem(EItemID itemID, int count)
         }
     }
 
-    // 제거 후 빈 슬롯 있으면 제거
-    CompactInventory();
+    // 빈 슬롯 제거
+    ClearEmptySlots();
 }
 
 int Inventory::GetItemCount(EItemID itemID) const
@@ -146,6 +193,10 @@ void Inventory::ShowInventory() const
 
 void Inventory::SortInventory(EInventorySortKey sortKey, bool reverse)
 {
+    // 인벤토리 정리
+    CompactInventory();
+
+    // 주어진 기준에 따라 정렬
     switch (sortKey)
     {
         case EInventorySortKey::NAME:

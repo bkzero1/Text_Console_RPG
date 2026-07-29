@@ -22,7 +22,8 @@ class Inventory
 
     std::vector<InventorySlot> slots;  // 아이템 슬롯들
 
-    void CompactInventory();  // 인벤토리 압축 (빈 슬롯 제거)
+    void ClearEmptySlots();   // 빈 슬롯 제거
+    void CompactInventory();  // 인벤토리 정리 (동일 아이템 슬롯 합치기 & 빈 슬롯 제거)
 
    public:
     Inventory();
