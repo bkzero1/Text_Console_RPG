@@ -76,7 +76,7 @@
       <Filter>소스 파일\Player</Filter>
     </ClCompile>
     <ClCompile Include="MonsterPool.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>소스 파일\BattlePhase</Filter>
     </ClCompile>
     <ClCompile Include="RpgLogger.cpp">
       <Filter>소스 파일\RpgLogger</Filter>
