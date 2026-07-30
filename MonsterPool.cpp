@@ -41,3 +41,31 @@ void MonsterPool::Release(Monster* monster)
     monsterSet.insert(monster);
     monsterStack.push(monster);
 }
+
+void MonsterPool::Shrink(int poolSize)
+{
+    if (poolSize < monsterVector.size())
+    {
+        return;
+    }
+
+    int purgeCount = monsterVector.size() - poolSize;
+    for (int i = 0; i < purgeCount; i++)
+    {
+        if (monsterStack.empty())
+        {
+            return;
+        }
+        Monster* monster = monsterStack.top();
+        monsterSet.erase(monster);
+        for (auto i = monsterVector.begin(); i != monsterVector.end(); i++)
+        {
+            if (*i != monster)
+            {
+                continue;
+            }
+            monsterVector.erase(i);
+            break;
+        }
+    }
+}
