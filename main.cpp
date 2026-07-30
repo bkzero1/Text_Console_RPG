@@ -67,11 +67,15 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
                 std::uniform_int_distribution<int> monsterDist(0, monster.size() - 1);
                 Monster* targetMonster = monster[monsterDist(gen)];
                 battleManager.PlayerHitMonster(targetMonster, turnPlayer->GetPower());
-                // TODO : 체력 부분 targetMonster->GetName() -> targetMonster->GetHp()로 수정
-                rpgLogger.AddLog(turnPlayer->GetName() + " (이)가 " + targetMonster->GetName() + "을(를) 공격합니다! " + targetMonster->GetName() + " 체력 : " + targetMonster->GetName());
                 if (targetMonster->IsDead())
                 {
+                    rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + targetMonster->GetName() + "을(를) 공격합니다! " + targetMonster->GetName() + " 처치!");
                     monsterPool.Release(targetMonster);
+                }
+                else
+                {
+                    // TODO : 체력 부분 targetMonster->GetName() -> targetMonster->GetHp()로 수정
+                    rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + targetMonster->GetName() + "을(를) 공격합니다! " + targetMonster->GetName() + " 체력 : " + targetMonster->GetName());
                 }
             }
 
@@ -98,14 +102,25 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
             std::uniform_int_distribution<int> monsterDist(0, players.size() - 1);
             Player* targetPlayer = players[monsterDist(gen)];
             battleManager.MonsterHitPlayer(targetPlayer, turnMonster->GetPower());
-            //TODO : 체력 부분 targetPlayer->GetName() -> targetPlayer->GetHp()로 수정
-            rpgLogger.AddLog(turnMonster->GetName() + " (이)가 " + turnMonster->GetName() + "을(를) 공격합니다! " + targetPlayer->GetName() + " 체력 : " + targetPlayer->GetName());
 
-            // 모든 플레이어가 다 죽었는지 확인
+            // 플레이어가 죽었는지 확인
+            if (targetPlayer->IsDead())
+            {
+                rpgLogger.AddLog(turnMonster->GetName() + "(이)가 " + turnMonster->GetName() + "을(를) 공격합니다! " + targetPlayer->GetName() + "(이)가 전투불능!");
+                break;
+            }
+            else
+            {
+                // TODO : 체력 부분 targetPlayer->GetName() -> targetPlayer->GetHp()로 수정
+                rpgLogger.AddLog(turnMonster->GetName() + "(이)가 " + turnMonster->GetName() + "을(를) 공격합니다! " + targetPlayer->GetName() + " 체력 : " + targetPlayer->GetName());
+            }
+
+            // 플레이어들이 다 죽었는지 확인
             if (battleManager.IsPlayersDead())
             {
                 break;
             }
+
             std::this_thread::sleep_for(std::chrono::seconds(1));  // 1초 대기
         }
 
