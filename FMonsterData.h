@@ -3,6 +3,14 @@
 #include <vector>
 #include <map>
 
+enum class EItemID;
+
+struct FDropData
+{
+    EItemID itemID;
+    int dropChance;
+};
+
 enum class EMonsterID
 {
 	NONE,
@@ -27,7 +35,6 @@ enum class EMonsterID
     //순회용 플래그
     MAX
 };
-enum class EItemID;
 
 struct FMonsterData
 {
@@ -48,7 +55,7 @@ struct FMonsterData
     int minExp; // 50
     int maxExp; // 100
 
-    std::vector<EItemID> dropItems;
+    std::vector<FDropData> dropTable;
 };
 
 // 지금 구조에서는 플레이어 레벨이 바뀌지 않으면 뒤의 몬스터들이 같은 스텟을 가짐
@@ -58,6 +65,6 @@ const std::map<EMonsterID, FMonsterData> MONSTER_MAP = {
     5, 10,  // power
     10, 20, // gold
     50, 100, // exp
-    {} // dropItems
+    {} // dropTable
     }}
 };
