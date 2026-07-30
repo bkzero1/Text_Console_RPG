@@ -1,5 +1,7 @@
 ﻿#include <iostream>
 #include <random>
+#include <thread>
+#include <chrono>
 
 #include "Monster.h"
 #include "Player.h"
@@ -60,8 +62,7 @@ void NormalBattle()
     {
         Monster* monster = monsterPool.Acquire();
         EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
-        //TODO deploy 수정 대기
-        //std::string nanori = monster->Deploy(randomMonster, avgLv);
+        std::string nanori = monster->Deploy(randomMonster, avgLv);
         //TODO 로거에 나노리 전달
         battleManager.AddMonster(monster);
     }
@@ -101,6 +102,7 @@ void NormalBattle()
             {
                 break;
             }
+            std::this_thread::sleep_for(std::chrono::seconds(1));  // 1초 대기
         }
         // 플레이어 턴 종료
         if (battleManager.IsMonstersDead())
@@ -124,13 +126,25 @@ void NormalBattle()
             {
                 break;
             }
+            std::this_thread::sleep_for(std::chrono::seconds(1));  // 1초 대기
         }
 
+        //플레이어들이 다 죽었는지 확인
         if (battleManager.IsPlayersDead())
         {
             break;
         }
     }
+
+    if (!isWin)
+    {
+        CurrentGameState = EGameState::GAME_OVER;
+        return;
+    }
+
+    //TODO 전리품 인벤토리에
+
+    battleManager.BattleEnd(isWin);
 }
 
 // 보스 전투
