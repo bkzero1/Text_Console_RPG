@@ -169,6 +169,25 @@ bool Inventory::ConsumeItem(EItemID itemID, int count)
     return true;
 }
 
+std::map<EItemID, int> Inventory::AddItems(const std::map<EItemID, int>& items)
+{
+    std::map<EItemID, int> remainingItems;  // 추가 후 남는 아이템들
+
+    // 추가할 아이템 순회하며 추가 및 남는 아이템 확인
+    for (const auto& [itemID, count] : items)
+    {
+        int remainingCount = AddItem(itemID, count);  // 아이템 추가 후 남은 아이템 개수
+
+        // 아이템이 남는 경우
+        if (remainingCount > 0)
+        {
+            remainingItems[itemID] = remainingCount;
+        }
+    }
+
+    return remainingItems;  // 남는 아이템들 반환
+}
+
 const std::vector<InventorySlot>& Inventory::GetSlots() const
 {
     return slots;

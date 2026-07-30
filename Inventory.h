@@ -32,8 +32,9 @@ class Inventory
     int GetGold() const;     // 골드 획득
     void AddGold(int gold);  // 골드 추가
 
-    int AddItem(EItemID itemID, int count = 1);       // 아이템 추가 (추가하지 못하고 남은 개수 반환)
-    bool ConsumeItem(EItemID itemID, int count = 1);  // 아이템 소모 (부족하면 false 반환, 충분하면 개수 차감 후 true 반환)
+    int AddItem(EItemID itemID, int count = 1);                            // 아이템 추가 (추가하지 못하고 남은 개수 반환)
+    bool ConsumeItem(EItemID itemID, int count = 1);                       // 아이템 소모 (부족하면 false 반환, 충분하면 개수 차감 후 true 반환)
+    std::map<EItemID, int> AddItems(const std::map<EItemID, int>& items);  // 아이템들 추가 후 남은 아이템들 반환
 
     const std::vector<InventorySlot>& GetSlots() const;  // 인벤토리 슬롯들 반환
     const InventorySlot& GetSlot(int index) const;       // 지정된 인덱스의 슬롯 반환
