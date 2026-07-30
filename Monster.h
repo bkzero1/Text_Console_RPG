@@ -16,7 +16,7 @@ class Monster
 		 
 	}
 
-	std::string Deploy(const EMonsterID& eMonsterID, int playerLevel);
+	std::string Deploy(const EMonsterID& eMonsterID, int playerLevel, bool IsBoss = false);	// 불값 기본값 false, true -> 보스
     void ShowStatus() const;
     
 	void TakeDamage(int damage);
