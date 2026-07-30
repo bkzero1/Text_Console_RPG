@@ -1,14 +1,15 @@
-﻿#include <iostream>
+﻿#include <chrono>
+#include <iostream>
 #include <random>
 #include <thread>
-#include <chrono>
 
-#include "Monster.h"
-#include "Player.h"
 #include "BattleManager.h"
-#include "MonsterPool.h"
 #include "FMonsterData.h"
 #include "RpgLogger.h"
+#include "Inventory.h"
+#include "Monster.h"
+#include "MonsterPool.h"
+#include "Player.h"
 
 // 게임 상태
 enum class EGameState
@@ -27,6 +28,8 @@ EGameState CurrentGameState = EGameState::PLAYER_INIT;
 bool IsRunning = true;
 RpgLogger rpgLogger;
 
+Inventory* inventory;  // 인벤토리
+
 // 게임 상태 전환
 void SwitchState(EGameState newGameState)
 {
@@ -36,6 +39,10 @@ void SwitchState(EGameState newGameState)
 // 캐릭터 생성
 void PlayerInit()
 {
+    // 캐릭터 생성
+
+    // 인벤토리 생성
+    inventory = new Inventory();
 }
 
 bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
@@ -172,7 +179,34 @@ void NormalBattle()
         return;
     }
 
-    //TODO 전리품 인벤토리에
+    // 전리품 인벤토리에 추가
+    inventory->AddGold(battleManager.GetEarnGold());                                            // 골드 획득
+    std::map<EItemID, int> remainingItems = inventory->AddItems(battleManager.GetEarnItems());  // 아이템 획득
+    while (!remainingItems.empty())
+    {
+        inventory->ShowInventory();
+
+        // 제거할 슬롯 번호 입력 (0: 남은 아이템 포기)
+        std::cout << "제거할 아이템 슬롯 번호 선택 (0: 남은 아이템 포기): ";
+        int slotNum;
+        std::cin >> slotNum;
+
+        // 유효하지 않은 입력
+        if (slotNum < 0 || slotNum > inventory->GetSlots().size())
+        {
+            continue;
+        }
+
+        // 남은 아이템 포기
+        if (slotNum == 0)
+        {
+            break;
+        }
+
+        // 슬롯 제거 후 다시 획득
+        inventory->RemoveSlot(slotNum - 1);
+        remainingItems = inventory->AddItems(remainingItems);
+    }
 
     battleManager.BattleEnd(isWin);
 }
@@ -273,6 +307,9 @@ void Run()
                 break;
         }
     }
+
+    // 메모리 해제
+    delete inventory;
 }
 
 int main()
