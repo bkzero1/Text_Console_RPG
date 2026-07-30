@@ -13,17 +13,7 @@ void Monster::TakeDamage(int damage)
 {
 }
 
-int Monster::GetPower() const
-{
-    return 0;
-}
-
-bool Monster::IsDead() const
-{
-    return false;
-}
-
-const std::vector<EItemID> &Monster::GetDropItems() const
+std::vector<EItemID> Monster::GetDropItems() const
 {
     // TODO: 여기에 return 문을 삽입합니다.
 }

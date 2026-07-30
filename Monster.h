@@ -20,14 +20,14 @@ class Monster
     void ShowStatus() const;
     
 	void TakeDamage(int damage);
-	int GetPower() const;
-    bool IsDead() const;
+    int GetPower() const { return power; }
+    bool IsDead() const { return (hp <= 0); }
 
-    const std::vector<EItemID>& GetDropItems() const;	// 랜덤으로 반환
+    std::vector<EItemID> GetDropItems() const;	// 랜덤으로 반환
 
-	const std::string& GetName() const;
-	int GetGold() const;
-    int GetExp() const;
+	const std::string& GetName() const { return name; }
+    int GetGold() const { return gold; }
+    int GetExp() const { return exp; }
 
 
    private:
