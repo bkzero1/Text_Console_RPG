@@ -23,8 +23,7 @@ class Monster
     int GetPower() const { return power; }
     bool IsDead() const { return (hp <= 0); }
     
-	void RollDrops();  //  실제 랜덤값으로 드롭 아이템을 결정
-    std::vector<EItemID> GetDropItems() const;	// 결정된 아이템을 반환
+    std::vector<EItemID> GetDropItems();	// 결정된 아이템을 반환
 
 	const std::string& GetName() const { return name; }
     int GetHp() const { return hp; }
@@ -45,4 +44,5 @@ class Monster
 	std::vector<FDropData> dropTable;
 	std::vector<EItemID> dropItems; // 실제 드롭 결과
 
+	void RollDrops();  //  실제 랜덤값으로 드롭 아이템을 결정
 };

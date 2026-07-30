@@ -44,10 +44,11 @@ std::string Monster::Deploy(const EMonsterID& eMonsterID, int playerLevel, bool 
         gold *= 1.5;
         exp *= 1.5;
     }
-    ShowStatus(); // 몬스터가 생성되면 몬스터의 정보 출력
+    // 몬스터 Goblin 등장 !체력 : 40, 공격력 : 8
+    std::string nanori = "몬스터 " + name + " 등장! 체력 : " + std::to_string(hp) + ", 공격력 : " + std::to_string(power);
 
     // 등장 이름을 반환
-    return name;
+    return nanori;  
 }
 
 void Monster::ShowStatus() const
@@ -89,7 +90,8 @@ void Monster::RollDrops()
     }
 }
 
-std::vector<EItemID> Monster::GetDropItems() const
+std::vector<EItemID> Monster::GetDropItems()
 {
+    RollDrops();
     return dropItems;
 }
