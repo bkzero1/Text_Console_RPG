@@ -1,9 +1,9 @@
 ﻿#pragma once
+#include "Item.h"
+
 #include <string>
 #include <vector>
 #include <map>
-
-enum class EItemID;
 
 struct FDropData
 {
@@ -59,12 +59,11 @@ struct FMonsterData
 };
 
 // 지금 구조에서는 플레이어 레벨이 바뀌지 않으면 뒤의 몬스터들이 같은 스텟을 가짐
-const std::map<EMonsterID, FMonsterData> MONSTER_MAP = {    
-    {EMonsterID::GOBLIN, FMonsterData{EMonsterID::GOBLIN, "고블린", 
-    20, 30, // hp
+const std::map<EMonsterID, FMonsterData> MONSTER_MAP = {
+    {EMonsterID::GOBLIN, FMonsterData{
+    EMonsterID::GOBLIN, "고블린", 20, 30,  // hp
     5, 10,  // power
-    10, 20, // gold
-    50, 100, // exp
-    {} // dropTable
-    }}
-};
+    10, 20,  // gold
+    50, 100,  // exp
+    {{EItemID::HP_POTION, 80}, {EItemID::POWER_POTION, 60}}  // dropTable
+}}};

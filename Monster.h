@@ -22,10 +22,12 @@ class Monster
 	void TakeDamage(int damage);
     int GetPower() const { return power; }
     bool IsDead() const { return (hp <= 0); }
-
-    std::vector<EItemID> GetDropItems() const;	// 랜덤으로 반환
+    
+	void RollDrops();  //  실제 랜덤값으로 드롭 아이템을 결정
+    std::vector<EItemID> GetDropItems() const;	// 결정된 아이템을 반환
 
 	const std::string& GetName() const { return name; }
+    int GetHp() const { return hp; }
     int GetGold() const { return gold; }
     int GetExp() const { return exp; }
 
@@ -40,6 +42,7 @@ class Monster
 	int gold;
     int exp;
 
-	std::vector<EItemID> dropItems;
+	std::vector<FDropData> dropTable;
+	std::vector<EItemID> dropItems; // 실제 드롭 결과
 
 };

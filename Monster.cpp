@@ -1,4 +1,5 @@
 ﻿#include "Monster.h"
+#include "RpgLogger.h"
 
 #include <iostream>
 #include <vector>
@@ -33,6 +34,9 @@ std::string Monster::Deploy(const EMonsterID& eMonsterID, int playerLevel, bool 
     
     gold = GetRandomInt(monsterData.minGold, monsterData.maxGold);
     exp = GetRandomInt(monsterData.minExp, monsterData.maxExp);
+
+    dropTable = monsterData.dropTable;
+
     if (IsBoss)
     {
         hp *= 1.5;
@@ -66,9 +70,26 @@ void Monster::TakeDamage(int damage)
     }
 }
 
+void Monster::RollDrops()
+{
+    dropItems.clear();
+    
+    // 아이템 드롭 자체가 발생하는지
+    if (GetRandomInt(1, 100) > 30)
+    {
+        return;
+    }
+
+    for (const FDropData& dropData : dropTable)
+    {
+        if (GetRandomInt(1, 100) <= dropData.dropChance)
+        {
+            dropItems.push_back(dropData.itemID);
+        }
+    }
+}
+
 std::vector<EItemID> Monster::GetDropItems() const
 {
-    // TODO: 여기에 return 문을 삽입합니다.
-    std::vector<EItemID> dropitems;
-    return dropitems;
+    return dropItems;
 }
