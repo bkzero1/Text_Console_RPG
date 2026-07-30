@@ -1,34 +1,68 @@
 ﻿#include "Monster.h"
 
-std::string Monster::Deploy(const FMonsterData &monsterData, int playerLevel)
+#include <iostream>
+#include <vector>
+#include <random>
+namespace
 {
-    return std::string();
+int GetRandomInt(int min, int max)
+{
+    static std::random_device randomDevice;
+    static std::mt19937 randomEngine(randomDevice());
+
+    std::uniform_int_distribution<int> distribution(min, max);
+
+    return distribution(randomEngine);
+}
+}  // namespace
+
+std::string Monster::Deploy(const EMonsterID& eMonsterID, int playerLevel)
+{
+    // MONSTER_MAP에서 eMonsterID에 맞는 설계도를 찾음
+    const FMonsterData& monsterData = MONSTER_MAP.at(eMonsterID);
+
+    // 찾은 설계도의 id와 name을
+    // Monster 멤버 변수 id, name에 저장
+    id = monsterData.id;
+    name = monsterData.name;
+
+    // 설계도의 HP 범위와 playerLevel을 사용해 이번 몬스터의 스탯을 랜덤으로 결정
+    hp = playerLevel * GetRandomInt(monsterData.minHpMulti, monsterData.maxHpMulti);
+    
+    power = playerLevel * GetRandomInt(monsterData.minPowerMulti, monsterData.maxPowerMulti);
+    
+    gold = GetRandomInt(monsterData.minGold, monsterData.maxGold);
+    exp = GetRandomInt(monsterData.minExp, monsterData.maxExp);
+
+    ShowStatus(); // 몬스터가 생성되면 몬스터의 정보 출력
+
+    // 등장 이름을 반환
+    return name;
 }
 
 void Monster::ShowStatus() const
 {
+    std::cout << name << " 등장!" << std::endl;
+    std::cout << "[ 몬스터 스탯 ] " << std::endl
+              //<< "ID: " << static_cast<int>(id) << " " << std::endl
+              << "이름: " << name << std::endl
+              << "체력: " << hp
+              << " | 공격력: " << power << std::endl;
 }
 
 void Monster::TakeDamage(int damage)
 {
+    hp -= damage;
+
+    if (hp <= 0)
+    {
+        hp = 0;
+    }
 }
 
 std::vector<EItemID> Monster::GetDropItems() const
 {
     // TODO: 여기에 return 문을 삽입합니다.
-}
-
-const std::string &Monster::GetName() const
-{
-    // TODO: 여기에 return 문을 삽입합니다.
-}
-
-int Monster::GetGold() const
-{
-    return 0;
-}
-
-int Monster::GetExp() const
-{
-    return 0;
+    std::vector<EItemID> dropitems;
+    return dropitems;
 }

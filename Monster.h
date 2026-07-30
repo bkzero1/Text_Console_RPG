@@ -16,7 +16,7 @@ class Monster
 		 
 	}
 
-	std::string Deploy(const FMonsterData& monsterData, int playerLevel);
+	std::string Deploy(const EMonsterID& eMonsterID, int playerLevel);
     void ShowStatus() const;
     
 	void TakeDamage(int damage);
