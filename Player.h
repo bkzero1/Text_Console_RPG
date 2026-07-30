@@ -22,6 +22,8 @@ class Player
 
     void TakeDamage(int damage);  // 피격
     int GetPower();
+    int GetHpMax();  // 최대 체력 얻기
+    int GetHp();     // 현재 체력 얻기
 
     void ShowStatus();  // 정보 출력
 
