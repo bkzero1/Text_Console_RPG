@@ -7,9 +7,9 @@
 
 enum class EInventorySortKey
 {
-    NAME,
-    COUNT,
-    PRICE,
+    NAME,   // 이름
+    COUNT,  // 개수
+    PRICE,  // 가격
 };
 
 class Inventory
@@ -29,8 +29,8 @@ class Inventory
    public:
     Inventory();
 
-    int GetGold() const;
-    void AddGold(int gold);
+    int GetGold() const;     // 골드 획득
+    void AddGold(int gold);  // 골드 추가
 
     int AddItem(EItemID itemID, int count = 1);       // 아이템 추가 (추가하지 못하고 남은 개수 반환)
     bool ConsumeItem(EItemID itemID, int count = 1);  // 아이템 소모 (부족하면 false 반환, 충분하면 개수 차감 후 true 반환)
