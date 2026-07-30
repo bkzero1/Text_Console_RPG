@@ -67,8 +67,70 @@ void NormalBattle()
         battleManager.AddMonster(monster);
     }
 
+    bool isWin = BattlePhase(battleManager, monsterPool);
+
+    if (!isWin)
+    {
+        CurrentGameState = EGameState::GAME_OVER;
+        return;
+    }
+
+    //TODO 전리품 인벤토리에
+
+    battleManager.BattleEnd(isWin);
+}
+
+// 보스 전투
+void BossBattle()
+{
+    BattleManager battleManager = BattleManager();
+    MonsterPool monsterPool = MonsterPool();
+    // TODO 플레이어들 추가
+    // battleManager.AddPlayer();
+
+    // TODO 플레이어들 레벨 평균 값으로 바꿀 것
+    int avgLv = 5;
+
+    int monsterCount = 1;
+
+    // 랜덤 준비
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    // ENum에서 랜덤 값 가져오기 위한 준비
+    std::uniform_int_distribution<int> deployDist(
+        0,
+        static_cast<int>(EMonsterID::MAX) - 1);
+
+    for (int i = 0; i < monsterCount; i++)
+    {
+        Monster* monster = monsterPool.Acquire();
+        EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
+        std::string nanori = monster->Deploy(randomMonster, avgLv, true);
+        // TODO 로거에 나노리 전달
+        battleManager.AddMonster(monster);
+    }
+
+    bool isWin = BattlePhase(battleManager, monsterPool);
+
+    if (!isWin)
+    {
+        CurrentGameState = EGameState::GAME_OVER;
+        return;
+    }
+    else 
+    {
+        CurrentGameState = EGameState::GAME_CLEAR;
+        return;
+    }
+}
+
+bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
+{
     std::set<Player*> buffedPlayer;
     bool isWin = false;
+    // 랜덤 준비
+    std::random_device rd;
+    std::mt19937 gen(rd());
     while (true)
     {
         // 플레이어 턴 시작
@@ -78,11 +140,11 @@ void NormalBattle()
             Player* turnPlayer = turnPlayers[i];
             if (turnPlayer->GetMissingHP())
             {
-                //TODO : 인벤토리에 HP 포션 있는지 확인
+                // TODO : 인벤토리에 HP 포션 있는지 확인
             }
             else if (0)
             {
-                //인벤토리에 강화 물약이 있고, 강화 하지 않았다면
+                // 인벤토리에 강화 물약이 있고, 강화 하지 않았다면
                 buffedPlayer.insert(turnPlayer);
             }
             else
@@ -97,7 +159,7 @@ void NormalBattle()
                 }
             }
 
-            //모든 몬스터가 다 죽었는지 확인
+            // 모든 몬스터가 다 죽었는지 확인
             if (battleManager.IsMonstersDead())
             {
                 break;
@@ -111,8 +173,7 @@ void NormalBattle()
             break;
         }
 
-
-        //몬스터 턴 시작
+        // 몬스터 턴 시작
         std::vector<Monster*> turnMonsters = battleManager.GetLivingMonsters();
         for (int i = 0; i < turnMonsters.size(); i++)
         {
@@ -129,27 +190,13 @@ void NormalBattle()
             std::this_thread::sleep_for(std::chrono::seconds(1));  // 1초 대기
         }
 
-        //플레이어들이 다 죽었는지 확인
+        // 플레이어들이 다 죽었는지 확인
         if (battleManager.IsPlayersDead())
         {
             break;
         }
     }
-
-    if (!isWin)
-    {
-        CurrentGameState = EGameState::GAME_OVER;
-        return;
-    }
-
-    //TODO 전리품 인벤토리에
-
-    battleManager.BattleEnd(isWin);
-}
-
-// 보스 전투
-void BossBattle()
-{
+    return isWin;
 }
 
 // 메인 메뉴
