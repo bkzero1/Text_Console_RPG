@@ -67,6 +67,8 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
                 std::uniform_int_distribution<int> monsterDist(0, monster.size() - 1);
                 Monster* targetMonster = monster[monsterDist(gen)];
                 battleManager.PlayerHitMonster(targetMonster, turnPlayer->GetPower());
+                // TODO : 체력 부분 targetMonster->GetName() -> targetMonster->GetHp()로 수정
+                rpgLogger.AddLog(turnPlayer->GetName() + " (이)가 " + targetMonster->GetName() + "을(를) 공격합니다! " + targetMonster->GetName() + " 체력 : " + targetMonster->GetName());
                 if (targetMonster->IsDead())
                 {
                     monsterPool.Release(targetMonster);
@@ -92,9 +94,12 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
         for (int i = 0; i < turnMonsters.size(); i++)
         {
             Monster* turnMonster = turnMonsters[i];
-            std::vector<Player*> monster = battleManager.GetLivingPlayers();
-            std::uniform_int_distribution<int> monsterDist(0, monster.size() - 1);
-            battleManager.MonsterHitPlayer(monster[monsterDist(gen)], turnMonster->GetPower());
+            std::vector<Player*> players = battleManager.GetLivingPlayers();
+            std::uniform_int_distribution<int> monsterDist(0, players.size() - 1);
+            Player* targetPlayer = players[monsterDist(gen)];
+            battleManager.MonsterHitPlayer(targetPlayer, turnMonster->GetPower());
+            //TODO : 체력 부분 targetPlayer->GetName() -> targetPlayer->GetHp()로 수정
+            rpgLogger.AddLog(turnMonster->GetName() + " (이)가 " + turnMonster->GetName() + "을(를) 공격합니다! " + targetPlayer->GetName() + " 체력 : " + targetPlayer->GetName());
 
             // 모든 플레이어가 다 죽었는지 확인
             if (battleManager.IsPlayersDead())
@@ -140,7 +145,7 @@ void NormalBattle()
         Monster* monster = monsterPool.Acquire();
         EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
         std::string nanori = monster->Deploy(randomMonster, avgLv);
-        //TODO 로거에 나노리 전달
+        rpgLogger.AddLog(nanori);
         battleManager.AddMonster(monster);
     }
 
@@ -183,7 +188,7 @@ void BossBattle()
         Monster* monster = monsterPool.Acquire();
         EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
         std::string nanori = monster->Deploy(randomMonster, avgLv, true);
-        // TODO 로거에 나노리 전달
+        rpgLogger.AddLog(nanori);
         battleManager.AddMonster(monster);
     }
 
