@@ -126,6 +126,7 @@
   <ItemGroup>
     <ClInclude Include="BattleManager.h" />
     <ClInclude Include="Crafter.h" />
+    <ClInclude Include="CraftingRecipe.h" />
     <ClInclude Include="MonsterPool.h" />
     <ClInclude Include="FMonsterData.h" />
     <ClInclude Include="Monster.h" />
@@ -139,6 +140,7 @@
   <ItemGroup>
     <ClCompile Include="BattleManager.cpp" />
     <ClCompile Include="Crafter.cpp" />
+    <ClCompile Include="CraftingRecipe.cpp" />
     <ClCompile Include="MonsterPool.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Monster.cpp" />
