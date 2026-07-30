@@ -147,7 +147,33 @@ void NormalBattle()
         return;
     }
 
-    // TODO 전리품 인벤토리에
+    // 전리품 인벤토리에 추가
+    inventory->AddGold(battleManager.GetEarnGold());                                            // 골드 획득
+    std::map<EItemID, int> remainingItems = inventory->AddItems(battleManager.GetEarnItems());  // 아이템 획득
+    while (!remainingItems.empty())
+    {
+        inventory->ShowInventory();
+
+        // 제거할 슬롯 번호 입력 (0: 남은 아이템 포기)
+        std::cout << "제거할 아이템 슬롯 번호 선택 (0: 남은 아이템 포기): ";
+        int slotNum;
+        std::cin >> slotNum;
+
+        // 유효하지 않은 입력
+        if (slotNum < 0 || slotNum > inventory->GetSlots().size())
+        {
+            continue;
+        }
+
+        // 남은 아이템 포기
+        if (slotNum == 0)
+        {
+            break;
+        }
+
+        // 슬롯 제거 후 다시 획득
+        remainingItems = inventory->AddItems(remainingItems);
+    }
 
     battleManager.BattleEnd(isWin);
 }
