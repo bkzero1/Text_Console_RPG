@@ -27,6 +27,16 @@ void BattleManager::AddMonster(Monster* monster)
             return;
         }
     }
+
+    //nullPtr인 곳(몬스터가 죽어서 빈 공간인 곳)이 있으면 거기에 할당
+    for (int i = 0; i < monsters.size(); i++)
+    {
+        if (!monsters[i])
+        {
+            monsters[i] = monster;
+            return;
+        }
+    }
     monsters.push_back(monster);
 }
 
@@ -51,8 +61,7 @@ bool BattleManager::IsMonstersDead() const
 {
     for (int i = 0; i < monsters.size(); i++)
     {
-        //ToDo : IsDead로 변경
-        if (!monsters[i]->IsDead())
+        if (monsters[i] && !monsters[i]->IsDead())
         {
             return false;
         }
@@ -98,6 +107,17 @@ void BattleManager::PlayerHitMonster(Monster* target, int damage)
             itr->second++;
         }
     }
+
+    for (int i = 0; i < monsters.size(); i++)
+    {
+        if (monsters[i] != target)
+        {
+            continue;
+        }
+
+        monsters[i] = nullptr;
+        break;
+    }
 }
 
 void BattleManager::MonsterHitPlayer(Player* target, int damage)
@@ -105,14 +125,32 @@ void BattleManager::MonsterHitPlayer(Player* target, int damage)
     target->TakeDamage(damage);
 }
 
-std::vector<Player*> BattleManager::GetPlayers()
+std::vector<Player*> BattleManager::GetLivingPlayers() const
 {
-    return players;
+    vector<Player*> livingPlayers;
+    for (int i = 0; i < players.size(); i++)
+    {
+        if (players[i]->IsDead())
+        {
+            continue;
+        }
+        livingPlayers.push_back(players[i]);
+    }
+    return livingPlayers;
 }
 
-std::vector<Monster*> BattleManager::GetMonsters()
+std::vector<Monster*> BattleManager::GetLivingMonsters() const
 {
-    return monsters;
+    vector<Monster*> livingMonsters;
+    for (int i = 0; i < monsters.size(); i++)
+    {
+        if (!monsters[i] || monsters[i]->IsDead())
+        {
+            continue;
+        }
+        livingMonsters.push_back(monsters[i]);
+    }
+    return livingMonsters;
 }
 
 int BattleManager::GetEarnGold() const
