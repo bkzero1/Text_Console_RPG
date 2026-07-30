@@ -1,13 +1,14 @@
-﻿#include <iostream>
+﻿#include <chrono>
+#include <iostream>
 #include <random>
 #include <thread>
-#include <chrono>
 
-#include "Monster.h"
-#include "Player.h"
 #include "BattleManager.h"
-#include "MonsterPool.h"
 #include "FMonsterData.h"
+#include "Inventory.h"
+#include "Monster.h"
+#include "MonsterPool.h"
+#include "Player.h"
 
 // 게임 상태
 enum class EGameState
@@ -25,6 +26,8 @@ enum class EGameState
 EGameState CurrentGameState = EGameState::PLAYER_INIT;
 bool IsRunning = true;
 
+Inventory* inventory;  // 인벤토리
+
 // 게임 상태 전환
 void SwitchState(EGameState newGameState)
 {
@@ -34,6 +37,10 @@ void SwitchState(EGameState newGameState)
 // 캐릭터 생성
 void PlayerInit()
 {
+    // 캐릭터 생성
+
+    // 인벤토리 생성
+    inventory = new Inventory();
 }
 
 // 일반 전투
@@ -41,29 +48,28 @@ void NormalBattle()
 {
     BattleManager battleManager = BattleManager();
     MonsterPool monsterPool = MonsterPool();
-    //TODO 플레이어들 추가
-    //battleManager.AddPlayer();
+    // TODO 플레이어들 추가
+    // battleManager.AddPlayer();
 
-    //TODO 플레이어들 레벨 평균 값으로 바꿀 것
+    // TODO 플레이어들 레벨 평균 값으로 바꿀 것
     int avgLv = 5;
 
     int monsterCount = std::max(1, avgLv / 2);
 
-    //랜덤 준비
+    // 랜덤 준비
     std::random_device rd;
     std::mt19937 gen(rd());
-    //ENum에서 랜덤 값 가져오기 위한 준비
+    // ENum에서 랜덤 값 가져오기 위한 준비
     std::uniform_int_distribution<int> deployDist(
         0,
         static_cast<int>(EMonsterID::MAX) - 1);
-
 
     for (int i = 0; i < monsterCount; i++)
     {
         Monster* monster = monsterPool.Acquire();
         EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
         std::string nanori = monster->Deploy(randomMonster, avgLv);
-        //TODO 로거에 나노리 전달
+        // TODO 로거에 나노리 전달
         battleManager.AddMonster(monster);
     }
 
@@ -78,11 +84,11 @@ void NormalBattle()
             Player* turnPlayer = turnPlayers[i];
             if (turnPlayer->GetMissingHP())
             {
-                //TODO : 인벤토리에 HP 포션 있는지 확인
+                // TODO : 인벤토리에 HP 포션 있는지 확인
             }
             else if (0)
             {
-                //인벤토리에 강화 물약이 있고, 강화 하지 않았다면
+                // 인벤토리에 강화 물약이 있고, 강화 하지 않았다면
                 buffedPlayer.insert(turnPlayer);
             }
             else
@@ -97,7 +103,7 @@ void NormalBattle()
                 }
             }
 
-            //모든 몬스터가 다 죽었는지 확인
+            // 모든 몬스터가 다 죽었는지 확인
             if (battleManager.IsMonstersDead())
             {
                 break;
@@ -111,8 +117,7 @@ void NormalBattle()
             break;
         }
 
-
-        //몬스터 턴 시작
+        // 몬스터 턴 시작
         std::vector<Monster*> turnMonsters = battleManager.GetLivingMonsters();
         for (int i = 0; i < turnMonsters.size(); i++)
         {
@@ -129,7 +134,7 @@ void NormalBattle()
             std::this_thread::sleep_for(std::chrono::seconds(1));  // 1초 대기
         }
 
-        //플레이어들이 다 죽었는지 확인
+        // 플레이어들이 다 죽었는지 확인
         if (battleManager.IsPlayersDead())
         {
             break;
@@ -142,7 +147,7 @@ void NormalBattle()
         return;
     }
 
-    //TODO 전리품 인벤토리에
+    // TODO 전리품 인벤토리에
 
     battleManager.BattleEnd(isWin);
 }
@@ -204,6 +209,9 @@ void Run()
                 break;
         }
     }
+
+    // 메모리 해제
+    delete inventory;
 }
 
 int main()
