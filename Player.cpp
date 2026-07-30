@@ -8,6 +8,7 @@ Player::Player(const string& playerName)
 {
 }
 
+
 string Player::GetName()  // 이름 얻기
 {
     return name;
