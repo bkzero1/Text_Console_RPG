@@ -2,6 +2,7 @@
 #include "Item.h"
 #include "Player.h"
 #include "Monster.h"
+#include "Item.h"
 
 void BattleManager::AddPlayer(Player* player)
 {
@@ -52,7 +53,7 @@ bool BattleManager::IsMonstersDead() const
     for (int i = 0; i < monsters.size(); i++)
     {
         //ToDo : IsDead로 변경
-        if (monsters[i])
+        if (!monsters[i]->IsDead())
         {
             return false;
         }
@@ -76,15 +77,33 @@ bool BattleManager::IsPlayersDead() const
 
 void BattleManager::PlayerHitMonster(Monster* target, int damage)
 {
-    //1. 데미지 준다
-    //2. 몬스터 사망 확인
-    //3. 몬스터의 드랍 아이템과 골드를 적립한다
-    //4. 킬 카운트를 높인다.
+    target->TakeDamage(damage);
+    if (!target->IsDead())
+    {
+        return;
+    }
+    earnGold += target->GetGold();
+
+    std::vector<EItemID> dropItem = target->GetDropItems();
+
+    for (int i = 0; i < dropItem.size(); i++)
+    {
+        EItemID item = dropItem[i];
+        auto itr = earnItems.find(item);
+        if (itr == earnItems.end())
+        {
+            earnItems.insert({item, 1});
+        }
+        else
+        {
+            itr->second++;
+        }
+    }
 }
 
 void BattleManager::MonsterHitPlayer(Player* target, int damage)
 {
-    //1. 데미지를 준다
+    target->TakeDamage(damage);
 }
 
 int BattleManager::GetEarnGold() const
