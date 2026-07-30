@@ -16,7 +16,7 @@ int GetRandomInt(int min, int max)
 }
 }  // namespace
 
-std::string Monster::Deploy(const EMonsterID& eMonsterID, int playerLevel)
+std::string Monster::Deploy(const EMonsterID& eMonsterID, int playerLevel, bool IsBoss)
 {
     // MONSTER_MAP에서 eMonsterID에 맞는 설계도를 찾음
     const FMonsterData& monsterData = MONSTER_MAP.at(eMonsterID);
@@ -33,7 +33,13 @@ std::string Monster::Deploy(const EMonsterID& eMonsterID, int playerLevel)
     
     gold = GetRandomInt(monsterData.minGold, monsterData.maxGold);
     exp = GetRandomInt(monsterData.minExp, monsterData.maxExp);
-
+    if (IsBoss)
+    {
+        hp *= 1.5;
+        power *= 1.5;
+        gold *= 1.5;
+        exp *= 1.5;
+    }
     ShowStatus(); // 몬스터가 생성되면 몬스터의 정보 출력
 
     // 등장 이름을 반환
