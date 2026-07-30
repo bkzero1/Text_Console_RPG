@@ -14,6 +14,7 @@ public:
 
 	Monster* Acquire();
     void Release(Monster* monster);
+    void Shrink(int poolSize);
 
 private:
 	std::stack<Monster*> monsterStack;
