@@ -30,6 +30,7 @@ void Player::AddExp(int exp)  // 경험치 추가
     }
 }
 
+
 void Player::TakeDamage(int damage)  // 피격
 {
     hp -= damage;
