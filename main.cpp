@@ -172,6 +172,7 @@ void NormalBattle()
         }
 
         // 슬롯 제거 후 다시 획득
+        inventory->RemoveSlot(slotNum - 1);
         remainingItems = inventory->AddItems(remainingItems);
     }
 
