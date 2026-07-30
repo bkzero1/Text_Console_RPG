@@ -22,7 +22,10 @@ enum class EMonsterID
     DRACULA,
 
     // 보스급
-    RED_DRAGON
+    RED_DRAGON,
+    
+    //순회용 플래그
+    MAX
 };
 enum class EItemID;
 
