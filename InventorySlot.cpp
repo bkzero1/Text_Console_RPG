@@ -10,6 +10,12 @@ bool InventorySlot::IsEmpty() const
     return id == EItemID::NONE || count == 0;
 }
 
+void InventorySlot::Clear()
+{
+    id == EItemID::NONE;
+    count == 0;
+}
+
 bool InventorySlot::COMPARE_BY_NAME(const InventorySlot &slot1, const InventorySlot &slot2)
 {
     const std::string &name1 = ITEM_TABLE.at(slot1.id).name;

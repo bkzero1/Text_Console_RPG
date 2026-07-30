@@ -9,7 +9,8 @@ struct InventorySlot
 
     InventorySlot(EItemID id, int count = 1);
 
-    bool IsEmpty() const;
+    bool IsEmpty() const;  // 빈 슬롯 여부 반환
+    void Clear();          // 슬롯 클리어
 
     static bool COMPARE_BY_NAME(const InventorySlot& slot1, const InventorySlot& slot2);   // 이름
     static bool COMPARE_BY_COUNT(const InventorySlot& slot1, const InventorySlot& slot2);  // 개수
