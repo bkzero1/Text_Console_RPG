@@ -36,6 +36,81 @@ void PlayerInit()
 {
 }
 
+bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
+{
+    std::set<Player*> buffedPlayer;
+    bool isWin = false;
+    // 랜덤 준비
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    while (true)
+    {
+        // 플레이어 턴 시작
+        std::vector<Player*> turnPlayers = battleManager.GetLivingPlayers();
+        for (int i = 0; i < turnPlayers.size(); i++)
+        {
+            Player* turnPlayer = turnPlayers[i];
+            if (turnPlayer->GetMissingHP())
+            {
+                // TODO : 인벤토리에 HP 포션 있는지 확인
+            }
+            else if (0)
+            {
+                // 인벤토리에 강화 물약이 있고, 강화 하지 않았다면
+                buffedPlayer.insert(turnPlayer);
+            }
+            else
+            {
+                std::vector<Monster*> monster = battleManager.GetLivingMonsters();
+                std::uniform_int_distribution<int> monsterDist(0, monster.size() - 1);
+                Monster* targetMonster = monster[monsterDist(gen)];
+                battleManager.PlayerHitMonster(targetMonster, turnPlayer->GetPower());
+                if (targetMonster->IsDead())
+                {
+                    monsterPool.Release(targetMonster);
+                }
+            }
+
+            // 모든 몬스터가 다 죽었는지 확인
+            if (battleManager.IsMonstersDead())
+            {
+                break;
+            }
+            std::this_thread::sleep_for(std::chrono::seconds(1));  // 1초 대기
+        }
+        // 플레이어 턴 종료
+        if (battleManager.IsMonstersDead())
+        {
+            isWin = true;
+            break;
+        }
+
+        // 몬스터 턴 시작
+        std::vector<Monster*> turnMonsters = battleManager.GetLivingMonsters();
+        for (int i = 0; i < turnMonsters.size(); i++)
+        {
+            Monster* turnMonster = turnMonsters[i];
+            std::vector<Player*> monster = battleManager.GetLivingPlayers();
+            std::uniform_int_distribution<int> monsterDist(0, monster.size() - 1);
+            battleManager.MonsterHitPlayer(monster[monsterDist(gen)], turnMonster->GetPower());
+
+            // 모든 플레이어가 다 죽었는지 확인
+            if (battleManager.IsPlayersDead())
+            {
+                break;
+            }
+            std::this_thread::sleep_for(std::chrono::seconds(1));  // 1초 대기
+        }
+
+        // 플레이어들이 다 죽었는지 확인
+        if (battleManager.IsPlayersDead())
+        {
+            break;
+        }
+    }
+    return isWin;
+}
+
 // 일반 전투
 void NormalBattle()
 {
@@ -122,81 +197,6 @@ void BossBattle()
         CurrentGameState = EGameState::GAME_CLEAR;
         return;
     }
-}
-
-bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
-{
-    std::set<Player*> buffedPlayer;
-    bool isWin = false;
-    // 랜덤 준비
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    while (true)
-    {
-        // 플레이어 턴 시작
-        std::vector<Player*> turnPlayers = battleManager.GetLivingPlayers();
-        for (int i = 0; i < turnPlayers.size(); i++)
-        {
-            Player* turnPlayer = turnPlayers[i];
-            if (turnPlayer->GetMissingHP())
-            {
-                // TODO : 인벤토리에 HP 포션 있는지 확인
-            }
-            else if (0)
-            {
-                // 인벤토리에 강화 물약이 있고, 강화 하지 않았다면
-                buffedPlayer.insert(turnPlayer);
-            }
-            else
-            {
-                std::vector<Monster*> monster = battleManager.GetLivingMonsters();
-                std::uniform_int_distribution<int> monsterDist(0, monster.size() - 1);
-                Monster* targetMonster = monster[monsterDist(gen)];
-                battleManager.PlayerHitMonster(targetMonster, turnPlayer->GetPower());
-                if (targetMonster->IsDead())
-                {
-                    monsterPool.Release(targetMonster);
-                }
-            }
-
-            // 모든 몬스터가 다 죽었는지 확인
-            if (battleManager.IsMonstersDead())
-            {
-                break;
-            }
-            std::this_thread::sleep_for(std::chrono::seconds(1));  // 1초 대기
-        }
-        // 플레이어 턴 종료
-        if (battleManager.IsMonstersDead())
-        {
-            isWin = true;
-            break;
-        }
-
-        // 몬스터 턴 시작
-        std::vector<Monster*> turnMonsters = battleManager.GetLivingMonsters();
-        for (int i = 0; i < turnMonsters.size(); i++)
-        {
-            Monster* turnMonster = turnMonsters[i];
-            std::vector<Player*> monster = battleManager.GetLivingPlayers();
-            std::uniform_int_distribution<int> monsterDist(0, monster.size() - 1);
-            battleManager.MonsterHitPlayer(monster[monsterDist(gen)], turnMonster->GetPower());
-
-            // 모든 플레이어가 다 죽었는지 확인
-            if (battleManager.IsPlayersDead())
-            {
-                break;
-            }
-            std::this_thread::sleep_for(std::chrono::seconds(1));  // 1초 대기
-        }
-
-        // 플레이어들이 다 죽었는지 확인
-        if (battleManager.IsPlayersDead())
-        {
-            break;
-        }
-    }
-    return isWin;
 }
 
 // 메인 메뉴
