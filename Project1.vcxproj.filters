@@ -58,7 +58,7 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Monster.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>소스 파일\Monster</Filter>
     </ClCompile>
     <ClCompile Include="Item.cpp">
       <Filter>소스 파일\Item</Filter>
@@ -90,7 +90,7 @@
       <Filter>헤더 파일\Monster</Filter>
     </ClInclude>
     <ClInclude Include="FMonsterData.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>헤더 파일\Monster</Filter>
     </ClInclude>
     <ClInclude Include="Item.h">
       <Filter>헤더 파일\Item</Filter>
@@ -108,7 +108,7 @@
       <Filter>헤더 파일\Player</Filter>
     </ClInclude>
     <ClInclude Include="MonsterPool.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>헤더 파일\BattlePhase</Filter>
     </ClInclude>
     <ClInclude Include="RpgLogger.h">
       <Filter>헤더 파일\RpgLogger</Filter>
