@@ -2,7 +2,6 @@
 #include "Item.h"
 #include "Player.h"
 #include "Monster.h"
-#include "Item.h"
 
 void BattleManager::AddPlayer(Player* player)
 {
@@ -104,6 +103,16 @@ void BattleManager::PlayerHitMonster(Monster* target, int damage)
 void BattleManager::MonsterHitPlayer(Player* target, int damage)
 {
     target->TakeDamage(damage);
+}
+
+std::vector<Player*> BattleManager::GetPlayers()
+{
+    return players;
+}
+
+std::vector<Monster*> BattleManager::GetMonsters()
+{
+    return monsters;
 }
 
 int BattleManager::GetEarnGold() const

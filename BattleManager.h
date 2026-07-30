@@ -24,6 +24,9 @@ public:
 	void PlayerHitMonster(Monster* target, int damage);
     void MonsterHitPlayer(Player* target, int damage);
 
+	std::vector<Player*> GetPlayers();
+    std::vector<Monster*> GetMonsters();
+
 	int GetEarnGold() const;
 	std::map<EItemID, int> GetEarnItems() const;
 
