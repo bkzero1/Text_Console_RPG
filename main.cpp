@@ -82,7 +82,7 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
                 else
                 {
                     // TODO : 체력 부분 targetMonster->GetName() -> targetMonster->GetHp()로 수정
-                    rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + targetMonster->GetName() + "을(를) 공격합니다! " + targetMonster->GetName() + " 체력 : " + targetMonster->GetName());
+                    rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + targetMonster->GetName() + "을(를) 공격합니다! " + targetMonster->GetName() + " 체력 : " + to_string(targetMonster->GetHp()));
                 }
             }
 
@@ -119,7 +119,7 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
             else
             {
                 // TODO : 체력 부분 targetPlayer->GetName() -> targetPlayer->GetHp()로 수정
-                rpgLogger.AddLog(turnMonster->GetName() + "(이)가 " + turnMonster->GetName() + "을(를) 공격합니다! " + targetPlayer->GetName() + " 체력 : " + targetPlayer->GetName());
+                rpgLogger.AddLog(turnMonster->GetName() + "(이)가 " + turnMonster->GetName() + "을(를) 공격합니다! " + targetPlayer->GetName() + " 체력 : " + to_string(targetPlayer->GetHp()));
             }
 
             // 플레이어들이 다 죽었는지 확인
