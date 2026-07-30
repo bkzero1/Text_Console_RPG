@@ -65,8 +65,7 @@ bool BattleManager::IsPlayersDead() const
 {
     for (int i = 0; i < players.size(); i++)
     {
-        //ToDo : IsDead로 변경
-        if (players[i])
+        if (!players[i]->IsDead())
         {
             return false;
         }
