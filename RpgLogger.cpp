@@ -68,7 +68,7 @@ void TestRpgLogger()
     logger.AddLog("플레이어가 몬스터를 공격합니다!");
     logger.AddLog("몬스터가 플레이어를 공격합니다!");
     logger.AddLog("플레이어가 몬스터를 공격합니다!");
-    logger.AddLog("플레이어가 몬스터를 처치했습니다~!!");
+    logger.AddLog("플레이어가 몬스터를 처치했습니다~!!!");
     logger.OnMonsterKilled(Test::EMonsterID::GOBLIN);
 
     logger.ShowLogs();
