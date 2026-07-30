@@ -31,6 +31,8 @@ struct FMonsterData
     EMonsterID id;
     std::string name;
 
+    // 최소값만 넘기고 디플로이 함수에서 내가 변경해도 됨
+    // 기본값 +@ 형태도 디플로이에서 정의하면 됨
     int minHpMulti; // 20
     int maxHpMulti; // 30
 
