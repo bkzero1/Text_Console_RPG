@@ -27,6 +27,16 @@ void BattleManager::AddMonster(Monster* monster)
             return;
         }
     }
+
+    //nullPtr인 곳(몬스터가 죽어서 빈 공간인 곳)이 있으면 거기에 할당
+    for (int i = 0; i < monsters.size(); i++)
+    {
+        if (!monsters[i])
+        {
+            monsters[i] = monster;
+            return;
+        }
+    }
     monsters.push_back(monster);
 }
 
@@ -51,8 +61,7 @@ bool BattleManager::IsMonstersDead() const
 {
     for (int i = 0; i < monsters.size(); i++)
     {
-        //ToDo : IsDead로 변경
-        if (monsters[i])
+        if (monsters[i] && !monsters[i]->IsDead())
         {
             return false;
         }
@@ -76,15 +85,72 @@ bool BattleManager::IsPlayersDead() const
 
 void BattleManager::PlayerHitMonster(Monster* target, int damage)
 {
-    //1. 데미지 준다
-    //2. 몬스터 사망 확인
-    //3. 몬스터의 드랍 아이템과 골드를 적립한다
-    //4. 킬 카운트를 높인다.
+    target->TakeDamage(damage);
+    if (!target->IsDead())
+    {
+        return;
+    }
+    earnGold += target->GetGold();
+
+    std::vector<EItemID> dropItem = target->GetDropItems();
+
+    for (int i = 0; i < dropItem.size(); i++)
+    {
+        EItemID item = dropItem[i];
+        auto itr = earnItems.find(item);
+        if (itr == earnItems.end())
+        {
+            earnItems.insert({item, 1});
+        }
+        else
+        {
+            itr->second++;
+        }
+    }
+
+    for (int i = 0; i < monsters.size(); i++)
+    {
+        if (monsters[i] != target)
+        {
+            continue;
+        }
+
+        monsters[i] = nullptr;
+        break;
+    }
 }
 
 void BattleManager::MonsterHitPlayer(Player* target, int damage)
 {
-    //1. 데미지를 준다
+    target->TakeDamage(damage);
+}
+
+std::vector<Player*> BattleManager::GetLivingPlayers() const
+{
+    vector<Player*> livingPlayers;
+    for (int i = 0; i < players.size(); i++)
+    {
+        if (players[i]->IsDead())
+        {
+            continue;
+        }
+        livingPlayers.push_back(players[i]);
+    }
+    return livingPlayers;
+}
+
+std::vector<Monster*> BattleManager::GetLivingMonsters() const
+{
+    vector<Monster*> livingMonsters;
+    for (int i = 0; i < monsters.size(); i++)
+    {
+        if (!monsters[i] || monsters[i]->IsDead())
+        {
+            continue;
+        }
+        livingMonsters.push_back(monsters[i]);
+    }
+    return livingMonsters;
 }
 
 int BattleManager::GetEarnGold() const

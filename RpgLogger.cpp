@@ -2,19 +2,6 @@
 
 #include <iostream>
 
-// 임시 작성
-namespace Test
-{
-enum class EMonsterID
-{
-    NONE,
-    GOBLIN,
-    ORC
-};
-std::map<EMonsterID, std::string> convertMonsterString = {
-    {EMonsterID::NONE, "NONE"}, {EMonsterID::GOBLIN, "GOBLIN"}, {EMonsterID::ORC, "ORK"}};
-}  // namespace Test
-
 void RpgLogger::ShowLogs() const
 {
     std::cout << "------------- Recent Logs -------------" << std::endl;
@@ -35,7 +22,7 @@ void RpgLogger::ShowKillLogs() const
 
     for (auto& [key, value] : killCounts)
     {
-        std::cout << Test::convertMonsterString.at(key) << "을 " << value << "마리 처치하였습니다." << std::endl;
+        std::cout << MONSTER_MAP.at(key).name << "을 " << value << "마리 처치하였습니다." << std::endl;
     }
 
     std::cout << "----------------------------------------------" << std::endl;
@@ -53,7 +40,7 @@ void RpgLogger::AddLog(std::string log)
     std::cout << log << std::endl;
 }
 
-void RpgLogger::OnMonsterKilled(Test::EMonsterID id)
+void RpgLogger::OnMonsterKilled(EMonsterID id)
 {
     killCounts[id]++;
 }
@@ -69,7 +56,8 @@ void TestRpgLogger()
     logger.AddLog("몬스터가 플레이어를 공격합니다!");
     logger.AddLog("플레이어가 몬스터를 공격합니다!");
     logger.AddLog("플레이어가 몬스터를 처치했습니다~!!!");
-    logger.OnMonsterKilled(Test::EMonsterID::GOBLIN);
+    logger.OnMonsterKilled(EMonsterID::GOBLIN);
+    // logger.OnMonsterKilled(EMonsterID::DRACULA);
 
     logger.ShowLogs();
 

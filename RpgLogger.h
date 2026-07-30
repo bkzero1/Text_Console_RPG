@@ -3,13 +3,7 @@
 #include <queue>
 #include <string>
 
-// 임시로 작성, 추후에 다른 파일에서 가져오기
-namespace Test
-{
-enum class EMonsterID;
-extern std::map<EMonsterID, std::string> convertMonsterString;
-}  // namespace Test
-
+#include "FMonsterData.h"
 
 class RpgLogger
 {
@@ -24,12 +18,12 @@ class RpgLogger
     void AddLog(std::string log);
 
     // 몬스터를 처치했을 때 호출, 킬카운트 증가
-    void OnMonsterKilled(Test::EMonsterID id);
+    void OnMonsterKilled(EMonsterID id);
 
    private:
     static constexpr size_t MAX_SIZE = 10;
     std::queue<std::string> logs;
-    std::map<Test::EMonsterID, int> killCounts;
+    std::map<EMonsterID, int> killCounts;
 };
 
 void TestRpgLogger();
