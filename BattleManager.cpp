@@ -158,6 +158,11 @@ int BattleManager::GetEarnGold() const
     return earnGold;
 }
 
+int BattleManager::GetEarnExp() const
+{
+    return earnExp;
+}
+
 std::map<EItemID, int> BattleManager::GetEarnItems() const
 {
     return earnItems;

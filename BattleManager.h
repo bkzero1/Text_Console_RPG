@@ -28,6 +28,7 @@ public:
     std::vector<Monster*> GetLivingMonsters() const;
 
 	int GetEarnGold() const;
+    int GetEarnExp() const;
 	std::map<EItemID, int> GetEarnItems() const;
 
 private:

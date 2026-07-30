@@ -207,8 +207,9 @@ void NormalBattle()
         inventory->RemoveSlot(slotNum - 1);
         remainingItems = inventory->AddItems(remainingItems);
     }
-
+    rpgLogger.AddLog("파티는 " + to_string(battleManager.GetEarnExp()) + " exp 를 얻었다");
     battleManager.BattleEnd(isWin);
+
 }
 
 // 보스 전투
