@@ -90,7 +90,8 @@ void Monster::RollDrops()
     }
 }
 
-std::vector<EItemID> Monster::GetDropItems() const
+std::vector<EItemID> Monster::GetDropItems()
 {
+    RollDrops();
     return dropItems;
 }
