@@ -1,5 +1,7 @@
 ﻿#include "BattleManager.h"
 #include "Item.h"
+#include "Player.h"
+#include "Monster.h"
 
 void BattleManager::AddPlayer(Player* player)
 {
@@ -34,8 +36,8 @@ void BattleManager::BattleEnd(bool isWin)
     {
         for (int i = 0; i < players.size(); i++)
         {
-            //ToDo : 경험치 전달
-            players[i];
+            //next : 딜 기여에 따라 경험치 전달
+            players[i]->AddExp(earnExp);
         }
     }
     players.clear();
@@ -63,8 +65,7 @@ bool BattleManager::IsPlayersDead() const
 {
     for (int i = 0; i < players.size(); i++)
     {
-        //ToDo : IsDead로 변경
-        if (players[i])
+        if (!players[i]->IsDead())
         {
             return false;
         }
