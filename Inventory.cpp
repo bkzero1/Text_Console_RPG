@@ -169,6 +169,22 @@ bool Inventory::ConsumeItem(EItemID itemID, int count)
     return true;
 }
 
+const std::vector<InventorySlot>& Inventory::GetSlots() const
+{
+    return slots;
+}
+
+const InventorySlot& Inventory::GetSlot(int index) const
+{
+    return slots.at(index);
+}
+
+void Inventory::RemoveSlot(int index)
+{
+    slots.at(index).Clear();
+    ClearEmptySlots();  // 빈 슬롯 제거
+}
+
 int Inventory::GetItemCount(EItemID itemID) const
 {
     // 아이템이 없음 - 0개

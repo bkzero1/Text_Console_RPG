@@ -35,6 +35,10 @@ class Inventory
     int AddItem(EItemID itemID, int count = 1);       // 아이템 추가 (추가하지 못하고 남은 개수 반환)
     bool ConsumeItem(EItemID itemID, int count = 1);  // 아이템 소모 (부족하면 false 반환, 충분하면 개수 차감 후 true 반환)
 
+    const std::vector<InventorySlot>& GetSlots() const;  // 인벤토리 슬롯들 반환
+    const InventorySlot& GetSlot(int index) const;       // 지정된 인덱스의 슬롯 반환
+    void RemoveSlot(int index);                          // 지정된 인덱스의 슬롯 제거
+
     int GetItemCount(EItemID itemID) const;             // 아이템 개수 반환
     int GetMaxAddableItemCount(EItemID itemID) const;   // 아이템 추가 가능한 최대 개수 반환
     std::map<EItemID, int> GetConsumableItems() const;  // 사용 가능한 아이템 및 개수 반환
