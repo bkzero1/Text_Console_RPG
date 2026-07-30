@@ -13,7 +13,7 @@ class Monster
 		gold(0), 
 		exp(0)
 	{
-
+		 
 	}
 
 	std::string Deploy(const FMonsterData& monsterData, int playerLevel);
