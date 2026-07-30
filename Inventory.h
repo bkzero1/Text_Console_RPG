@@ -39,6 +39,7 @@ class Inventory
     const std::vector<InventorySlot>& GetSlots() const;  // 인벤토리 슬롯들 반환
     const InventorySlot& GetSlot(int index) const;       // 지정된 인덱스의 슬롯 반환
     void RemoveSlot(int index);                          // 지정된 인덱스의 슬롯 제거
+    void ExpandSlotCount(int count);                     // 인벤토리 슬롯 개수 증가
 
     int GetItemCount(EItemID itemID) const;             // 아이템 개수 반환
     int GetMaxAddableItemCount(EItemID itemID) const;   // 아이템 추가 가능한 최대 개수 반환

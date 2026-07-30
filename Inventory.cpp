@@ -204,6 +204,14 @@ void Inventory::RemoveSlot(int index)
     ClearEmptySlots();  // 빈 슬롯 제거
 }
 
+void Inventory::ExpandSlotCount(int count)
+{
+    if (count > 0)  // 0 초과 확인
+    {
+        maxSlots += count;
+    }
+}
+
 int Inventory::GetItemCount(EItemID itemID) const
 {
     // 아이템이 없음 - 0개
