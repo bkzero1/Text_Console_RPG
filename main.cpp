@@ -8,6 +8,7 @@
 #include "BattleManager.h"
 #include "MonsterPool.h"
 #include "FMonsterData.h"
+#include "RpgLogger.h"
 
 // 게임 상태
 enum class EGameState
@@ -24,6 +25,7 @@ enum class EGameState
 // 전역 변수
 EGameState CurrentGameState = EGameState::PLAYER_INIT;
 bool IsRunning = true;
+RpgLogger rpgLogger;
 
 // 게임 상태 전환
 void SwitchState(EGameState newGameState)
