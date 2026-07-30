@@ -34,7 +34,5 @@ class Player
 
     void AddPower(int power);     // 공격력 증가 (아이템 버프, 파티 레벨업 등에 사용)
     void RemovePower(int power);  // 공격력 되돌리기 (버프 종료 시 아이템 쪽에서 호출)
-
-   private:
     void LevelUp();
 };

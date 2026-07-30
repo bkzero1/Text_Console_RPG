@@ -1,5 +1,4 @@
 ﻿#include "Player.h"
-
 #include <iostream>
 
 // 캐릭터 생성 시 이름만 입력받고, 나머지는 기본값으로 시작

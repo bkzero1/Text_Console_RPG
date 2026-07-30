@@ -29,7 +29,7 @@ bool IsRunning = true;
 RpgLogger rpgLogger;
 
 Inventory* inventory;  // 인벤토리
-
+std::vector<Player*> Players; // 플레이어 목록
 // 게임 상태 전환
 void SwitchState(EGameState newGameState)
 {
