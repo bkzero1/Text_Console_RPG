@@ -14,7 +14,7 @@ void Warrior::LevelUp()
         return;
     }
 
-    Player::LevelUp();  // 부모 클래스의 LevelUp() 호출
+    Player::LevelUp();  
     hpMax += 5;
     hp = hpMax;
     power += 3;

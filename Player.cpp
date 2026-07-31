@@ -116,6 +116,10 @@ void Player::LevelUp()
     hp = hpMax;
     power += 5;
 
+    //레벨업 할때마다 메시지 출력
+    cout << "\n🎉 " << name << "(이)가 레벨업 했다! (레벨 " << level << ")\n";
+    cout << "체력 : " << hpMax << " | 공격력 : " << power << "\n\n";
+
     // 레벨 10 도달 시 메시지 출력
     if (level == MAX_LEVEL)
     {
