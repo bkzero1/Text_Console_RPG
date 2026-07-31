@@ -1,4 +1,4 @@
-#include "Item.h"
+﻿#include "Item.h"
 
 ItemData::ItemData(EItemID id, std::string name, std::string description, int purchasePrice, bool isConsumable, EItemEffectType effectType, int effectValue)
     : id(id), name(name), description(description), purchasePrice(purchasePrice), isConsumable(isConsumable), effectType(effectType), effectValue(effectValue)

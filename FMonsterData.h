@@ -125,19 +125,10 @@ const std::map<EMonsterID, FMonsterData> MONSTER_MAP = {
 }}
 ,
     {EMonsterID::RED_DRAGON, FMonsterData{
-    EMonsterID::RED_DRAGON, "레드드래곤", 20, 30,  // hp
+    EMonsterID::RED_DRAGON, "레드 드래곤", 20, 30,  // hp
     5, 10,  // power
     10, 20,  // gold
     50, 100,  // exp
     {{EItemID::HP_POTION, 80}, {EItemID::POWER_POTION, 60}}  // dropTable
 }}
-,
-    {EMonsterID::MAX, FMonsterData{
-    EMonsterID::MAX, "MAX", 20, 30,  // hp
-    5, 10,  // power
-    10, 20,  // gold
-    50, 100,  // exp
-    {{EItemID::HP_POTION, 80}, {EItemID::POWER_POTION, 60}}  // dropTable
-}}
-
 };
