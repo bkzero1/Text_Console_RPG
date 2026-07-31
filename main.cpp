@@ -219,8 +219,7 @@ void NormalBattle()
     for (int i = 0; i < monsterCount; i++)
     {
         Monster* monster = monsterPool.Acquire();
-        //EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
-        EMonsterID randomMonster = EMonsterID::GOBLIN;
+        EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
         std::string nanori = monster->Deploy(randomMonster, avgLv);
         rpgLogger.AddLog(nanori);
         battleManager.AddMonster(monster);
@@ -230,6 +229,11 @@ void NormalBattle()
 
     if (!isWin)
     {
+        //패배자들 체력 회복 시키고 내쫓기
+        for (int i = 0; i < players.size(); i++)
+        {
+            players[i]->HealHP(players[i]->GetHpMax());
+        }
         CurrentGameState = EGameState::GAME_OVER;
         return;
     }
@@ -338,8 +342,7 @@ void BossBattle()
     for (int i = 0; i < monsterCount; i++)
     {
         Monster* monster = monsterPool.Acquire();
-        // EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
-        EMonsterID randomMonster = EMonsterID::GOBLIN;
+        EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
         std::string nanori = monster->Deploy(randomMonster, avgLv, true);
         rpgLogger.AddLog(nanori);
         battleManager.AddMonster(monster);
@@ -349,6 +352,11 @@ void BossBattle()
 
     if (!isWin)
     {
+        // 패배자들 체력 회복 시키고 내쫓기
+        for (int i = 0; i < players.size(); i++)
+        {
+            players[i]->HealHP(players[i]->GetHpMax());
+        }
         CurrentGameState = EGameState::GAME_OVER;
         return;
     }
