@@ -92,6 +92,7 @@ void BattleManager::PlayerHitMonster(Monster* target, int damage)
         return;
     }
     earnGold += target->GetGold();
+    earnExp += target->GetExp();
 
     std::vector<EItemID> dropItem = target->GetDropItems();
 

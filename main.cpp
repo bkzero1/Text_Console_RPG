@@ -114,7 +114,7 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
                 std::string itemName = hpPotion.name;
                 rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + itemName + "을(를) 사용 체력 : " + to_string(turnPlayer->GetHp()));
             }
-            else if (buffedPlayer.find(turnPlayer) == buffedPlayer.end()
+            else if (buffedPlayer.find(turnPlayer) != buffedPlayer.end()
                 && buffItr != consumableItems.end())
             {
                 inventory->ConsumeItem(EItemID::POWER_POTION);
@@ -240,7 +240,9 @@ void NormalBattle()
     }
 
     // 전리품 인벤토리에 추가
-    inventory->AddGold(battleManager.GetEarnGold());                                            // 골드 획득
+    inventory->AddGold(battleManager.GetEarnGold());    
+    rpgLogger.AddLog("파티는 " + to_string(battleManager.GetEarnGold()) + "골드를 얻었다");
+    // 골드 획득
     std::map<EItemID, int> remainingItems = inventory->AddItems(battleManager.GetEarnItems());  // 아이템 획득
     while (!remainingItems.empty())
     {
