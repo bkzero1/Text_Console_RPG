@@ -4,6 +4,7 @@
 #include <thread>
 
 #include "BattleManager.h"
+#include "Crafter.h"
 #include "FMonsterData.h"
 #include "Inventory.h"
 #include "ItemUseHandler.h"
@@ -12,10 +13,9 @@
 #include "MonsterPool.h"
 #include "Player.h"
 #include "RpgLogger.h"
+#include "ShopManager.h"
 #include "Tank.h"
 #include "Warrior.h"
-
-#include "ShopManager.h"
 
 // 게임 상태
 enum class EGameState
@@ -25,6 +25,7 @@ enum class EGameState
     BOSS_BATTLE,    // 보스 전투
     MAIN_MEMU,      // 메인 메뉴
     SHOP,           // 상점
+    CRAFTING,       // 아이템 제작소
     GAME_OVER,      // 게임 패배
     GAME_CLEAR,     // 게임 승리
 };
@@ -84,10 +85,9 @@ void PlayerInit()
     // 인벤토리 생성
     inventory = new Inventory();
     inventory->AddGold(10000);
-    
+
     // 첫 전투 시작
     SwitchState(EGameState::NORMAL_BATTLE);
-
 }
 
 bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
@@ -222,7 +222,7 @@ void NormalBattle()
     for (int i = 0; i < monsterCount; i++)
     {
         Monster* monster = monsterPool.Acquire();
-        //EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
+        // EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
         EMonsterID randomMonster = EMonsterID::GOBLIN;
         std::string nanori = monster->Deploy(randomMonster, avgLv);
         rpgLogger.AddLog(nanori);
@@ -239,7 +239,7 @@ void NormalBattle()
 
     // 전리품 인벤토리에 추가
     // 골드 획득
-    inventory->AddGold(battleManager.GetEarnGold());    
+    inventory->AddGold(battleManager.GetEarnGold());
     rpgLogger.AddLog("파티는 " + to_string(battleManager.GetEarnGold()) + "골드를 얻었다");
     std::map<EItemID, int> earnItems = battleManager.GetEarnItems();
     for (auto itr = earnItems.begin(); itr != earnItems.end(); itr++)
@@ -368,13 +368,14 @@ void MainMenu()
     std::cout << "========================================" << "\n";
     std::cout << " 1. 전투" << "\n";
     std::cout << " 2. 상점" << "\n";
+    std::cout << " 3. 아이템 제작소" << "\n";
     std::cout << "========================================" << "\n";
     std::cout << "입력: ";
     int option;
     std::cin >> option;
 
     // 유효하지 않은 입력
-    if (option < 1 || 2 < option)
+    if (option < 1 || 3 < option)
     {
         return;
     }
@@ -402,6 +403,9 @@ void MainMenu()
             break;
         case 2:
             SwitchState(EGameState::SHOP);
+            break;
+        case 3:
+            SwitchState(EGameState::CRAFTING);
             break;
         default:
             break;
@@ -463,7 +467,6 @@ void Shop()
             }
             case 2:
             {
-
                 while (true)
                 {
                     // 판매 가능한 리스트 출력
@@ -484,7 +487,7 @@ void Shop()
                     {
                         return;
                     }
-                    
+
                     if (choice < 0 || choice > sellListSize + 1)
                     {
                         std::cout << "존재하지 않는 슬롯입니다." << std::endl;
@@ -496,7 +499,7 @@ void Shop()
                     std::cin >> sellCount;
 
                     // 선택 슬롯보다 큰 수를 입력했을 때 판매불가 메시지
-                    //const InventorySlot& slot = inventory->GetSlot(choice - 1);
+                    // const InventorySlot& slot = inventory->GetSlot(choice - 1);
                     std::map<EItemID, int> itemList = inventory->GetItemCounts();
                     std::vector<EItemID> itemIDs;
                     for (auto& item : itemList)
@@ -512,7 +515,6 @@ void Shop()
                     {
                         shop.SellItem(choice, sellCount);
                     }
-                  
                 }
                 break;
             }
@@ -525,6 +527,67 @@ void Shop()
     }
 }
 
+// 아이템 제작소
+void Crafting()
+{
+    Crafter crafter = Crafter();
+
+    std::cout << "=========== [ 아이템 제작소 ] ===========" << "\n";
+    std::cout << " 1. 전체 레시피 확인" << "\n";
+    std::cout << " 2. 전체 검색" << "\n";
+    std::cout << " 3. 제작 아이템 검색" << "\n";
+    std::cout << " 4. 재료 아이템 검색" << "\n";
+    std::cout << "----------------------------------------" << "\n";
+    std::cout << " 0. 마을로 돌아가기" << "\n";
+    std::cout << "========================================" << "\n";
+    std::cout << "입력: ";
+    int option;
+    std::cin >> option;
+
+    // 유효하지 않은 입력
+    if (option < 0 || 4 < option)
+    {
+        return;
+    }
+
+    std::string keyword;
+    switch (option)
+    {
+        case 0:
+            SwitchState(EGameState::MAIN_MEMU);
+            break;
+        case 1:
+            crafter.ClearFilter();
+            crafter.ShowFilteredRecipes();
+            break;
+        case 2:
+            std::cout << "전체 이름 검색하기: ";
+            std::getline(std::cin, keyword);
+            crafter.SetFilter(keyword, EFilterFlag::ALL_NAME);
+            crafter.ShowFilteredRecipes();
+            break;
+        case 3:
+            std::cout << "제작 아이템 이름 검색하기: ";
+            std::getline(std::cin, keyword);
+            crafter.SetFilter(keyword, EFilterFlag::ITEM_NAME);
+            crafter.ShowFilteredRecipes();
+            break;
+        case 4:
+            std::cout << "재료 아이템 이름 검색하기: ";
+            std::getline(std::cin, keyword);
+            crafter.SetFilter(keyword, EFilterFlag::INGREDIENT_NAME);
+            crafter.ShowFilteredRecipes();
+            break;
+        default:
+            break;
+    }
+    std::cout << keyword << "\n";
+
+    // 각 출력한 값에서 입력에 따른 아이템 추가
+
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+}
 
 // 게임 패배
 void GameOver()
@@ -561,6 +624,9 @@ void Run()
                 break;
             case EGameState::SHOP:
                 Shop();
+                break;
+            case EGameState::CRAFTING:
+                Crafting();
                 break;
             case EGameState::GAME_OVER:
                 GameOver();
