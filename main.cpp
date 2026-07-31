@@ -275,10 +275,12 @@ void NormalBattle()
             if (avgLv < 10)
             {
                 SwitchState(EGameState::NORMAL_BATTLE);
+                break;
             }
             else
             {
                 SwitchState(EGameState::BOSS_BATTLE);
+                break;
             }
         }
 
