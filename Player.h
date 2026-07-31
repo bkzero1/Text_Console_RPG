@@ -14,7 +14,7 @@ class Player
     int hpMax;
     int hp;
 
-    static const int MAX_LEVEL = 10; // 최대 레벨 
+    const int MAX_LEVEL = 10; // 최대 레벨 
 
    public:
     Player(const string& playerName);
