@@ -243,6 +243,11 @@ int Inventory::GetMaxAddableItemCount(EItemID itemID) const
     return count;
 }
 
+std::map<EItemID, int> Inventory::GetItemCounts() const
+{
+    return itemCounts;
+}
+
 std::map<EItemID, int> Inventory::GetConsumableItems() const
 {
     std::map<EItemID, int> consumableItems;
