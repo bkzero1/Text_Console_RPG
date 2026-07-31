@@ -21,15 +21,22 @@ bool Crafter::IsRecipeMatchingFilter(const CraftingRecipe& craftingRecipe, const
 
     switch (filterFlag)
     {
-        case EFilterFlag::ALL_NAME:
+        case EFilterFlag::ALL_NAME:  // ITEM_NAME or INGREDIENT_NAME 중 하나만 만족하면 true
             return IsRecipeMatchingFilter(craftingRecipe, filterKeyword, EFilterFlag::ITEM_NAME) || IsRecipeMatchingFilter(craftingRecipe, filterKeyword, EFilterFlag::INGREDIENT_NAME);
-        case EFilterFlag::ITEM_NAME:
+        case EFilterFlag::ITEM_NAME:  // 제작 아이템 이름 확인
             if (GetLowerString(craftingItem.name).find(lowerFilterKeyword) != std::string::npos)
             {
                 return true;
             }
             break;
-        case EFilterFlag::INGREDIENT_NAME:
+        case EFilterFlag::INGREDIENT_NAME:  // 재료 아이템 이름 확인
+            for (const auto& [ingredientItemID, IngredientCount] : craftingRecipe.ingredients)
+            {
+                if (GetLowerString(ITEM_TABLE.at(ingredientItemID).name).find(lowerFilterKeyword) != std::string::npos)
+                {
+                    return true;
+                }
+            }
             break;
         default:
             break;
