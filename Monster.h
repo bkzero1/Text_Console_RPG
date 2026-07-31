@@ -42,7 +42,7 @@ class Monster
     int exp;
 
 	std::vector<FDropData> dropTable;
-	std::vector<EItemID> dropItems; // 실제 드롭 결과
-
-	void RollDrops();  //  실제 랜덤값으로 드롭 아이템을 결정
 };
+
+void TestMonster(int playerLevel);
+
