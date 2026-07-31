@@ -8,11 +8,6 @@ enum class EItemID
     NONE,
     HP_POTION,
     POWER_POTION,
-
-    // 임시 재료
-    INGREDIENT_1,
-    INGREDIENT_2,
-    INGREDIENT_3,
 };
 
 enum class EItemEffectType
