@@ -110,8 +110,7 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
                 inventory->ConsumeItem(EItemID::HP_POTION);
                 itemHandler.USE_ITEM(turnPlayer, EItemID::HP_POTION);
                 ItemData hpPotion = ITEM_TABLE.at(EItemID::HP_POTION);
-                std::string itemName = hpPotion.name;
-                rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + itemName + "을(를) 사용 체력 : " + to_string(turnPlayer->GetHp()));
+                rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + hpPotion.name + "을(를) 사용 체력 : " + to_string(turnPlayer->GetHp()));
             }
             else if (buffedPlayer.find(turnPlayer) == buffedPlayer.end() && buffItr != consumableItems.end())
             {
@@ -119,9 +118,8 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
                 itemHandler.USE_ITEM(turnPlayer, EItemID::POWER_POTION);
                 buffedPlayer.insert(turnPlayer);
 
-                ItemData powerPotion = ITEM_TABLE.at(EItemID::HP_POTION);
-                std::string itemName = powerPotion.name;
-                rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + itemName + "을(를) 사용 공격력 : " + to_string(turnPlayer->GetPower()));
+                ItemData powerPotion = ITEM_TABLE.at(EItemID::POWER_POTION);
+                rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + powerPotion.name + "을(를) 사용 공격력 : " + to_string(turnPlayer->GetPower()));
             }
             else
             {
