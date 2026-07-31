@@ -6,8 +6,6 @@
 #include "CraftingRecipe.h"
 #include "Inventory.h"
 
-extern const std::map<EItemID, CraftingRecipe> CRAFTING_RECIPE_TABLE;
-
 enum class EFilterFlag
 {
     ALL_NAME,         // 전체 이름
