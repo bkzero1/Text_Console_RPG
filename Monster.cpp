@@ -78,25 +78,6 @@ void Monster::TakeDamage(int damage)
     }
 }
 
-//void Monster::RollDrops()
-//{
-//    dropItems.clear();
-//    
-//    // 아이템 드롭 자체가 발생하는지
-//    if (GetRandomInt(1, 100) > 30)
-//    {
-//        return;
-//    }
-//
-//    for (const FDropData& dropData : dropTable)
-//    {
-//        if (GetRandomInt(1, 100) <= dropData.dropChance)
-//        {
-//            dropItems.push_back(dropData.itemID);
-//        }
-//    }
-//}
-
 std::vector<EItemID> Monster::GetDropItems()
 {
     std::vector<EItemID> dropItems;
