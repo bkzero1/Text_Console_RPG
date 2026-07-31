@@ -11,6 +11,9 @@
 #include "MonsterPool.h"
 #include "Player.h"
 #include "ItemUseHandler.h"
+#include "Warrior.h"
+#include "Mage.h"
+#include "Tank.h"
 
 // 게임 상태
 enum class EGameState
@@ -59,10 +62,28 @@ bool StringCompare(string a, string b)
 // 캐릭터 생성
 void PlayerInit()
 {
-    // 캐릭터 생성
+    std::string playerName;
+
+    // 전사 생성
+    std::cout << "전사의 이름을 입력하세요: ";
+    std::getline(std::cin, playerName);
+    players.push_back(new Warrior(playerName));
+
+    // 마법사 생성
+    std::cout << "마법사의 이름을 입력하세요: ";
+    std::getline(std::cin, playerName);
+    players.push_back(new Mage(playerName));
+
+    // 탱커 생성
+    std::cout << "탱커의 이름을 입력하세요: ";
+    std::getline(std::cin, playerName);
+    players.push_back(new Tank(playerName));
 
     // 인벤토리 생성
     inventory = new Inventory();
+
+    // 첫 전투 시작
+    SwitchState(EGameState::NORMAL_BATTLE);
 }
 
 bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
