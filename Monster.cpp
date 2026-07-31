@@ -1,5 +1,4 @@
 ﻿#include "Monster.h"
-#include "RpgLogger.h"
 
 #include <iostream>
 #include <vector>
@@ -48,7 +47,7 @@ std::string Monster::Deploy(const EMonsterID& eMonsterID, int playerLevel, bool 
     std::string nanori = "몬스터 " + name + " 등장! 체력 : " + std::to_string(hp) + ", 공격력 : " + std::to_string(power);
 
     // 등장 이름을 반환
-    return nanori;  
+    return nanori;
 }
 
 void Monster::ShowStatus() const
@@ -71,14 +70,31 @@ void Monster::TakeDamage(int damage)
     }
 }
 
-void Monster::RollDrops()
+//void Monster::RollDrops()
+//{
+//    dropItems.clear();
+//    
+//    // 아이템 드롭 자체가 발생하는지
+//    if (GetRandomInt(1, 100) > 30)
+//    {
+//        return;
+//    }
+//
+//    for (const FDropData& dropData : dropTable)
+//    {
+//        if (GetRandomInt(1, 100) <= dropData.dropChance)
+//        {
+//            dropItems.push_back(dropData.itemID);
+//        }
+//    }
+//}
+
+std::vector<EItemID> Monster::GetDropItems()
 {
-    dropItems.clear();
-    
-    // 아이템 드롭 자체가 발생하는지
+    std::vector<EItemID> dropItems;
     if (GetRandomInt(1, 100) > 30)
     {
-        return;
+        return dropItems;
     }
 
     for (const FDropData& dropData : dropTable)
@@ -88,10 +104,5 @@ void Monster::RollDrops()
             dropItems.push_back(dropData.itemID);
         }
     }
-}
-
-std::vector<EItemID> Monster::GetDropItems()
-{
-    RollDrops();
     return dropItems;
 }
