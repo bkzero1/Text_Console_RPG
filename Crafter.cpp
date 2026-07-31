@@ -1,5 +1,7 @@
 #include "Crafter.h"
 
+#include <iostream>
+
 const std::map<EItemID, CraftingRecipe> CRAFTING_RECIPE_TABLE = {
 
 };
