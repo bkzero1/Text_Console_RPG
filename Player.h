@@ -2,7 +2,6 @@
 #include <string>
 using namespace std;
 
-//LevelUp() 메서드를 private에서 public으로 변경 + virtual로 만들기:
 class Player
 {
    protected:
@@ -14,7 +13,9 @@ class Player
     int hpMax;
     int hp;
 
-    const int MAX_LEVEL = 10; // 최대 레벨 
+    static const int MAX_LEVEL = 10;
+
+    void PrintLevelUpMessage();  // ← 메시지 출력 함수 추가
 
    public:
     Player(const string& playerName);
@@ -37,6 +38,6 @@ class Player
 
     void AddPower(int power);
     void RemovePower(int power);
-    
-    virtual void LevelUp();  // ← private에서 public + virtual로 변경
+
+    virtual void LevelUp();
 };

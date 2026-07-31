@@ -1,7 +1,5 @@
 #include "Tank.h"
 
-#include <iostream>
-
 Tank::Tank(const string& playerName)
     : Player(playerName)
 {
@@ -9,12 +7,12 @@ Tank::Tank(const string& playerName)
 
 void Tank::LevelUp()
 {
-    if (level >= MAX_LEVEL)
-    {
-        return;
-    }
-
-    Player::LevelUp(); 
+ 
+    Player::LevelUp();
+    
+  
     hpMax += 20;
     hp = hpMax;
+    
+    PrintLevelUpMessage();
 }
