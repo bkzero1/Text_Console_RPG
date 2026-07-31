@@ -19,6 +19,21 @@ void Inventory::ClearEmptySlots()
             iter++;
         }
     }
+
+    // itemCounts에서 값이 0인 아이템 제거
+    for (auto iter = itemCounts.begin(); iter != itemCounts.end();)
+    {
+        // 빈 슬롯 O -> 제거
+        if (iter->second == 0)
+        {
+            iter = itemCounts.erase(iter);
+        }
+        // 빈 슬롯 X -> 다음 슬롯 확인
+        else
+        {
+            iter++;
+        }
+    }
 }
 
 void Inventory::CompactInventory()
