@@ -7,7 +7,7 @@ std::string Crafter::GetLowerString(const std::string& str) const
     std::string lowerStr = str;
     for (char& c : lowerStr)
     {
-        tolower(c);
+        c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
     }
     return lowerStr;
 }
