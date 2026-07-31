@@ -1,4 +1,6 @@
 #pragma once
+#include <vector>
+
 #include "Inventory.h"
 #include "RpgLogger.h"
 
@@ -15,13 +17,17 @@ class ShopManager
     // 아이템 가격의 60%만큼 플레이어 골드 추가, 인벤토리에서 차감
 
     // 구매 가능한 리스트 출력
-    void ShowCanBuyList() const;
+    void ShowBuyableList() const;
+    // 구매 가능한 아이템 ID 목록 (ShowBuyableList와 동일한 순서)
+    std::vector<EItemID> GetBuyableItemIDs() const;
     // 아이템 구매
-    void BuyItem(int choice, int count) const;
+    void BuyItem(const ItemData& item, int count) const;
     // 판매 가능한 리스트 출력
-    void ShowCanSellList() const;
+    void ShowSellableList() const;
+    // 판매 가능한 아이템 ID 목록 (ShowSellableList와 동일한 순서)
+    std::vector<EItemID> GetSellableItemIDs() const;
     // 아이템 판매
-    void SellItem(int choice, int count) const;
-   private:
+    void SellItem(const ItemData& item, int count) const;
 
+   private:
 };

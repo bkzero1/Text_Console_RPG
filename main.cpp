@@ -11,7 +11,6 @@
 #include "MonsterPool.h"
 #include "Player.h"
 #include "ItemUseHandler.h"
-
 #include "ShopManager.h"
 
 // 게임 상태
@@ -46,9 +45,6 @@ void PlayerInit()
 
     // 인벤토리 생성
     inventory = new Inventory();
-
-    inventory->AddGold(10000);
-    SwitchState(EGameState::SHOP);
 }
 
 bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
@@ -293,14 +289,15 @@ void MainMenu()
 void Shop()
 {
     ShopManager shop;
-    std::cout << "---------- 3jo TRPG Shop ----------" << std::endl;
+    std::cout << "---------- TEAM_3 TRPG SHOP ----------" << std::endl;
     std::cout << "1. 아이템 구매" << std::endl;
     std::cout << "2. 아이템 판매" << std::endl;
     std::cout << "0. 돌아가기" << std::endl;
     std::cout << "보유 골드: " << inventory->GetGold() << std::endl;
-    std::cout << "입력: ";
+    std::cout << "선택해주세요: ";
     int select = 0;
     std::cin >> select;
+       
     if (select >= 0 && select <= 2)
     {
         switch (select)
@@ -308,7 +305,9 @@ void Shop()
             case 1:
             {
                 // 구매 가능한 아이템 리스트 출력
-                shop.ShowCanBuyList();
+                shop.ShowBuyableList();
+                // 구매 가능한 아이템 ID값 가져오기 (ShowBuyableList와 Mapping을 위한 같은 순서)
+                std::vector<EItemID> buyItemIDs = shop.GetBuyableItemIDs();
 
                 int itemChoice, buyCount;
                 while (true)
@@ -316,25 +315,26 @@ void Shop()
                     std::cout << "구매할 아이템의 번호를 입력해주세요. (0: 돌아가기) : ";
                     std::cin >> itemChoice;
                     // 아이템 구매
-                    if (itemChoice >= 1 && itemChoice <= ITEM_TABLE.size())
+                    if (itemChoice >= 1 && itemChoice <= buyItemIDs.size())
                     {
                         std::cout << "구매할 개수를 입력해주세요: ";
                         std::cin >> buyCount;
+                        // 유저가 선택한 choice의 id값, 아이템 정보 찾기
+                        EItemID id = buyItemIDs.at(itemChoice - 1);
+                        const ItemData& itemTarget = ITEM_TABLE.at(id);
                         if (buyCount > 0)
                         {
-                            shop.BuyItem(itemChoice, buyCount);
+                            shop.BuyItem(itemTarget, buyCount);
                         }
                         else
                         {
                             std::cout << "잘못 입력하셨습니다." << std::endl;
                         }
                     }
-                    // 돌아가기
                     else if (itemChoice == 0)
                     {
                         return;
                     }
-                    // 잘못 입력
                     else
                     {
                         std::cout << "잘못 입력하셨습니다." << std::endl;
@@ -344,29 +344,20 @@ void Shop()
             }
             case 2:
             {
-
                 while (true)
                 {
                     // 판매 가능한 리스트 출력
-                    shop.ShowCanSellList();
-                    // 슬롯 개수 가져오기
-                    int sellListSize = inventory->GetSlots().size();
+                    shop.ShowSellableList();
+                    // 화면에 출력된 순서와 동일한 아이템 ID 목록
+                    std::vector<EItemID> itemIDs = shop.GetSellableItemIDs();
 
                     int choice = 0;
-                    if (sellListSize == 0)
-                    {
-                        std::cout << "판매할 수 있는 아이템이 없습니다." << std::endl;
-                        return;
-                    }
-
                     std::cout << "판매할 아이템 번호를 입력해주세요. (0: 돌아가기) : ";
                     std::cin >> choice;
-                    if (choice == 0)
-                    {
-                        return;
-                    }
-                    
-                    if (choice < 0 || choice > sellListSize + 1)
+                    if (choice == 0) { return; }
+
+                    // 유저 입력이 0보다 작거나 판매 리스트의 사이즈 보다 클때
+                    if (choice < 0 || choice > itemIDs.size())
                     {
                         std::cout << "존재하지 않는 슬롯입니다." << std::endl;
                         continue;
@@ -375,29 +366,23 @@ void Shop()
                     int sellCount = 0;
                     std::cout << "판매할 개수를 입력해주세요: ";
                     std::cin >> sellCount;
-
-                    // 선택 슬롯보다 큰 수를 입력했을 때 판매불가 메시지
-                    //const InventorySlot& slot = inventory->GetSlot(choice - 1);
-                    std::map<EItemID, int> itemList = inventory->GetItemCounts();
-                    std::vector<EItemID> itemIDs;
-                    for (auto& item : itemList)
+                    // 판매할 개수를 0이하로 입력했을때
+                    if (sellCount <= 0)
                     {
-                        itemIDs.push_back(item.first);
+                        std::cout << "잘못 입력하셨습니다." << std::endl;
+                        continue;
                     }
 
-                    if (inventory->GetItemCount(itemIDs.at(choice - 1)) < sellCount)
-                    {
-                        std::cout << "판매 수량이 보유 수량보다 많습니다." << std::endl;
-                    }
-                    else
-                    {
-                        shop.SellItem(choice, sellCount);
-                    }
-                  
+                    // 유저가 choice한 아이템의 ID값, 아이템 정보 찾기
+                    EItemID id = itemIDs.at(choice - 1);
+                    const ItemData& item = ITEM_TABLE.at(id);
+
+                    shop.SellItem(item, sellCount);
                 }
                 break;
             }
             case 0:
+                // 메인 메뉴로 돌아가기
                 SwitchState(EGameState::MAIN_MEMU);
                 break;
             default:
