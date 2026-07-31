@@ -167,12 +167,11 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
             // 플레이어가 죽었는지 확인
             if (targetPlayer->IsDead())
             {
-                rpgLogger.AddLog(turnMonster->GetName() + "(이)가 " + turnMonster->GetName() + "을(를) 공격합니다! " + targetPlayer->GetName() + "(이)가 전투불능!");
-                break;
+                rpgLogger.AddLog(turnMonster->GetName() + "(이)가 " + targetPlayer->GetName() + "을(를) 공격합니다! " + targetPlayer->GetName() + "(이)가 전투불능!");
             }
             else
             {
-                rpgLogger.AddLog(turnMonster->GetName() + "(이)가 " + turnMonster->GetName() + "을(를) 공격합니다! " + targetPlayer->GetName() + " 체력 : " + to_string(targetPlayer->GetHp()));
+                rpgLogger.AddLog(turnMonster->GetName() + "(이)가 " + targetPlayer->GetName() + "을(를) 공격합니다! " + targetPlayer->GetName() + " 체력 : " + to_string(targetPlayer->GetHp()));
             }
 
             // 플레이어들이 다 죽었는지 확인
