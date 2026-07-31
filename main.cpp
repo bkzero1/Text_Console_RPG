@@ -30,7 +30,7 @@ bool IsRunning = true;
 RpgLogger rpgLogger;
 
 Inventory* inventory;  // 인벤토리
-std::vector<Player*> Players; // 플레이어 목록
+std::vector<Player*> players; // 플레이어 목록
 // 게임 상태 전환
 void SwitchState(EGameState newGameState)
 {
@@ -68,7 +68,6 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
             if (potionItr != consumableItems.end() 
                 && turnPlayer->GetMissingHP() >= turnPlayer->GetHp())
             {
-                // TODO : 인벤토리에 HP 포션 있는지 확인
                 inventory->ConsumeItem(EItemID::HP_POTION);
                 itemHandler.USE_ITEM(turnPlayer, EItemID::HP_POTION);
                 auto tableItr = ITEM_TABLE.find(EItemID::HP_POTION);
@@ -99,7 +98,6 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
                 }
                 else
                 {
-                    // TODO : 체력 부분 targetMonster->GetName() -> targetMonster->GetHp()로 수정
                     rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + targetMonster->GetName() + "을(를) 공격합니다! " + targetMonster->GetName() + " 체력 : " + to_string(targetMonster->GetHp()));
                 }
             }
@@ -123,9 +121,9 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
         for (int i = 0; i < turnMonsters.size(); i++)
         {
             Monster* turnMonster = turnMonsters[i];
-            std::vector<Player*> players = battleManager.GetLivingPlayers();
-            std::uniform_int_distribution<int> monsterDist(0, players.size() - 1);
-            Player* targetPlayer = players[monsterDist(gen)];
+            std::vector<Player*> livingPlayers = battleManager.GetLivingPlayers();
+            std::uniform_int_distribution<int> monsterDist(0, livingPlayers.size() - 1);
+            Player* targetPlayer = livingPlayers[monsterDist(gen)];
             battleManager.MonsterHitPlayer(targetPlayer, turnMonster->GetPower());
 
             // 플레이어가 죽었는지 확인
@@ -136,7 +134,6 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
             }
             else
             {
-                // TODO : 체력 부분 targetPlayer->GetName() -> targetPlayer->GetHp()로 수정
                 rpgLogger.AddLog(turnMonster->GetName() + "(이)가 " + turnMonster->GetName() + "을(를) 공격합니다! " + targetPlayer->GetName() + " 체력 : " + to_string(targetPlayer->GetHp()));
             }
 
