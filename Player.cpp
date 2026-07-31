@@ -2,27 +2,25 @@
 
 #include <iostream>
 
-// 캐릭터 생성 시 이름만 입력받고, 나머지는 기본값으로 시작
 Player::Player(const string& playerName)
     : name(playerName), level(1), expMax(100), exp(0), power(30), hpMax(200), hp(200)
 {
 }
 
-string Player::GetName()  // 이름 얻기
+string Player::GetName()
 {
     return name;
 }
 
-int Player::GetLevel()  // 레벨 얻기
+int Player::GetLevel()
 {
     return level;
 }
 
-void Player::AddExp(int exp)  // 경험치 추가
+void Player::AddExp(int exp)
 {
     this->exp += exp;
 
-    // 경험치가 expMax를 넘을 때마다 반복 체크 (한 번에 여러 레벨업 가능하도록 while)
     while (this->exp >= expMax && level < MAX_LEVEL)
     {
         this->exp -= expMax;
@@ -30,12 +28,12 @@ void Player::AddExp(int exp)  // 경험치 추가
     }
 }
 
-void Player::TakeDamage(int damage)  // 피격
+void Player::TakeDamage(int damage)
 {
     hp -= damage;
     if (hp < 0)
     {
-        hp = 0;  // 체력이 음수로 내려가지 않도록 방지
+        hp = 0;
     }
 }
 
@@ -44,17 +42,17 @@ int Player::GetPower()
     return power;
 }
 
-int Player::GetHpMax()  // 최대 체력 얻기
+int Player::GetHpMax()
 {
     return hpMax;
 }
 
-int Player::GetHp()  // 현재 체력 얻기
+int Player::GetHp()
 {
     return hp;
 }
 
-void Player::ShowStatus()  // 정보 출력 (이 함수만 콘솔 출력 담당)
+void Player::ShowStatus()
 {
     cout << "==================== 캐릭터 정보 ====================\n";
     cout << "이름       : " << name << "\n";
@@ -65,12 +63,12 @@ void Player::ShowStatus()  // 정보 출력 (이 함수만 콘솔 출력 담당)
     cout << "======================================================\n";
 }
 
-void Player::HealHP(int hp)  // 체력 회복
+void Player::HealHP(int hp)
 {
     this->hp += hp;
     if (this->hp > hpMax)
     {
-        this->hp = hpMax;  // 최대체력을 넘지 않도록 방지
+        this->hp = hpMax;
     }
 }
 
@@ -79,51 +77,48 @@ bool Player::IsDead()
     return hp <= 0;
 }
 
-bool Player::IsFullHP()  // 최대체력 여부
+bool Player::IsFullHP()
 {
     return hp == hpMax;
 }
 
-int Player::GetMissingHP()  // 부족한 체력 값
+int Player::GetMissingHP()
 {
     return hpMax - hp;
 }
 
-void Player::AddPower(int power)  // 공격력 증가 (아이템 버프, 파티 레벨업 등에 사용)
+void Player::AddPower(int power)
 {
     this->power += power;
 }
 
-void Player::RemovePower(int power)  // 공격력 되돌리기 (버프 종료 시 아이템 쪽에서 호출)
+void Player::RemovePower(int power)
 {
     this->power -= power;
     if (this->power < 0)
     {
-        this->power = 0;  // 혹시 모를 상황 대비, 공격력이 음수로 내려가지 않도록 방지
+        this->power = 0;
     }
 }
 
-// 레벨업 처리 (외부 직접 호출 없이 AddExp 내부에서만 사용)
+// 메시지 출력 함수 (따로 분리)
+void Player::PrintLevelUpMessage()
+{
+    cout << "\n  " << name << "(이)가 레벨 " << level << "로 레벨업 했다!\n";
+    cout << "체력: " << hpMax << " | 공격력: " << power << "\n\n";
+
+    if (level == MAX_LEVEL)
+    {
+        cout << " " << name << "(이)가 레벨 10에 도달했다!\n";
+        cout << "이제 일반 몬스터는 상대도 안된다!\n\n";
+    }
+}
+
+// 부모 클래스 기본 레벨업 (메시지 없음)
 void Player::LevelUp()
 {
-    if (level >= MAX_LEVEL)
-    {
-        return;  // 최대 레벨에 도달하면 더 이상 레벨업 안함
-    }
-
     level++;
     hpMax += 20;
     hp = hpMax;
     power += 5;
-
-    //레벨업 할때마다 메시지 출력
-    cout << "\n🎉 " << name << "(이)가 레벨업 했다! (레벨 " << level << ")\n";
-    cout << "체력 : " << hpMax << " | 공격력 : " << power << "\n\n";
-
-    // 레벨 10 도달 시 메시지 출력
-    if (level == MAX_LEVEL)
-    {
-        cout << "\n 🌟 " << name << "(이)가 레벨 10에 도달했다!\n";
-        cout << "이제 일반 몬스터는 상대도 안된다!\n\n";
-    }
 }

@@ -1,7 +1,5 @@
 #include "Mage.h"
 
-#include <iostream>
-
 Mage::Mage(const string& playerName)
     : Player(playerName)
 {
@@ -9,12 +7,13 @@ Mage::Mage(const string& playerName)
 
 void Mage::LevelUp()
 {
-    if (level >= MAX_LEVEL)
-    {
-        return;
-    }
+    
+    Player::LevelUp();
 
-    Player::LevelUp();  
+
     hp = hpMax;
     power += 8;
+
+
+    PrintLevelUpMessage();
 }
