@@ -7,7 +7,6 @@ Warrior::Warrior(const string& playerName)
 
 void Warrior::LevelUp()
 {
-
     hpMax +=  5;
     hp = hpMax;
     power +=  3;
