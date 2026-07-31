@@ -144,7 +144,7 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
             {
                 break;
             }
-            std::this_thread::sleep_for(std::chrono::seconds(1));  // 1초 대기
+            std::this_thread::sleep_for(std::chrono::seconds(0));  // 1초 대기
         }
         // 플레이어 턴 종료
         if (battleManager.IsMonstersDead())
@@ -179,7 +179,7 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
                 break;
             }
 
-            std::this_thread::sleep_for(std::chrono::seconds(1));  // 1초 대기
+            std::this_thread::sleep_for(std::chrono::seconds(0));  // 1초 대기
         }
 
         // 플레이어들이 다 죽었는지 확인
