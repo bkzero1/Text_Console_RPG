@@ -55,6 +55,12 @@
     <Filter Include="헤더 파일\Shop">
       <UniqueIdentifier>{abf8d55f-ab39-4a9f-a698-f2b8a74725f5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="헤더 파일\Crafter">
+      <UniqueIdentifier>{f57d7233-9059-4152-b205-2972e02a8c66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Crafter">
+      <UniqueIdentifier>{6f6fb3d2-ff22-40a3-aecb-b2dd15a6b691}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BattleManager.cpp">
@@ -99,6 +105,12 @@
     <ClCompile Include="ShopManager.cpp">
       <Filter>소스 파일\Shop</Filter>
     </ClCompile>
+    <ClCompile Include="Crafter.cpp">
+      <Filter>소스 파일\Crafter</Filter>
+    </ClCompile>
+    <ClCompile Include="CraftingRecipe.cpp">
+      <Filter>소스 파일\Crafter</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BattleManager.h">
@@ -142,6 +154,12 @@
     </ClInclude>
     <ClInclude Include="ShopManager.h">
       <Filter>헤더 파일\Shop</Filter>
+    </ClInclude>
+    <ClInclude Include="Crafter.h">
+      <Filter>헤더 파일\Crafter</Filter>
+    </ClInclude>
+    <ClInclude Include="CraftingRecipe.h">
+      <Filter>헤더 파일\Crafter</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
