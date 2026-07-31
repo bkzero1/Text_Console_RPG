@@ -10,6 +10,7 @@
 #include "Monster.h"
 #include "MonsterPool.h"
 #include "Player.h"
+#include "ItemUseHandler.h"
 
 // 게임 상태
 enum class EGameState
@@ -47,6 +48,7 @@ void PlayerInit()
 
 bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
 {
+    ItemUseHandler itemHandler;
     std::set<Player*> buffedPlayer;
     bool isWin = false;
     // 랜덤 준비
@@ -59,14 +61,30 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
         for (int i = 0; i < turnPlayers.size(); i++)
         {
             Player* turnPlayer = turnPlayers[i];
-            if (turnPlayer->GetMissingHP())
+            std::map<EItemID, int> consumableItems = inventory->GetConsumableItems();
+
+            auto potionItr = consumableItems.find(EItemID::HP_POTION);
+            auto buffItr = consumableItems.find(EItemID::POWER_POTION);
+            if (potionItr != consumableItems.end() 
+                && turnPlayer->GetMissingHP() >= turnPlayer->GetHp())
             {
                 // TODO : 인벤토리에 HP 포션 있는지 확인
+                inventory->ConsumeItem(EItemID::HP_POTION);
+                itemHandler.USE_ITEM(turnPlayer, EItemID::HP_POTION);
+                auto tableItr = ITEM_TABLE.find(EItemID::HP_POTION);
+                std::string itemName = tableItr->second.name;
+                rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + itemName + "을(를) 사용 체력 : " + to_string(turnPlayer->GetHp()));
             }
-            else if (0)
+            else if (buffedPlayer.find(turnPlayer) == buffedPlayer.end()
+                && buffItr != consumableItems.end())
             {
-                // 인벤토리에 강화 물약이 있고, 강화 하지 않았다면
+                inventory->ConsumeItem(EItemID::POWER_POTION);
+                itemHandler.USE_ITEM(turnPlayer, EItemID::POWER_POTION);
                 buffedPlayer.insert(turnPlayer);
+
+                auto tableItr = ITEM_TABLE.find(EItemID::POWER_POTION);
+                std::string itemName = tableItr->second.name;
+                rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + itemName + "을(를) 사용 공격력 : " + to_string(turnPlayer->GetPower()));
             }
             else
             {
