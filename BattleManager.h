@@ -16,7 +16,8 @@ public:
 
 	void AddPlayer(Player* player);
 	void AddMonster(Monster* monster);
-	void BattleEnd(bool isWin);
+    void EarnExpToParty();
+	void BattleEnd();
 
 	bool IsMonstersDead() const;
     bool IsPlayersDead() const;
@@ -28,6 +29,7 @@ public:
     std::vector<Monster*> GetLivingMonsters() const;
 
 	int GetEarnGold() const;
+    int GetEarnExp() const;
 	std::map<EItemID, int> GetEarnItems() const;
 
 private:

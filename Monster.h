@@ -16,16 +16,17 @@ class Monster
 		 
 	}
 
-	std::string Deploy(const EMonsterID& eMonsterID, int playerLevel);
+	std::string Deploy(const EMonsterID& eMonsterID, int playerLevel, bool IsBoss = false);	// 불값 기본값 false, true -> 보스
     void ShowStatus() const;
     
 	void TakeDamage(int damage);
     int GetPower() const { return power; }
     bool IsDead() const { return (hp <= 0); }
-
-    std::vector<EItemID> GetDropItems() const;	// 랜덤으로 반환
+    
+    std::vector<EItemID> GetDropItems();	// 결정된 아이템을 반환
 
 	const std::string& GetName() const { return name; }
+    int GetHp() const { return hp; }
     int GetGold() const { return gold; }
     int GetExp() const { return exp; }
 
@@ -40,6 +41,8 @@ class Monster
 	int gold;
     int exp;
 
-	std::vector<EItemID> dropItems;
-
+	std::vector<FDropData> dropTable;
 };
+
+void TestMonster(int playerLevel);
+

@@ -1,9 +1,9 @@
 ﻿#pragma once
+#include "Item.h"
+
 #include <string>
 #include <vector>
 #include <map>
-
-enum class EItemID;
 
 struct FDropData
 {
@@ -59,12 +59,76 @@ struct FMonsterData
 };
 
 // 지금 구조에서는 플레이어 레벨이 바뀌지 않으면 뒤의 몬스터들이 같은 스텟을 가짐
-const std::map<EMonsterID, FMonsterData> MONSTER_MAP = {    
-    {EMonsterID::GOBLIN, FMonsterData{EMonsterID::GOBLIN, "고블린", 
-    20, 30, // hp
+const std::map<EMonsterID, FMonsterData> MONSTER_MAP = {
+    {EMonsterID::SLIME, FMonsterData{
+    EMonsterID::SLIME, "슬라임", 20, 30,  // hp
     5, 10,  // power
-    10, 20, // gold
-    50, 100, // exp
-    {} // dropTable
-    }}
+    10, 20,  // gold
+    50, 100,  // exp
+    {{EItemID::HP_POTION, 80}, {EItemID::POWER_POTION, 60}}  // dropTable
+}}
+,
+    {EMonsterID::GOBLIN, FMonsterData{
+    EMonsterID::GOBLIN, "고블린", 20, 30,  // hp
+    5, 10,  // power
+    10, 20,  // gold
+    50, 100,  // exp
+    {{EItemID::HP_POTION, 80}, {EItemID::POWER_POTION, 60}}  // dropTable
+}}
+,
+    {EMonsterID::SKELETON, FMonsterData{
+    EMonsterID::SKELETON, "스켈레톤", 20, 30,  // hp
+    5, 10,  // power
+    10, 20,  // gold
+    50, 100,  // exp
+    {{EItemID::HP_POTION, 80}, {EItemID::POWER_POTION, 60}}  // dropTable
+}}
+,
+    {EMonsterID::ZOMBIE, FMonsterData{
+    EMonsterID::ZOMBIE, "좀비", 20, 30,  // hp
+    5, 10,  // power
+    10, 20,  // gold
+    50, 100,  // exp
+    {{EItemID::HP_POTION, 80}, {EItemID::POWER_POTION, 60}}  // dropTable
+}}
+,
+    {EMonsterID::KOBOLD, FMonsterData{
+    EMonsterID::KOBOLD, "코볼트", 20, 30,  // hp
+    5, 10,  // power
+    10, 20,  // gold
+    50, 100,  // exp
+    {{EItemID::HP_POTION, 80}, {EItemID::POWER_POTION, 60}}  // dropTable
+}}
+,
+    {EMonsterID::GOLEM, FMonsterData{
+    EMonsterID::GOLEM, "골렘", 20, 30,  // hp
+    5, 10,  // power
+    10, 20,  // gold
+    50, 100,  // exp
+    {{EItemID::HP_POTION, 80}, {EItemID::POWER_POTION, 60}}  // dropTable
+}}
+,
+    {EMonsterID::WANDERING_ARMOR, FMonsterData{
+    EMonsterID::WANDERING_ARMOR, "방랑하는 기사", 20, 30,  // hp
+    5, 10,  // power
+    10, 20,  // gold
+    50, 100,  // exp
+    {{EItemID::HP_POTION, 80}, {EItemID::POWER_POTION, 60}}  // dropTable
+}}
+,
+    {EMonsterID::DRACULA, FMonsterData{
+    EMonsterID::DRACULA, "드라큘라", 20, 30,  // hp
+    5, 10,  // power
+    10, 20,  // gold
+    50, 100,  // exp
+    {{EItemID::HP_POTION, 80}, {EItemID::POWER_POTION, 60}}  // dropTable
+}}
+,
+    {EMonsterID::RED_DRAGON, FMonsterData{
+    EMonsterID::RED_DRAGON, "레드 드래곤", 20, 30,  // hp
+    5, 10,  // power
+    10, 20,  // gold
+    50, 100,  // exp
+    {{EItemID::HP_POTION, 80}, {EItemID::POWER_POTION, 60}}  // dropTable
+}}
 };

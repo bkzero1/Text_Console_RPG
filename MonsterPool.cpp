@@ -28,6 +28,7 @@ Monster* MonsterPool::Acquire()
         return new Monster();
     }
     Monster* monster = monsterStack.top();
+    monsterStack.pop();
     monsterSet.erase(monster);
     return monster;
 }
@@ -57,6 +58,7 @@ void MonsterPool::Shrink(int poolSize)
             return;
         }
         Monster* monster = monsterStack.top();
+        monsterStack.pop();
         monsterSet.erase(monster);
         for (auto i = monsterVector.begin(); i != monsterVector.end(); i++)
         {

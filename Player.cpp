@@ -8,7 +8,6 @@ Player::Player(const string& playerName)
 {
 }
 
-
 string Player::GetName()  // 이름 얻기
 {
     return name;
@@ -24,7 +23,7 @@ void Player::AddExp(int exp)  // 경험치 추가
     this->exp += exp;
 
     // 경험치가 expMax를 넘을 때마다 반복 체크 (한 번에 여러 레벨업 가능하도록 while)
-    while (this->exp >= expMax)
+    while (this->exp >= expMax && level < MAX_LEVEL)
     {
         this->exp -= expMax;
         LevelUp();
@@ -45,11 +44,21 @@ int Player::GetPower()
     return power;
 }
 
+int Player::GetHpMax()  // 최대 체력 얻기
+{
+    return hpMax;
+}
+
+int Player::GetHp()  // 현재 체력 얻기
+{
+    return hp;
+}
+
 void Player::ShowStatus()  // 정보 출력 (이 함수만 콘솔 출력 담당)
 {
     cout << "==================== 캐릭터 정보 ====================\n";
     cout << "이름       : " << name << "\n";
-    cout << "레벨       : " << level << "\n";
+    cout << "레벨       : " << level << " / " << MAX_LEVEL << "\n";
     cout << "체력       : " << hp << " / " << hpMax << "\n";
     cout << "공격력     : " << power << "\n";
     cout << "경험치     : " << exp << " / " << expMax << "\n";
@@ -97,8 +106,24 @@ void Player::RemovePower(int power)  // 공격력 되돌리기 (버프 종료 �
 // 레벨업 처리 (외부 직접 호출 없이 AddExp 내부에서만 사용)
 void Player::LevelUp()
 {
+    if (level >= MAX_LEVEL)
+    {
+        return;  // 최대 레벨에 도달하면 더 이상 레벨업 안함
+    }
+
     level++;
     hpMax += 20;
-    hp = hpMax;  // 레벨업 시 체력 완전 회복
+    hp = hpMax;
     power += 5;
+
+    //레벨업 할때마다 메시지 출력
+    cout << "\n🎉 " << name << "(이)가 레벨업 했다! (레벨 " << level << ")\n";
+    cout << "체력 : " << hpMax << " | 공격력 : " << power << "\n\n";
+
+    // 레벨 10 도달 시 메시지 출력
+    if (level == MAX_LEVEL)
+    {
+        cout << "\n 🌟 " << name << "(이)가 레벨 10에 도달했다!\n";
+        cout << "이제 일반 몬스터는 상대도 안된다!\n\n";
+    }
 }

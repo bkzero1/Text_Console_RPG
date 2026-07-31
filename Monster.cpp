@@ -1,8 +1,10 @@
 ﻿#include "Monster.h"
+#include "Item.h"
 
 #include <iostream>
 #include <vector>
 #include <random>
+#include <iomanip>
 namespace
 {
 int GetRandomInt(int min, int max)
@@ -16,7 +18,7 @@ int GetRandomInt(int min, int max)
 }
 }  // namespace
 
-std::string Monster::Deploy(const EMonsterID& eMonsterID, int playerLevel)
+std::string Monster::Deploy(const EMonsterID& eMonsterID, int playerLevel, bool IsBoss)
 {
     // MONSTER_MAP에서 eMonsterID에 맞는 설계도를 찾음
     const FMonsterData& monsterData = MONSTER_MAP.at(eMonsterID);
@@ -27,17 +29,33 @@ std::string Monster::Deploy(const EMonsterID& eMonsterID, int playerLevel)
     name = monsterData.name;
 
     // 설계도의 HP 범위와 playerLevel을 사용해 이번 몬스터의 스탯을 랜덤으로 결정
-    hp = playerLevel * GetRandomInt(monsterData.minHpMulti, monsterData.maxHpMulti);
+    hp = playerLevel * GetRandomInt(monsterData.minHpMulti, monsterData.maxHpMulti) ;
     
     power = playerLevel * GetRandomInt(monsterData.minPowerMulti, monsterData.maxPowerMulti);
     
     gold = GetRandomInt(monsterData.minGold, monsterData.maxGold);
     exp = GetRandomInt(monsterData.minExp, monsterData.maxExp);
+    
+    // 몬스터 강함에 따른 기본 수치 보정
+    hp += static_cast<int>(eMonsterID) * monsterData.minHpMulti;
+    power += static_cast<int>(eMonsterID) * monsterData.minPowerMulti;
+    gold += static_cast<int>(eMonsterID) * 20;
+    exp += static_cast<int>(eMonsterID) * 10;
 
-    ShowStatus(); // 몬스터가 생성되면 몬스터의 정보 출력
+    dropTable = monsterData.dropTable;
+
+    if (IsBoss)
+    {
+        hp *= 1.5;
+        power *= 1.5;
+        gold *= 1.5;
+        exp *= 1.5;
+    }
+    // 몬스터 Goblin 등장 !체력 : 40, 공격력 : 8
+    std::string nanori = "몬스터 " + name + " 등장! 체력 : " + std::to_string(hp) + ", 공격력 : " + std::to_string(power);
 
     // 등장 이름을 반환
-    return name;
+    return nanori;
 }
 
 void Monster::ShowStatus() const
@@ -60,9 +78,95 @@ void Monster::TakeDamage(int damage)
     }
 }
 
-std::vector<EItemID> Monster::GetDropItems() const
+std::vector<EItemID> Monster::GetDropItems()
 {
-    // TODO: 여기에 return 문을 삽입합니다.
-    std::vector<EItemID> dropitems;
-    return dropitems;
+    std::vector<EItemID> dropItems;
+    if (GetRandomInt(1, 100) > 30)
+    {
+        return dropItems;
+    }
+
+    for (const FDropData& dropData : dropTable)
+    {
+        if (GetRandomInt(1, 100) <= dropData.dropChance)
+        {
+            dropItems.push_back(dropData.itemID);
+        }
+    }
+    return dropItems;
+}
+
+void TestMonster(int playerLevel)
+{
+    std::cout << "playerLevel: " << playerLevel << std::endl;
+
+    Monster monster = Monster();
+    
+    std::cout << "\n[ 일반몬스터 스텟 ]\n";
+    // 일반몹
+    for (const auto& [id, monsterData] : MONSTER_MAP)
+    {
+        // 몬스터 정보 출력
+        std::cout << monster.Deploy(id, playerLevel);
+        if (id == EMonsterID::WANDERING_ARMOR || id == EMonsterID::RED_DRAGON)
+        {
+            std::cout << "\t";
+        }
+        else
+        {
+            std::cout << "\t\t";
+        }
+        std::cout << "exp: " << std::setw(3) << monster.GetExp() << "  gold: " << std::setw(3) << monster.GetGold();
+
+        // 처치시 획득 아이템 시뮬레이션
+        std::cout << "  드롭아이템: ";
+        std::vector<EItemID> itemId = monster.GetDropItems();
+
+        if (itemId.empty())
+        {
+            std::cout << "- ";
+        }
+        else
+        {
+            for (const auto& eItemId : itemId)
+            {
+                std::cout << ITEM_TABLE.at(eItemId).name << " / ";
+            }
+        }
+        std::cout << std::endl;
+    }
+
+    std::cout << "\n[ 보스몬스터 스텟 ]\n";
+    // 보스
+    for (const auto& [id, monsterData] : MONSTER_MAP)
+    {
+        // 몬스터 정보 출력
+        std::cout << monster.Deploy(id, playerLevel, true);
+        if (id == EMonsterID::WANDERING_ARMOR || id == EMonsterID::RED_DRAGON)
+        {
+            std::cout << "\t";
+        }
+        else
+        {
+            std::cout << "\t\t";
+        }
+        std::cout << "exp: " << std::setw(3) << monster.GetExp() << "  gold: " << std::setw(3) << monster.GetGold();
+
+        // 처치시 획득 아이템 시뮬레이션
+        std::cout << "  드롭아이템: ";
+        std::vector<EItemID> itemId = monster.GetDropItems();
+        
+        if (itemId.empty())
+        {
+            std::cout << "- ";
+        }
+        else
+        {
+            for (const auto& eItemId : itemId)
+            {
+                std::cout << ITEM_TABLE.at(eItemId).name << " / ";
+            }
+        }
+        std::cout << std::endl;
+    }
 }

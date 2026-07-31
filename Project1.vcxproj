@@ -125,6 +125,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BattleManager.h" />
+    <ClInclude Include="Mage.h" />
     <ClInclude Include="Crafter.h" />
     <ClInclude Include="CraftingRecipe.h" />
     <ClInclude Include="MonsterPool.h" />
@@ -136,9 +137,13 @@
     <ClInclude Include="ItemUseHandler.h" />
     <ClInclude Include="InventorySlot.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="Tank.h" />
+    <ClInclude Include="Warrior.h" />
+    <ClInclude Include="ShopManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BattleManager.cpp" />
+    <ClCompile Include="Mage.cpp" />
     <ClCompile Include="Crafter.cpp" />
     <ClCompile Include="CraftingRecipe.cpp" />
     <ClCompile Include="MonsterPool.cpp" />
@@ -150,6 +155,9 @@
     <ClCompile Include="ItemUseHandler.cpp" />
     <ClCompile Include="InventorySlot.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Tank.cpp" />
+    <ClCompile Include="Warrior.cpp" />
+    <ClCompile Include="ShopManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
