@@ -245,8 +245,44 @@ void NormalBattle()
         inventory->RemoveSlot(slotNum - 1);
         remainingItems = inventory->AddItems(remainingItems);
     }
+    battleManager.EarnExpToParty();
     rpgLogger.AddLog("파티는 " + to_string(battleManager.GetEarnExp()) + " exp 를 얻었다");
-    battleManager.BattleEnd(isWin);
+
+
+    //전투 후 레벨 확인
+    totalLv = 0;
+    for (int i = 0; i < players.size(); i++)
+    {
+        totalLv += players[i]->GetLevel();
+    }
+    avgLv = totalLv / players.size();
+
+
+
+    while (true)
+    {
+        std::cout << "마을로 돌아가겠습니까? [Y/N]" << endl;
+        string answer;
+        std::cin >> answer;
+        if (StringCompare(answer, "Y"))
+        {
+            SwitchState(EGameState::MAIN_MEMU);
+            break;
+        }
+
+        if (StringCompare(answer, "N"))
+        {
+            if (avgLv < 10)
+            {
+                SwitchState(EGameState::NORMAL_BATTLE);
+            }
+            else
+            {
+                SwitchState(EGameState::BOSS_BATTLE);
+            }
+        }
+
+    }
 
 }
 
@@ -311,11 +347,15 @@ void Shop()
 // 게임 패배
 void GameOver()
 {
+    rpgLogger.AddLog("상대가 너무 강하다! 일단 후퇴하자.");
+    SwitchState(EGameState::MAIN_MEMU);
 }
 
 // 게임 승리
 void GameClear()
 {
+    rpgLogger.AddLog("게임 클리어.");
+    IsRunning = false;
 }
 
 // 게임 실행
