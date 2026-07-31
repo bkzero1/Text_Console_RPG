@@ -5,7 +5,7 @@ using namespace std;
 //LevelUp() 메서드를 private에서 public으로 변경 + virtual로 만들기:
 class Player
 {
-   private:
+   protected:
     string name;
     int level;
     int expMax;
