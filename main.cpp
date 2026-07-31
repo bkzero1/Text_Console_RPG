@@ -5,15 +5,15 @@
 
 #include "BattleManager.h"
 #include "FMonsterData.h"
-#include "RpgLogger.h"
 #include "Inventory.h"
+#include "ItemUseHandler.h"
+#include "Mage.h"
 #include "Monster.h"
 #include "MonsterPool.h"
 #include "Player.h"
-#include "ItemUseHandler.h"
-#include "Warrior.h"
-#include "Mage.h"
+#include "RpgLogger.h"
 #include "Tank.h"
+#include "Warrior.h"
 
 // 게임 상태
 enum class EGameState
@@ -32,15 +32,15 @@ EGameState CurrentGameState = EGameState::PLAYER_INIT;
 bool IsRunning = true;
 RpgLogger rpgLogger;
 
-Inventory* inventory;  // 인벤토리
-std::vector<Player*> players; // 플레이어 목록
+Inventory* inventory;          // 인벤토리
+std::vector<Player*> players;  // 플레이어 목록
 // 게임 상태 전환
 void SwitchState(EGameState newGameState)
 {
     CurrentGameState = newGameState;
 }
 
-bool StringCompare(string a, string b) 
+bool StringCompare(string a, string b)
 {
     if (a.size() != a.size())
     {
@@ -105,8 +105,7 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
 
             auto potionItr = consumableItems.find(EItemID::HP_POTION);
             auto buffItr = consumableItems.find(EItemID::POWER_POTION);
-            if (potionItr != consumableItems.end() 
-                && turnPlayer->GetMissingHP() >= turnPlayer->GetHp())
+            if (potionItr != consumableItems.end() && turnPlayer->GetMissingHP() >= turnPlayer->GetHp())
             {
                 inventory->ConsumeItem(EItemID::HP_POTION);
                 itemHandler.USE_ITEM(turnPlayer, EItemID::HP_POTION);
@@ -114,8 +113,7 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
                 std::string itemName = hpPotion.name;
                 rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + itemName + "을(를) 사용 체력 : " + to_string(turnPlayer->GetHp()));
             }
-            else if (buffedPlayer.find(turnPlayer) == buffedPlayer.end()
-                && buffItr != consumableItems.end())
+            else if (buffedPlayer.find(turnPlayer) == buffedPlayer.end() && buffItr != consumableItems.end())
             {
                 inventory->ConsumeItem(EItemID::POWER_POTION);
                 itemHandler.USE_ITEM(turnPlayer, EItemID::POWER_POTION);
@@ -212,14 +210,13 @@ void NormalBattle()
 
     int monsterCount = std::max(1, avgLv / 2);
 
-    //랜덤 준비
+    // 랜덤 준비
     std::random_device rd;
     std::mt19937 gen(rd());
-    //ENum에서 랜덤 값 가져오기 위한 준비
+    // ENum에서 랜덤 값 가져오기 위한 준비
     std::uniform_int_distribution<int> deployDist(
         0,
         static_cast<int>(EMonsterID::MAX) - 1);
-
 
     for (int i = 0; i < monsterCount; i++)
     {
@@ -269,16 +266,13 @@ void NormalBattle()
     battleManager.EarnExpToParty();
     rpgLogger.AddLog("파티는 " + to_string(battleManager.GetEarnExp()) + " exp 를 얻었다");
 
-
-    //전투 후 레벨 확인
+    // 전투 후 레벨 확인
     totalLv = 0;
     for (int i = 0; i < players.size(); i++)
     {
         totalLv += players[i]->GetLevel();
     }
     avgLv = totalLv / players.size();
-
-
 
     while (true)
     {
@@ -304,9 +298,7 @@ void NormalBattle()
                 break;
             }
         }
-
     }
-
 }
 
 // 보스 전투
@@ -350,7 +342,7 @@ void BossBattle()
         CurrentGameState = EGameState::GAME_OVER;
         return;
     }
-    else 
+    else
     {
         CurrentGameState = EGameState::GAME_CLEAR;
         return;
@@ -360,6 +352,47 @@ void BossBattle()
 // 메인 메뉴
 void MainMenu()
 {
+    std::cout << "========================================" << "\n";
+    std::cout << " 1. 전투" << "\n";
+    std::cout << " 2. 상점" << "\n";
+    std::cout << "========================================" << "\n";
+    std::cout << "입력: ";
+    int option;
+    std::cin >> option;
+
+    // 유효하지 않은 입력
+    if (option < 1 || 2 < option)
+    {
+        return;
+    }
+
+    // 플레이어 레벨
+    int totalLv = 0;
+    for (int i = 0; i < players.size(); i++)
+    {
+        totalLv += players[i]->GetLevel();
+    }
+    int avgLv = totalLv / players.size();
+
+    // 상태 전이
+    switch (option)
+    {
+        case 1:
+            if (avgLv < 10)
+            {
+                SwitchState(EGameState::NORMAL_BATTLE);
+            }
+            else
+            {
+                SwitchState(EGameState::BOSS_BATTLE);
+            }
+            break;
+        case 2:
+            SwitchState(EGameState::SHOP);
+            break;
+        default:
+            break;
+    }
 }
 
 // 상점
