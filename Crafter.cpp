@@ -120,7 +120,7 @@ void Crafter::ShowFilteredRecipes() const
     int row = 1;
     for (const auto& [targetItemID, craftingRecipe] : CRAFTING_RECIPE_TABLE)
     {
-        if (!IsRecipeMatchingFilter(craftingRecipe)) continue;  // 필터 매칭 X
+        if (!IsRecipeMatchingFilter(craftingRecipe, filterKeyword, filterFlag)) continue;  // 필터 매칭 X
 
         const ItemData& targetItem = ITEM_TABLE.at(targetItemID);
         std::cout << row++ << ". " << targetItem.name << " (" << targetItem.description << ") —— [";
