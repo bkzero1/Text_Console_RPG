@@ -160,11 +160,15 @@ void NormalBattle()
 {
     BattleManager battleManager = BattleManager();
     MonsterPool monsterPool = MonsterPool();
-    //TODO 플레이어들 추가
-    //battleManager.AddPlayer();
 
-    //TODO 플레이어들 레벨 평균 값으로 바꿀 것
-    int avgLv = 5;
+    int totalLv = 0;
+    for (int i = 0; i < players.size(); i++)
+    {
+        battleManager.AddPlayer(players[i]);
+        totalLv += players[i]->GetLevel();
+    }
+
+    int avgLv = totalLv / players.size();
 
     int monsterCount = std::max(1, avgLv / 2);
 
@@ -232,11 +236,15 @@ void BossBattle()
 {
     BattleManager battleManager = BattleManager();
     MonsterPool monsterPool = MonsterPool();
-    // TODO 플레이어들 추가
-    // battleManager.AddPlayer();
 
-    // TODO 플레이어들 레벨 평균 값으로 바꿀 것
-    int avgLv = 5;
+    int totalLv = 0;
+    for (int i = 0; i < players.size(); i++)
+    {
+        battleManager.AddPlayer(players[i]);
+        totalLv += players[i]->GetLevel();
+    }
+
+    int avgLv = totalLv / players.size();
 
     int monsterCount = 1;
 
