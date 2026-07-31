@@ -37,6 +37,25 @@ void SwitchState(EGameState newGameState)
     CurrentGameState = newGameState;
 }
 
+bool StringCompare(string a, string b) 
+{
+    if (a.size() != a.size())
+    {
+        return false;
+    }
+
+    for (int i = 0; i < a.size(); i++)
+    {
+        char aChar = std::tolower(a[i]);
+        char bChar = std::tolower(b[i]);
+        if (aChar != bChar)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 // 캐릭터 생성
 void PlayerInit()
 {
