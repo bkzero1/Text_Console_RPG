@@ -561,35 +561,54 @@ void Crafting()
     {
         case 0:
             SwitchState(EGameState::MAIN_MEMU);
-            break;
+            return;
         case 1:
             crafter.ClearFilter();
-            crafter.ShowFilteredRecipes();
             break;
         case 2:
             std::cout << "전체 이름 검색하기: ";
             std::getline(std::cin, keyword);
             crafter.SetFilter(keyword, EFilterFlag::ALL_NAME);
-            crafter.ShowFilteredRecipes();
             break;
         case 3:
             std::cout << "제작 아이템 이름 검색하기: ";
             std::getline(std::cin, keyword);
             crafter.SetFilter(keyword, EFilterFlag::ITEM_NAME);
-            crafter.ShowFilteredRecipes();
             break;
         case 4:
             std::cout << "재료 아이템 이름 검색하기: ";
             std::getline(std::cin, keyword);
             crafter.SetFilter(keyword, EFilterFlag::INGREDIENT_NAME);
-            crafter.ShowFilteredRecipes();
             break;
         default:
             break;
     }
-    std::cout << keyword << "\n";
 
-    // 각 출력한 값에서 입력에 따른 아이템 추가
+    // 필터링된 아이템 출력
+    crafter.ShowFilteredRecipes();
+    std::vector<EItemID> craftingItemIDs = crafter.GetFilteredCraftingItemIDs();
+
+    // 제작할 아이템 선택
+    std::cout << "제작할 아이템 번호 입력 (0: 최소): ";
+    int craftinigItemNum;
+    std::cin >> craftinigItemNum;
+
+    // 취소
+    if (craftinigItemNum < 1 || craftingItemIDs.size() < craftinigItemNum) return;
+
+    // 제작 개수 입력
+    std::cout << "제작할 아이템 개수 입력 (0: 취소): ";
+    int craftingCount;
+    std::cin >> craftingCount;
+
+    // 취소
+    if (craftingCount <= 0) return;
+
+    // 제작 시도 - 실제 제작한 개수 반환
+    EItemID craftingItemID = crafter.GetFilteredCraftingItemIDByIndex(craftinigItemNum - 1);
+    int finalCraftingCount = crafter.TRY_CRAFT_ITEM(inventory, craftingItemID, craftingCount);
+
+    std::cout << " [" << ITEM_TABLE.at(craftingItemID).name << "] (" << finalCraftingCount << ")개 제작 성공!" << "\n";
 }
 
 // 게임 패배
