@@ -15,6 +15,8 @@
 #include "Tank.h"
 #include "Warrior.h"
 
+#include "ShopManager.h"
+
 // 게임 상태
 enum class EGameState
 {
@@ -81,9 +83,11 @@ void PlayerInit()
 
     // 인벤토리 생성
     inventory = new Inventory();
-
+    inventory->AddGold(10000);
+    
     // 첫 전투 시작
     SwitchState(EGameState::NORMAL_BATTLE);
+
 }
 
 bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
@@ -407,7 +411,120 @@ void MainMenu()
 // 상점
 void Shop()
 {
+    ShopManager shop;
+    std::cout << "---------- 3jo TRPG Shop ----------" << std::endl;
+    std::cout << "1. 아이템 구매" << std::endl;
+    std::cout << "2. 아이템 판매" << std::endl;
+    std::cout << "0. 돌아가기" << std::endl;
+    std::cout << "보유 골드: " << inventory->GetGold() << std::endl;
+    std::cout << "입력: ";
+    int select = 0;
+    std::cin >> select;
+    if (select >= 0 && select <= 2)
+    {
+        switch (select)
+        {
+            case 1:
+            {
+                // 구매 가능한 아이템 리스트 출력
+                shop.ShowCanBuyList();
+
+                int itemChoice, buyCount;
+                while (true)
+                {
+                    std::cout << "구매할 아이템의 번호를 입력해주세요. (0: 돌아가기) : ";
+                    std::cin >> itemChoice;
+                    // 아이템 구매
+                    if (itemChoice >= 1 && itemChoice <= ITEM_TABLE.size())
+                    {
+                        std::cout << "구매할 개수를 입력해주세요: ";
+                        std::cin >> buyCount;
+                        if (buyCount > 0)
+                        {
+                            shop.BuyItem(itemChoice, buyCount);
+                        }
+                        else
+                        {
+                            std::cout << "잘못 입력하셨습니다." << std::endl;
+                        }
+                    }
+                    // 돌아가기
+                    else if (itemChoice == 0)
+                    {
+                        return;
+                    }
+                    // 잘못 입력
+                    else
+                    {
+                        std::cout << "잘못 입력하셨습니다." << std::endl;
+                    }
+                }
+                break;
+            }
+            case 2:
+            {
+
+                while (true)
+                {
+                    // 판매 가능한 리스트 출력
+                    shop.ShowCanSellList();
+                    // 슬롯 개수 가져오기
+                    int sellListSize = inventory->GetSlots().size();
+
+                    int choice = 0;
+                    if (sellListSize == 0)
+                    {
+                        std::cout << "판매할 수 있는 아이템이 없습니다." << std::endl;
+                        return;
+                    }
+
+                    std::cout << "판매할 아이템 번호를 입력해주세요. (0: 돌아가기) : ";
+                    std::cin >> choice;
+                    if (choice == 0)
+                    {
+                        return;
+                    }
+                    
+                    if (choice < 0 || choice > sellListSize + 1)
+                    {
+                        std::cout << "존재하지 않는 슬롯입니다." << std::endl;
+                        continue;
+                    }
+
+                    int sellCount = 0;
+                    std::cout << "판매할 개수를 입력해주세요: ";
+                    std::cin >> sellCount;
+
+                    // 선택 슬롯보다 큰 수를 입력했을 때 판매불가 메시지
+                    //const InventorySlot& slot = inventory->GetSlot(choice - 1);
+                    std::map<EItemID, int> itemList = inventory->GetItemCounts();
+                    std::vector<EItemID> itemIDs;
+                    for (auto& item : itemList)
+                    {
+                        itemIDs.push_back(item.first);
+                    }
+
+                    if (inventory->GetItemCount(itemIDs.at(choice - 1)) < sellCount)
+                    {
+                        std::cout << "판매 수량이 보유 수량보다 많습니다." << std::endl;
+                    }
+                    else
+                    {
+                        shop.SellItem(choice, sellCount);
+                    }
+                  
+                }
+                break;
+            }
+            case 0:
+                SwitchState(EGameState::MAIN_MEMU);
+                break;
+            default:
+                break;
+        }
+    }
 }
+
 
 // 게임 패배
 void GameOver()
