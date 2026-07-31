@@ -18,10 +18,13 @@ enum class EFilterFlag
 class Crafter
 {
    private:
-    EFilterFlag filterFlag = EFilterFlag::ALL_NAME;
     std::string filterKeyword;
+    EFilterFlag filterFlag = EFilterFlag::ALL_NAME;
 
     std::vector<CraftingRecipe*> filteredRecipes;
+
+    std::string GetLowerString(const std::string& str) const;                                                                                 // 소문자 문자열 반환
+    bool IsRecipeMatchingFilter(const CraftingRecipe& craftingRecipe, const std::string& filterKeyword, const EFilterFlag filterFlag) const;  // 필터 매칭 여부 반환
 
    public:
     static void SHOW_ALL_RECIPES();                                                        // 모든 제작 레시피 출력
@@ -30,5 +33,6 @@ class Crafter
     void SetFilter(std::string keyword, EFilterFlag filterFlag = EFilterFlag::ALL_NAME);  // 필터 설정
     void ClearFilter();                                                                   // 필터 초기화
 
+    const std::vector<CraftingRecipe*>& GetFilteredRecipes() const;
     void ShowFilteredRecipes() const;  // 필터링된 레시피 리스트 출력
 };

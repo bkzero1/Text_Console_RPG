@@ -2,9 +2,41 @@
 
 #include <iostream>
 
-const std::map<EItemID, CraftingRecipe> CRAFTING_RECIPE_TABLE = {
-    // TODO
-};
+std::string Crafter::GetLowerString(const std::string& str) const
+{
+    std::string lowerStr = str;
+    for (char& c : lowerStr)
+    {
+        tolower(c);
+    }
+    return lowerStr;
+}
+
+bool Crafter::IsRecipeMatchingFilter(const CraftingRecipe& craftingRecipe, const std::string& filterKeyword, const EFilterFlag filterFlag) const
+{
+    if (filterKeyword.empty()) return true;  // 필터 키워드 없음 -> 항상 true
+
+    const ItemData& craftingItem = ITEM_TABLE.at(craftingRecipe.itemID);
+    std::string lowerFilterKeyword = GetLowerString(filterKeyword);
+
+    switch (filterFlag)
+    {
+        case EFilterFlag::ALL_NAME:
+            return IsRecipeMatchingFilter(craftingRecipe, filterKeyword, EFilterFlag::ITEM_NAME) || IsRecipeMatchingFilter(craftingRecipe, filterKeyword, EFilterFlag::INGREDIENT_NAME);
+        case EFilterFlag::ITEM_NAME:
+            if (GetLowerString(craftingItem.name).find(lowerFilterKeyword) != std::string::npos)
+            {
+                return true;
+            }
+            break;
+        case EFilterFlag::INGREDIENT_NAME:
+            break;
+        default:
+            break;
+    }
+
+    return false;
+}
 
 void Crafter::SHOW_ALL_RECIPES()
 {
@@ -58,17 +90,41 @@ int Crafter::TRY_CRAFT_ITEM(Inventory* inventory, EItemID targetItemID, int coun
     return finalCount;
 }
 
-void Crafter::SetFilter(std::string keyword, EFilterFlag filterFlag = EFilterFlag::ALL_NAME)
+void Crafter::SetFilter(std::string keyword, EFilterFlag filterFlag)
 {
-    //
+    this->filterKeyword = keyword;
+    this->filterFlag = filterFlag;
 }
 
 void Crafter::ClearFilter()
 {
-    //
+    this->filterKeyword.clear();
+    this->filterFlag = EFilterFlag::ALL_NAME;
+}
+
+const std::vector<CraftingRecipe*>& Crafter::GetFilteredRecipes() const
+{
+    return filteredRecipes;
 }
 
 void Crafter::ShowFilteredRecipes() const
 {
-    //
+    std::cout << "============== < 레시피 > ==============" << "\n";
+    int row = 1;
+    for (const auto& [targetItemID, craftingRecipe] : CRAFTING_RECIPE_TABLE)
+    {
+        if (!IsRecipeMatchingFilter(craftingRecipe)) continue;  // 필터 매칭 X
+
+        const ItemData& targetItem = ITEM_TABLE.at(targetItemID);
+        std::cout << row++ << ". " << targetItem.name << " (" << targetItem.description << ") —— [";
+        std::string ingredientsStr;
+        for (const auto& [ingredientItemID, ingredientCount] : craftingRecipe.ingredients)
+        {
+            const ItemData& ingredientItem = ITEM_TABLE.at(ingredientItemID);
+            ingredientsStr += ingredientItem.name + " x" + std::to_string(ingredientCount) + ", ";
+        }
+        ingredientsStr.erase(ingredientsStr.length() - 2);
+        std::cout << "]" << "\n";
+    }
+    std::cout << "========================================" << "\n";
 }
