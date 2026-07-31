@@ -217,14 +217,15 @@ void NormalBattle()
     std::mt19937 gen(rd());
     //ENum에서 랜덤 값 가져오기 위한 준비
     std::uniform_int_distribution<int> deployDist(
-        0,
+        1,
         static_cast<int>(EMonsterID::MAX) - 1);
 
 
     for (int i = 0; i < monsterCount; i++)
     {
         Monster* monster = monsterPool.Acquire();
-        EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
+        //EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
+        EMonsterID randomMonster = EMonsterID::GOBLIN;
         std::string nanori = monster->Deploy(randomMonster, avgLv);
         rpgLogger.AddLog(nanori);
         battleManager.AddMonster(monster);
@@ -331,13 +332,14 @@ void BossBattle()
     std::mt19937 gen(rd());
     // ENum에서 랜덤 값 가져오기 위한 준비
     std::uniform_int_distribution<int> deployDist(
-        0,
+        1,
         static_cast<int>(EMonsterID::MAX) - 1);
 
     for (int i = 0; i < monsterCount; i++)
     {
         Monster* monster = monsterPool.Acquire();
-        EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
+        // EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
+        EMonsterID randomMonster = EMonsterID::GOBLIN;
         std::string nanori = monster->Deploy(randomMonster, avgLv, true);
         rpgLogger.AddLog(nanori);
         battleManager.AddMonster(monster);
