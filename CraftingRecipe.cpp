@@ -1,6 +1,6 @@
 #include "CraftingRecipe.h"
 
-CraftingRecipe::CraftingRecipe(EItemID itemID, std::map<EItemID, int> ingredients)
-    : itemID(itemID), ingredients(ingredients)
+CraftingRecipe::CraftingRecipe(EItemID itemID, int outputCount, std::map<EItemID, int> ingredients)
+    : itemID(itemID), outputCount(outputCount), ingredients(ingredients)
 {
 }
