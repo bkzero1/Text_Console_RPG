@@ -3,12 +3,12 @@
 #include <iostream>
 
 const std::map<EItemID, CraftingRecipe> CRAFTING_RECIPE_TABLE = {
-
+    // TODO
 };
 
 void Crafter::SHOW_ALL_RECIPES()
 {
-    std::cout << "============ < 전체 레시피 > ============" << "\n";
+    std::cout << "============== < 레시피 > ==============" << "\n";
     int row = 1;
     for (const auto& [targetItemID, craftingRecipe] : CRAFTING_RECIPE_TABLE)
     {
@@ -28,31 +28,25 @@ void Crafter::SHOW_ALL_RECIPES()
 
 int Crafter::TRY_CRAFT_ITEM(Inventory* inventory, EItemID targetItemID, int count)
 {
+    // 유효하지 않는 인벤토리
+    if (!inventory) return 0;
+
     // 제작 레시피가 존재하지 않음
-    if (CRAFTING_RECIPE_TABLE.find(targetItemID) == CRAFTING_RECIPE_TABLE.end())
-    {
-        return 0;
-    }
+    if (CRAFTING_RECIPE_TABLE.find(targetItemID) == CRAFTING_RECIPE_TABLE.end()) return 0;
 
     // 유효하지 않는 제작 개수
-    if (count <= 0)
-    {
-        return 0;
-    }
+    if (count <= 0) return 0;
 
     // 제작할 개수 구하기
     int addableCount = inventory->GetMaxAddableItemCount(targetItemID);  // 인벤토리에 추가 가능한 제작 아이템 개수
-    if (addableCount <= 0)                                               // 추가 불가
-    {
-        return 0;
-    }
-    int craftableCount = addableCount;  // 제작 가능한 개수
+    int craftableCount = addableCount;                                   // 제작 가능한 개수
     for (const auto& [ingredientItemID, ingredientCount] : CRAFTING_RECIPE_TABLE.at(targetItemID).ingredients)
     {
         craftableCount = std::min(craftableCount, inventory->GetItemCount(ingredientItemID) / ingredientCount);  // 재료 개수를 보고 제작 가능한 최대 개수 설정
     }
 
     int finalCount = std::min({count, addableCount, craftableCount});  // 최종 제작할 아이템 개수
+    if (finalCount <= 0) return 0;                                     // 제작 불가
 
     // 아이템 제작 - 재료 소모 & 아이템 추가
     for (const auto& [ingredientItemID, ingredientCount] : CRAFTING_RECIPE_TABLE.at(targetItemID).ingredients)
@@ -62,4 +56,19 @@ int Crafter::TRY_CRAFT_ITEM(Inventory* inventory, EItemID targetItemID, int coun
     inventory->AddItem(targetItemID, finalCount);  // 제작한 아이템 추가
 
     return finalCount;
+}
+
+void Crafter::SetFilter(std::string keyword, EFilterFlag filterFlag = EFilterFlag::ALL_NAME)
+{
+    //
+}
+
+void Crafter::ClearFilter()
+{
+    //
+}
+
+void Crafter::ShowFilteredRecipes() const
+{
+    //
 }
