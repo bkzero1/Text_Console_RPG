@@ -6,7 +6,7 @@
 
 #include "Item.h"
 
-void ShopManager::ShowCanBuyList() const
+void ShopManager::ShowBuyableList() const
 {
     std::cout << "-------- 구매 가능한 아이템 --------" << std::endl;
     int count = 1;
@@ -17,13 +17,20 @@ void ShopManager::ShowCanBuyList() const
     }
 }
 
-void ShopManager::BuyItem(int choice, int count) const
+std::vector<EItemID> ShopManager::GetBuyableItemIDs() const
 {
-    EItemID id = static_cast<EItemID>(choice);
-    const ItemData& target = ITEM_TABLE.at(id);
+    std::vector<EItemID> ids;
+    for (auto& item : ITEM_TABLE)
+    {
+        ids.push_back(item.first);
+    }
+    return ids;
+}
 
+void ShopManager::BuyItem(const ItemData& item, int count) const
+{
     // 총 비용
-    int totalPrice = target.purchasePrice * count;
+    int totalPrice = item.purchasePrice * count;
 
     // 골드가 부족할 때
     if (inventory->GetGold() < totalPrice)
@@ -32,7 +39,7 @@ void ShopManager::BuyItem(int choice, int count) const
         return;
     }
 
-    int remainingCount = inventory->AddItem(target.id, count);
+    int remainingCount = inventory->AddItem(item.id, count);
 
     // 인벤토리 부족
     if (remainingCount == count)
@@ -43,9 +50,9 @@ void ShopManager::BuyItem(int choice, int count) const
 
     // 실제 구매된 수량, 금액 (10개 사려는데 슬롯이 부족할 수도 있어 9개 구매)
     int purchasedCount = count - remainingCount;
-    int purchasedPrice = target.purchasePrice * purchasedCount;
+    int purchasedPrice = item.purchasePrice * purchasedCount;
 
-    inventory->AddGold(-totalPrice);
+    inventory->AddGold(-purchasedPrice);
 
     // 로거 저장 및 출력
     std::ostringstream oss;
@@ -53,20 +60,20 @@ void ShopManager::BuyItem(int choice, int count) const
     {
         std::cout << "인벤토리에 추가 가능한 만큼 자동 조절되어 구매합니다." << std::endl;
     }
-    oss << purchasedPrice << "골드를 지불하여 " << target.name
+    oss << purchasedPrice << "골드를 지불하여 " << item.name
         << "을(를) " << purchasedCount << "개 구매하였습니다. "
         << "남은 골드: " << inventory->GetGold();
     rpgLogger.AddLog(oss.str());
 }
 
-void ShopManager::ShowCanSellList() const
+void ShopManager::ShowSellableList() const
 {
     std::cout << "----- 아이템 판매 리스트 -----" << std::endl;
     // 모든 아이템과 개수 가져오기
     std::map<EItemID, int> itemList = inventory->GetItemCounts();
     if (itemList.size() == 0)
     {
-        std::cout << "판매 가능한 아이템이 없습니다." << std::endl;
+        std::cout << "** 판매 가능한 아이템이 없습니다. **" << std::endl;
     }
     else
     {
@@ -74,42 +81,32 @@ void ShopManager::ShowCanSellList() const
         for (auto& it : itemList)
         {
             const ItemData& item = ITEM_TABLE.at(it.first);
-            std::cout << count << ". " << item.name << "| 보유수량: " << it.second << "개 | 개당 판매 가격: " << item.purchasePrice << "골드" << std::endl;
+            std::cout << count << ". " << item.name << " | 보유수량: " << it.second << "개 | 개당 판매 가격: " << item.purchasePrice << "골드" << std::endl;
             count++;
         }
     }
 }
 
-// void ShopManager::ShowCanSellList() const
-//  {
-//      std::cout << "----- 아이템 판매 리스트 -----" << std::endl;
-//      const std::vector<InventorySlot>& slots = inventory->GetSlots();
-//      int count = 1;
-//      for (const InventorySlot& slot : slots)
-//      {
-//          const ItemData& item = ITEM_TABLE.at(slot.id);
-//          std::cout << count << ". " << item.name
-//                    << " | 보유수량: " << slot.count
-//                    << " | 개당 판매 가격: " << static_cast<int>(ITEM_TABLE.at(slot.id).purchasePrice * 0.6) << "골드" << std::endl;
-//          count++;
-//      }
-//  }
-
-void ShopManager::SellItem(int choice, int count) const
+std::vector<EItemID> ShopManager::GetSellableItemIDs() const
 {
-    // choice 선택 슬롯, 해당하는 아이템 찾기
-    // const InventorySlot& slot = inventory->GetSlot(choice - 1);
-    std::map<EItemID, int> itemList = inventory->GetItemCounts();
-    std::vector<EItemID> itemIDs;
-    for (auto& item : itemList)
+    std::vector<EItemID> ids;
+    for (auto& item : inventory->GetItemCounts())
     {
-        itemIDs.push_back(item.first);
+        ids.push_back(item.first);
     }
+    return ids;
+}
 
-    const ItemData& item = ITEM_TABLE.at(itemIDs.at(choice - 1));
-
+void ShopManager::SellItem(const ItemData& item, int count) const
+{
     // 아이템 소모(판매)
-    inventory->ConsumeItem(item.id, count);
+    bool isConsumed = inventory->ConsumeItem(item.id, count);
+    // 선택 슬롯보다 큰 수를 입력했을 때 판매불가 메시지
+    if (!isConsumed)
+    {
+        std::cout << "판매 수량이 보유 수량보다 많습니다." << std::endl;
+        return;
+    }
 
     // 가격의 60% * 판매개수
     int sellPrice = static_cast<int>(item.purchasePrice * 0.6) * count;
