@@ -7,7 +7,7 @@ Tank::Tank(const string& playerName)
 
 void Tank::LevelUp()
 {
-  
+    Player::LevelUp();  // 부모 클래스의 LevelUp() 호출
     hpMax += 20 ;
     hp = hpMax;
 }
