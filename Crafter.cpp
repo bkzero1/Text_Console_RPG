@@ -4,6 +4,26 @@ const std::map<EItemID, CraftingRecipe> CRAFTING_RECIPE_TABLE = {
 
 };
 
+void Crafter::SHOW_ALL_RECIPES()
+{
+    std::cout << "============ < 전체 레시피 > ============" << "\n";
+    int row = 1;
+    for (const auto& [targetItemID, craftingRecipe] : CRAFTING_RECIPE_TABLE)
+    {
+        const ItemData& targetItem = ITEM_TABLE.at(targetItemID);
+        std::cout << row++ << ". " << targetItem.name << " (" << targetItem.description << ") —— [";
+        std::string ingredientsStr;
+        for (const auto& [ingredientItemID, ingredientCount] : craftingRecipe.ingredients)
+        {
+            const ItemData& ingredientItem = ITEM_TABLE.at(ingredientItemID);
+            ingredientsStr += ingredientItem.name + " x" + std::to_string(ingredientCount) + ", ";
+        }
+        ingredientsStr.erase(ingredientsStr.length() - 2);
+        std::cout << "]" << "\n";
+    }
+    std::cout << "========================================" << "\n";
+}
+
 int Crafter::TRY_CRAFT_ITEM(Inventory* inventory, EItemID targetItemID, int count)
 {
     // 제작 레시피가 존재하지 않음
