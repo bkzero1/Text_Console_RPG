@@ -6,9 +6,14 @@ CraftingRecipe::CraftingRecipe(EItemID itemID, std::map<EItemID, int> ingredient
 }
 
 const std::map<EItemID, CraftingRecipe> CRAFTING_RECIPE_TABLE = {
-    {EItemID::HP_POTION, CraftingRecipe(EItemID::HP_POTION,  // 임시 데이터
+    // 임시 레시피
+    {EItemID::HP_POTION, CraftingRecipe(EItemID::HP_POTION,
                                         {
-                                            {EItemID::HP_POTION, 2},
-                                            {EItemID::POWER_POTION, 3},
+                                            {EItemID::INGREDIENT_1, 2},
                                         })},
+    {EItemID::POWER_POTION, CraftingRecipe(EItemID::POWER_POTION,
+                                           {
+                                               {EItemID::INGREDIENT_2, 1},
+                                               {EItemID::INGREDIENT_3, 3},
+                                           })},
 };

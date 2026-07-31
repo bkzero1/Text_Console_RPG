@@ -85,6 +85,12 @@ void PlayerInit()
     // 인벤토리 생성
     inventory = new Inventory();
     inventory->AddGold(10000);
+    inventory->AddItems(
+        {
+            {EItemID::INGREDIENT_1, 10},
+            {EItemID::INGREDIENT_2, 10},
+            {EItemID::INGREDIENT_3, 10},
+        });
 
     // 첫 전투 시작
     SwitchState(EGameState::NORMAL_BATTLE);
