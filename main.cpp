@@ -362,19 +362,36 @@ void BossBattle()
     }
 }
 
+// main.cpp - 등록된 아이템 테이블 전체 출력
+void ShowItemTable()
+{
+    std::cout << "\n========== 아이템 목록 ==========\n";
+
+    for (const auto& [itemID, itemData] : ITEM_TABLE)
+    {
+        std::cout << "[" << static_cast<int>(itemID) << "] "
+                  << itemData.name << '\n'
+                  << "설명: " << itemData.description << '\n'
+                  << "구매 가격: " << itemData.purchasePrice << " G\n"
+                  << "사용 가능: " << (itemData.isConsumable ? "가능" : "불가능")
+                  << "\n------------------------------\n";
+    }
+}
+
 // 메인 메뉴
 void MainMenu()
 {
     std::cout << "========================================" << "\n";
     std::cout << " 1. 전투" << "\n";
     std::cout << " 2. 상점" << "\n";
+    std::cout << " 3. 플레이어 정보 확인" << "\n";
+    std::cout << " 4. 몬스터 처치 기록 확인" << "\n";
     std::cout << "========================================" << "\n";
     std::cout << "입력: ";
     int option;
     std::cin >> option;
-
     // 유효하지 않은 입력
-    if (option < 1 || 2 < option)
+    if (option < 1 || 4 < option)
     {
         return;
     }
@@ -402,6 +419,13 @@ void MainMenu()
             break;
         case 2:
             SwitchState(EGameState::SHOP);
+            break;
+        case 3:
+            for (const auto& player : players)
+                player->ShowStatus();
+            break;
+        case 4:
+            // 킬 몬스터 로그 출력 메뉴
             break;
         default:
             break;
@@ -579,5 +603,7 @@ void Run()
 
 int main()
 {
+    //TestMonster(3);
+    //ShowItemTable();
     Run();
 }
