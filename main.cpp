@@ -5,15 +5,17 @@
 
 #include "BattleManager.h"
 #include "FMonsterData.h"
-#include "RpgLogger.h"
 #include "Inventory.h"
+#include "ItemUseHandler.h"
+#include "Mage.h"
 #include "Monster.h"
 #include "MonsterPool.h"
 #include "Player.h"
-#include "ItemUseHandler.h"
-#include "Warrior.h"
-#include "Mage.h"
+#include "RpgLogger.h"
 #include "Tank.h"
+#include "Warrior.h"
+
+#include "ShopManager.h"
 
 // 게임 상태
 enum class EGameState
@@ -32,12 +34,31 @@ EGameState CurrentGameState = EGameState::PLAYER_INIT;
 bool IsRunning = true;
 RpgLogger rpgLogger;
 
-Inventory* inventory;  // 인벤토리
-std::vector<Player*> players; // 플레이어 목록
+Inventory* inventory;          // 인벤토리
+std::vector<Player*> players;  // 플레이어 목록
 // 게임 상태 전환
 void SwitchState(EGameState newGameState)
 {
     CurrentGameState = newGameState;
+}
+
+bool StringCompare(string a, string b)
+{
+    if (a.size() != a.size())
+    {
+        return false;
+    }
+
+    for (int i = 0; i < a.size(); i++)
+    {
+        char aChar = std::tolower(a[i]);
+        char bChar = std::tolower(b[i]);
+        if (aChar != bChar)
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 // 캐릭터 생성
@@ -62,9 +83,11 @@ void PlayerInit()
 
     // 인벤토리 생성
     inventory = new Inventory();
-
+    inventory->AddGold(10000);
+    
     // 첫 전투 시작
     SwitchState(EGameState::NORMAL_BATTLE);
+
 }
 
 bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
@@ -86,25 +109,21 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
 
             auto potionItr = consumableItems.find(EItemID::HP_POTION);
             auto buffItr = consumableItems.find(EItemID::POWER_POTION);
-            if (potionItr != consumableItems.end() 
-                && turnPlayer->GetMissingHP() >= turnPlayer->GetHp())
+            if (potionItr != consumableItems.end() && turnPlayer->GetMissingHP() >= turnPlayer->GetHp())
             {
                 inventory->ConsumeItem(EItemID::HP_POTION);
                 itemHandler.USE_ITEM(turnPlayer, EItemID::HP_POTION);
-                auto tableItr = ITEM_TABLE.find(EItemID::HP_POTION);
-                std::string itemName = tableItr->second.name;
-                rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + itemName + "을(를) 사용 체력 : " + to_string(turnPlayer->GetHp()));
+                ItemData hpPotion = ITEM_TABLE.at(EItemID::HP_POTION);
+                rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + hpPotion.name + "을(를) 사용 체력 : " + to_string(turnPlayer->GetHp()));
             }
-            else if (buffedPlayer.find(turnPlayer) == buffedPlayer.end()
-                && buffItr != consumableItems.end())
+            else if (buffedPlayer.find(turnPlayer) == buffedPlayer.end() && buffItr != consumableItems.end())
             {
                 inventory->ConsumeItem(EItemID::POWER_POTION);
                 itemHandler.USE_ITEM(turnPlayer, EItemID::POWER_POTION);
                 buffedPlayer.insert(turnPlayer);
 
-                auto tableItr = ITEM_TABLE.find(EItemID::POWER_POTION);
-                std::string itemName = tableItr->second.name;
-                rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + itemName + "을(를) 사용 공격력 : " + to_string(turnPlayer->GetPower()));
+                ItemData powerPotion = ITEM_TABLE.at(EItemID::POWER_POTION);
+                rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + powerPotion.name + "을(를) 사용 공격력 : " + to_string(turnPlayer->GetPower()));
             }
             else
             {
@@ -150,12 +169,11 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
             // 플레이어가 죽었는지 확인
             if (targetPlayer->IsDead())
             {
-                rpgLogger.AddLog(turnMonster->GetName() + "(이)가 " + turnMonster->GetName() + "을(를) 공격합니다! " + targetPlayer->GetName() + "(이)가 전투불능!");
-                break;
+                rpgLogger.AddLog(turnMonster->GetName() + "(이)가 " + targetPlayer->GetName() + "을(를) 공격합니다! " + targetPlayer->GetName() + "(이)가 전투불능!");
             }
             else
             {
-                rpgLogger.AddLog(turnMonster->GetName() + "(이)가 " + turnMonster->GetName() + "을(를) 공격합니다! " + targetPlayer->GetName() + " 체력 : " + to_string(targetPlayer->GetHp()));
+                rpgLogger.AddLog(turnMonster->GetName() + "(이)가 " + targetPlayer->GetName() + "을(를) 공격합니다! " + targetPlayer->GetName() + " 체력 : " + to_string(targetPlayer->GetHp()));
             }
 
             // 플레이어들이 다 죽었는지 확인
@@ -193,19 +211,19 @@ void NormalBattle()
 
     int monsterCount = std::max(1, avgLv / 2);
 
-    //랜덤 준비
+    // 랜덤 준비
     std::random_device rd;
     std::mt19937 gen(rd());
-    //ENum에서 랜덤 값 가져오기 위한 준비
+    // ENum에서 랜덤 값 가져오기 위한 준비
     std::uniform_int_distribution<int> deployDist(
-        0,
+        static_cast<int>(EMonsterID::NONE) + 1,
         static_cast<int>(EMonsterID::MAX) - 1);
-
 
     for (int i = 0; i < monsterCount; i++)
     {
         Monster* monster = monsterPool.Acquire();
-        EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
+        //EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
+        EMonsterID randomMonster = EMonsterID::GOBLIN;
         std::string nanori = monster->Deploy(randomMonster, avgLv);
         rpgLogger.AddLog(nanori);
         battleManager.AddMonster(monster);
@@ -220,8 +238,18 @@ void NormalBattle()
     }
 
     // 전리품 인벤토리에 추가
-    inventory->AddGold(battleManager.GetEarnGold());                                            // 골드 획득
-    std::map<EItemID, int> remainingItems = inventory->AddItems(battleManager.GetEarnItems());  // 아이템 획득
+    // 골드 획득
+    inventory->AddGold(battleManager.GetEarnGold());    
+    rpgLogger.AddLog("파티는 " + to_string(battleManager.GetEarnGold()) + "골드를 얻었다");
+    std::map<EItemID, int> earnItems = battleManager.GetEarnItems();
+    for (auto itr = earnItems.begin(); itr != earnItems.end(); itr++)
+    {
+        std::string earnItemName = ITEM_TABLE.at(itr->first).name;
+        int earnItemNumber = itr->second;
+        rpgLogger.AddLog(earnItemName + " " + to_string(earnItemNumber) + "개 발견");
+    }
+
+    std::map<EItemID, int> remainingItems = inventory->AddItems(earnItems);  // 아이템 획득
     while (!remainingItems.empty())
     {
         inventory->ShowInventory();
@@ -247,9 +275,42 @@ void NormalBattle()
         inventory->RemoveSlot(slotNum - 1);
         remainingItems = inventory->AddItems(remainingItems);
     }
+    battleManager.EarnExpToParty();
     rpgLogger.AddLog("파티는 " + to_string(battleManager.GetEarnExp()) + " exp 를 얻었다");
-    battleManager.BattleEnd(isWin);
 
+    // 전투 후 레벨 확인
+    totalLv = 0;
+    for (int i = 0; i < players.size(); i++)
+    {
+        totalLv += players[i]->GetLevel();
+    }
+    avgLv = totalLv / players.size();
+
+    while (true)
+    {
+        std::cout << "마을로 돌아가겠습니까? [Y/N]" << endl;
+        string answer;
+        std::cin >> answer;
+        if (StringCompare(answer, "Y"))
+        {
+            SwitchState(EGameState::MAIN_MEMU);
+            break;
+        }
+
+        if (StringCompare(answer, "N"))
+        {
+            if (avgLv < 10)
+            {
+                SwitchState(EGameState::NORMAL_BATTLE);
+                break;
+            }
+            else
+            {
+                SwitchState(EGameState::BOSS_BATTLE);
+                break;
+            }
+        }
+    }
 }
 
 // 보스 전투
@@ -274,13 +335,14 @@ void BossBattle()
     std::mt19937 gen(rd());
     // ENum에서 랜덤 값 가져오기 위한 준비
     std::uniform_int_distribution<int> deployDist(
-        0,
+        static_cast<int>(EMonsterID::NONE) + 1,
         static_cast<int>(EMonsterID::MAX) - 1);
 
     for (int i = 0; i < monsterCount; i++)
     {
         Monster* monster = monsterPool.Acquire();
-        EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
+        // EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
+        EMonsterID randomMonster = EMonsterID::GOBLIN;
         std::string nanori = monster->Deploy(randomMonster, avgLv, true);
         rpgLogger.AddLog(nanori);
         battleManager.AddMonster(monster);
@@ -293,7 +355,7 @@ void BossBattle()
         CurrentGameState = EGameState::GAME_OVER;
         return;
     }
-    else 
+    else
     {
         CurrentGameState = EGameState::GAME_CLEAR;
         return;
@@ -303,21 +365,179 @@ void BossBattle()
 // 메인 메뉴
 void MainMenu()
 {
+    std::cout << "========================================" << "\n";
+    std::cout << " 1. 전투" << "\n";
+    std::cout << " 2. 상점" << "\n";
+    std::cout << "========================================" << "\n";
+    std::cout << "입력: ";
+    int option;
+    std::cin >> option;
+
+    // 유효하지 않은 입력
+    if (option < 1 || 2 < option)
+    {
+        return;
+    }
+
+    // 플레이어 레벨
+    int totalLv = 0;
+    for (int i = 0; i < players.size(); i++)
+    {
+        totalLv += players[i]->GetLevel();
+    }
+    int avgLv = totalLv / players.size();
+
+    // 상태 전이
+    switch (option)
+    {
+        case 1:
+            if (avgLv < 10)
+            {
+                SwitchState(EGameState::NORMAL_BATTLE);
+            }
+            else
+            {
+                SwitchState(EGameState::BOSS_BATTLE);
+            }
+            break;
+        case 2:
+            SwitchState(EGameState::SHOP);
+            break;
+        default:
+            break;
+    }
 }
 
 // 상점
 void Shop()
 {
+    ShopManager shop;
+    std::cout << "---------- 3jo TRPG Shop ----------" << std::endl;
+    std::cout << "1. 아이템 구매" << std::endl;
+    std::cout << "2. 아이템 판매" << std::endl;
+    std::cout << "0. 돌아가기" << std::endl;
+    std::cout << "보유 골드: " << inventory->GetGold() << std::endl;
+    std::cout << "입력: ";
+    int select = 0;
+    std::cin >> select;
+    if (select >= 0 && select <= 2)
+    {
+        switch (select)
+        {
+            case 1:
+            {
+                // 구매 가능한 아이템 리스트 출력
+                shop.ShowCanBuyList();
+
+                int itemChoice, buyCount;
+                while (true)
+                {
+                    std::cout << "구매할 아이템의 번호를 입력해주세요. (0: 돌아가기) : ";
+                    std::cin >> itemChoice;
+                    // 아이템 구매
+                    if (itemChoice >= 1 && itemChoice <= ITEM_TABLE.size())
+                    {
+                        std::cout << "구매할 개수를 입력해주세요: ";
+                        std::cin >> buyCount;
+                        if (buyCount > 0)
+                        {
+                            shop.BuyItem(itemChoice, buyCount);
+                        }
+                        else
+                        {
+                            std::cout << "잘못 입력하셨습니다." << std::endl;
+                        }
+                    }
+                    // 돌아가기
+                    else if (itemChoice == 0)
+                    {
+                        return;
+                    }
+                    // 잘못 입력
+                    else
+                    {
+                        std::cout << "잘못 입력하셨습니다." << std::endl;
+                    }
+                }
+                break;
+            }
+            case 2:
+            {
+
+                while (true)
+                {
+                    // 판매 가능한 리스트 출력
+                    shop.ShowCanSellList();
+                    // 슬롯 개수 가져오기
+                    int sellListSize = inventory->GetSlots().size();
+
+                    int choice = 0;
+                    if (sellListSize == 0)
+                    {
+                        std::cout << "판매할 수 있는 아이템이 없습니다." << std::endl;
+                        return;
+                    }
+
+                    std::cout << "판매할 아이템 번호를 입력해주세요. (0: 돌아가기) : ";
+                    std::cin >> choice;
+                    if (choice == 0)
+                    {
+                        return;
+                    }
+                    
+                    if (choice < 0 || choice > sellListSize + 1)
+                    {
+                        std::cout << "존재하지 않는 슬롯입니다." << std::endl;
+                        continue;
+                    }
+
+                    int sellCount = 0;
+                    std::cout << "판매할 개수를 입력해주세요: ";
+                    std::cin >> sellCount;
+
+                    // 선택 슬롯보다 큰 수를 입력했을 때 판매불가 메시지
+                    //const InventorySlot& slot = inventory->GetSlot(choice - 1);
+                    std::map<EItemID, int> itemList = inventory->GetItemCounts();
+                    std::vector<EItemID> itemIDs;
+                    for (auto& item : itemList)
+                    {
+                        itemIDs.push_back(item.first);
+                    }
+
+                    if (inventory->GetItemCount(itemIDs.at(choice - 1)) < sellCount)
+                    {
+                        std::cout << "판매 수량이 보유 수량보다 많습니다." << std::endl;
+                    }
+                    else
+                    {
+                        shop.SellItem(choice, sellCount);
+                    }
+                  
+                }
+                break;
+            }
+            case 0:
+                SwitchState(EGameState::MAIN_MEMU);
+                break;
+            default:
+                break;
+        }
+    }
 }
+
 
 // 게임 패배
 void GameOver()
 {
+    rpgLogger.AddLog("상대가 너무 강하다! 일단 후퇴하자.");
+    SwitchState(EGameState::MAIN_MEMU);
 }
 
 // 게임 승리
 void GameClear()
 {
+    rpgLogger.AddLog("게임 클리어.");
+    IsRunning = false;
 }
 
 // 게임 실행

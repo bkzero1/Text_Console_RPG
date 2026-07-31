@@ -137,6 +137,7 @@
     <ClInclude Include="Player.h" />
     <ClInclude Include="Tank.h" />
     <ClInclude Include="Warrior.h" />
+    <ClInclude Include="ShopManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BattleManager.cpp" />
@@ -152,6 +153,7 @@
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Tank.cpp" />
     <ClCompile Include="Warrior.cpp" />
+    <ClCompile Include="ShopManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />

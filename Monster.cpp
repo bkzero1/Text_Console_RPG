@@ -1,9 +1,10 @@
 ﻿#include "Monster.h"
-#include "RpgLogger.h"
+#include "Item.h"
 
 #include <iostream>
 #include <vector>
 #include <random>
+#include <iomanip>
 namespace
 {
 int GetRandomInt(int min, int max)
@@ -28,12 +29,18 @@ std::string Monster::Deploy(const EMonsterID& eMonsterID, int playerLevel, bool 
     name = monsterData.name;
 
     // 설계도의 HP 범위와 playerLevel을 사용해 이번 몬스터의 스탯을 랜덤으로 결정
-    hp = playerLevel * GetRandomInt(monsterData.minHpMulti, monsterData.maxHpMulti);
+    hp = playerLevel * GetRandomInt(monsterData.minHpMulti, monsterData.maxHpMulti) ;
     
     power = playerLevel * GetRandomInt(monsterData.minPowerMulti, monsterData.maxPowerMulti);
     
     gold = GetRandomInt(monsterData.minGold, monsterData.maxGold);
     exp = GetRandomInt(monsterData.minExp, monsterData.maxExp);
+    
+    // 몬스터 강함에 따른 기본 수치 보정
+    hp += static_cast<int>(eMonsterID) * monsterData.minHpMulti;
+    power += static_cast<int>(eMonsterID) * monsterData.minPowerMulti;
+    gold += static_cast<int>(eMonsterID) * 20;
+    exp += static_cast<int>(eMonsterID) * 10;
 
     dropTable = monsterData.dropTable;
 
@@ -48,7 +55,7 @@ std::string Monster::Deploy(const EMonsterID& eMonsterID, int playerLevel, bool 
     std::string nanori = "몬스터 " + name + " 등장! 체력 : " + std::to_string(hp) + ", 공격력 : " + std::to_string(power);
 
     // 등장 이름을 반환
-    return nanori;  
+    return nanori;
 }
 
 void Monster::ShowStatus() const
@@ -71,14 +78,12 @@ void Monster::TakeDamage(int damage)
     }
 }
 
-void Monster::RollDrops()
+std::vector<EItemID> Monster::GetDropItems()
 {
-    dropItems.clear();
-    
-    // 아이템 드롭 자체가 발생하는지
+    std::vector<EItemID> dropItems;
     if (GetRandomInt(1, 100) > 30)
     {
-        return;
+        return dropItems;
     }
 
     for (const FDropData& dropData : dropTable)
@@ -88,10 +93,80 @@ void Monster::RollDrops()
             dropItems.push_back(dropData.itemID);
         }
     }
+    return dropItems;
 }
 
-std::vector<EItemID> Monster::GetDropItems()
+void TestMonster(int playerLevel)
 {
-    RollDrops();
-    return dropItems;
+    std::cout << "playerLevel: " << playerLevel << std::endl;
+
+    Monster monster = Monster();
+    
+    std::cout << "\n[ 일반몬스터 스텟 ]\n";
+    // 일반몹
+    for (const auto& [id, monsterData] : MONSTER_MAP)
+    {
+        // 몬스터 정보 출력
+        std::cout << monster.Deploy(id, playerLevel);
+        if (id == EMonsterID::WANDERING_ARMOR || id == EMonsterID::RED_DRAGON)
+        {
+            std::cout << "\t";
+        }
+        else
+        {
+            std::cout << "\t\t";
+        }
+        std::cout << "exp: " << std::setw(3) << monster.GetExp() << "  gold: " << std::setw(3) << monster.GetGold();
+
+        // 처치시 획득 아이템 시뮬레이션
+        std::cout << "  드롭아이템: ";
+        std::vector<EItemID> itemId = monster.GetDropItems();
+
+        if (itemId.empty())
+        {
+            std::cout << "- ";
+        }
+        else
+        {
+            for (const auto& eItemId : itemId)
+            {
+                std::cout << ITEM_TABLE.at(eItemId).name << " / ";
+            }
+        }
+        std::cout << std::endl;
+    }
+
+    std::cout << "\n[ 보스몬스터 스텟 ]\n";
+    // 보스
+    for (const auto& [id, monsterData] : MONSTER_MAP)
+    {
+        // 몬스터 정보 출력
+        std::cout << monster.Deploy(id, playerLevel, true);
+        if (id == EMonsterID::WANDERING_ARMOR || id == EMonsterID::RED_DRAGON)
+        {
+            std::cout << "\t";
+        }
+        else
+        {
+            std::cout << "\t\t";
+        }
+        std::cout << "exp: " << std::setw(3) << monster.GetExp() << "  gold: " << std::setw(3) << monster.GetGold();
+
+        // 처치시 획득 아이템 시뮬레이션
+        std::cout << "  드롭아이템: ";
+        std::vector<EItemID> itemId = monster.GetDropItems();
+        
+        if (itemId.empty())
+        {
+            std::cout << "- ";
+        }
+        else
+        {
+            for (const auto& eItemId : itemId)
+            {
+                std::cout << ITEM_TABLE.at(eItemId).name << " / ";
+            }
+        }
+        std::cout << std::endl;
+    }
 }

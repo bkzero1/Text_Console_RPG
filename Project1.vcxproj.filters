@@ -49,6 +49,12 @@
     <Filter Include="헤더 파일\RpgLogger">
       <UniqueIdentifier>{55807215-73a4-453f-bafb-310511f92a00}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\Shop">
+      <UniqueIdentifier>{407ca0dc-c491-4cad-847d-738b8ee6ec3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Shop">
+      <UniqueIdentifier>{abf8d55f-ab39-4a9f-a698-f2b8a74725f5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BattleManager.cpp">
@@ -90,6 +96,9 @@
     <ClCompile Include="Tank.cpp">
       <Filter>소스 파일\Player</Filter>
     </ClCompile>
+    <ClCompile Include="ShopManager.cpp">
+      <Filter>소스 파일\Shop</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BattleManager.h">
@@ -130,6 +139,9 @@
     </ClInclude>
     <ClInclude Include="Warrior.h">
       <Filter>헤더 파일\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="ShopManager.h">
+      <Filter>헤더 파일\Shop</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

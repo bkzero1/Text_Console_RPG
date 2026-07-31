@@ -16,7 +16,8 @@ public:
 
 	void AddPlayer(Player* player);
 	void AddMonster(Monster* monster);
-	void BattleEnd(bool isWin);
+    void EarnExpToParty();
+	void BattleEnd();
 
 	bool IsMonstersDead() const;
     bool IsPlayersDead() const;

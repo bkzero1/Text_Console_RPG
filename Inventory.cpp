@@ -146,7 +146,7 @@ bool Inventory::ConsumeItem(EItemID itemID, int count)
     for (InventorySlot& slot : slots)
     {
         // 동일 아이템 & 충분한 양 -> 아이템 제거
-        if (slot.id == itemID && slot.count >= count)
+        if (slot.id == itemID && slot.count > 0)
         {
             // 아이템 제거
             int removeCount = std::min(slot.count, count);  // 현재 슬롯에서 제거 가능한 개수
@@ -241,6 +241,11 @@ int Inventory::GetMaxAddableItemCount(EItemID itemID) const
     }
 
     return count;
+}
+
+std::map<EItemID, int> Inventory::GetItemCounts() const
+{
+    return itemCounts;
 }
 
 std::map<EItemID, int> Inventory::GetConsumableItems() const
