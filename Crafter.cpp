@@ -4,35 +4,40 @@ const std::map<EItemID, CraftingRecipe> CRAFTING_RECIPE_TABLE = {
 
 };
 
-bool Crafter::TRY_CRAFT_ITEM(Inventory* inventory, EItemID targetItemID)
+int Crafter::TRY_CRAFT_ITEM(Inventory* inventory, EItemID targetItemID, int count)
 {
     // 제작 레시피가 존재하지 않음
     if (CRAFTING_RECIPE_TABLE.find(targetItemID) == CRAFTING_RECIPE_TABLE.end())
     {
-        return false;
+        return 0;
     }
 
-    // 인벤토리에 제작할 아이템을 추가할 공간 부족
-    if (inventory->GetMaxAddableItemCount(targetItemID) == 0)
+    // 유효하지 않는 제작 개수
+    if (count <= 0)
     {
-        return false;
+        return 0;
     }
 
-    // 인벤토리 내 제작 재료 부족
+    // 제작할 개수 구하기
+    int addableCount = inventory->GetMaxAddableItemCount(targetItemID);  // 인벤토리에 추가 가능한 제작 아이템 개수
+    if (addableCount <= 0)                                               // 추가 불가
+    {
+        return 0;
+    }
+    int craftableCount = addableCount;  // 제작 가능한 개수
     for (const auto& [ingredientItemID, ingredientCount] : CRAFTING_RECIPE_TABLE.at(targetItemID).ingredients)
     {
-        if (inventory->GetItemCount(ingredientItemID) < ingredientCount)
-        {
-            return false;
-        }
+        craftableCount = std::min(craftableCount, inventory->GetItemCount(ingredientItemID) / ingredientCount);  // 재료 개수를 보고 제작 가능한 최대 개수 설정
     }
+
+    int finalCount = std::min({count, addableCount, craftableCount});  // 최종 제작할 아이템 개수
 
     // 아이템 제작 - 재료 소모 & 아이템 추가
     for (const auto& [ingredientItemID, ingredientCount] : CRAFTING_RECIPE_TABLE.at(targetItemID).ingredients)
     {
-        inventory->ConsumeItem(ingredientItemID, ingredientCount);  // 제작 재료 소모
+        inventory->ConsumeItem(ingredientItemID, finalCount * ingredientCount);  // 제작 재료 소모
     }
-    inventory->AddItem(targetItemID);  // 제작한 아이템 추가
+    inventory->AddItem(targetItemID, finalCount);  // 제작한 아이템 추가
 
-    return true;
+    return finalCount;
 }
