@@ -104,10 +104,11 @@ void Player::RemovePower(int power)  // 공격력 되돌리기 (버프 종료 �
 }
 
 // 레벨업 처리 (외부 직접 호출 없이 AddExp 내부에서만 사용)
-void Player::LevelUp()
+// virtual 키워드 추가
+virtual void Player::LevelUp()
 {
     level++;
     hpMax += 20;
-    hp = hpMax;  // 레벨업 시 체력 완전 회복
+    hp = hpMax;
     power += 5;
 }

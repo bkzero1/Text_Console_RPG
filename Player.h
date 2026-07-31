@@ -2,6 +2,7 @@
 #include <string>
 using namespace std;
 
+//LevelUp() 메서드를 private에서 public으로 변경 + virtual로 만들기:
 class Player
 {
    private:
@@ -12,27 +13,28 @@ class Player
     int power;
     int hpMax;
     int hp;
-    void LevelUp();
 
    public:
     Player(const string& playerName);
 
-    string GetName();      // 이름 얻기
-    int GetLevel();        // 레벨 얻기
-    void AddExp(int exp);  // 경험치 추가
+    string GetName();
+    int GetLevel();
+    void AddExp(int exp);
 
-    void TakeDamage(int damage);  // 피격
+    void TakeDamage(int damage);
     int GetPower();
-    int GetHpMax();  // 최대 체력 얻기
-    int GetHp();     // 현재 체력 얻기
+    int GetHpMax();
+    int GetHp();
 
-    void ShowStatus();  // 정보 출력
+    void ShowStatus();
 
-    void HealHP(int hp);  // 체력 회복
+    void HealHP(int hp);
     bool IsDead();
-    bool IsFullHP();     // 최대체력 여부
-    int GetMissingHP();  // 부족한 체력 값
+    bool IsFullHP();
+    int GetMissingHP();
 
-    void AddPower(int power);     // 공격력 증가 (아이템 버프, 파티 레벨업 등에 사용)
-    void RemovePower(int power);  // 공격력 되돌리기 (버프 종료 시 아이템 쪽에서 호출)
+    void AddPower(int power);
+    void RemovePower(int power);
+    
+    virtual void LevelUp();  // ← private에서 public + virtual로 변경
 };
