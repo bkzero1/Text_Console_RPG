@@ -7,8 +7,7 @@ Mage::Mage(const string& playerName)
 
 void Mage::LevelUp()
 {
-    level++;
-    hpMax += 20;
+ 
     hp = hpMax;
-    power += 5 + 8;
+    power += 8;
 }

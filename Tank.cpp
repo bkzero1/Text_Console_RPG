@@ -7,8 +7,7 @@ Tank::Tank(const string& playerName)
 
 void Tank::LevelUp()
 {
-    level++;
-    hpMax += 20 + 10;
+  
+    hpMax += 20 ;
     hp = hpMax;
-    power += 5;
 }
