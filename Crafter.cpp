@@ -45,6 +45,11 @@ bool Crafter::IsRecipeMatchingFilter(const CraftingRecipe& craftingRecipe, const
     return false;
 }
 
+Crafter::Crafter()
+{
+    ClearFilter();
+}
+
 int Crafter::TRY_CRAFT_ITEM(Inventory* inventory, EItemID targetItemID, int count)
 {
     // 유효하지 않는 인벤토리
@@ -79,31 +84,45 @@ int Crafter::TRY_CRAFT_ITEM(Inventory* inventory, EItemID targetItemID, int coun
 
 void Crafter::SetFilter(std::string keyword, EFilterFlag filterFlag)
 {
-    this->filterKeyword = keyword;
-    this->filterFlag = filterFlag;
+    filteredCraftingItemIDs.clear();
+    for (const auto& [targetItemID, craftingRecipe] : CRAFTING_RECIPE_TABLE)
+    {
+        if (IsRecipeMatchingFilter(craftingRecipe, keyword, filterFlag))
+        {
+            filteredCraftingItemIDs.push_back(targetItemID);
+        }
+    }
 }
 
 void Crafter::ClearFilter()
 {
-    this->filterKeyword.clear();
-    this->filterFlag = EFilterFlag::ALL_NAME;
+    filteredCraftingItemIDs.clear();
+    for (const auto& [targetItemID, craftingRecipe] : CRAFTING_RECIPE_TABLE)
+    {
+        filteredCraftingItemIDs.push_back(targetItemID);
+    }
 }
 
-const std::vector<CraftingRecipe*>& Crafter::GetFilteredRecipes() const
+const std::vector<EItemID>& Crafter::GetFilteredCraftingItemIDs() const
 {
-    return filteredRecipes;
+    return filteredCraftingItemIDs;
+}
+
+EItemID Crafter::GetFilteredCraftingItemIDByIndex(int index) const
+{
+    return filteredCraftingItemIDs.at(index);
 }
 
 void Crafter::ShowFilteredRecipes() const
 {
     std::cout << "============== < 레시피 > ==============" << "\n";
-    int row = 1;
-    for (const auto& [targetItemID, craftingRecipe] : CRAFTING_RECIPE_TABLE)
+    for (int i = 0; i < filteredCraftingItemIDs.size(); i++)
     {
-        if (!IsRecipeMatchingFilter(craftingRecipe, filterKeyword, filterFlag)) continue;  // 필터 매칭 X
+        EItemID craftingItemID = filteredCraftingItemIDs.at(i);
+        const ItemData& craftingItem = ITEM_TABLE.at(craftingItemID);
+        const CraftingRecipe& craftingRecipe = CRAFTING_RECIPE_TABLE.at(craftingItemID);
 
-        const ItemData& targetItem = ITEM_TABLE.at(targetItemID);
-        std::cout << row++ << ". " << targetItem.name << " (" << targetItem.description << ") —— [";
+        std::cout << i + 1 << ". " << craftingItem.name << " (" << craftingItem.description << ") —— [";
         std::string ingredientsStr;
         for (const auto& [ingredientItemID, ingredientCount] : craftingRecipe.ingredients)
         {
