@@ -45,26 +45,6 @@ bool Crafter::IsRecipeMatchingFilter(const CraftingRecipe& craftingRecipe, const
     return false;
 }
 
-void Crafter::SHOW_ALL_RECIPES()
-{
-    std::cout << "============== < 레시피 > ==============" << "\n";
-    int row = 1;
-    for (const auto& [targetItemID, craftingRecipe] : CRAFTING_RECIPE_TABLE)
-    {
-        const ItemData& targetItem = ITEM_TABLE.at(targetItemID);
-        std::cout << row++ << ". " << targetItem.name << " (" << targetItem.description << ") —— [";
-        std::string ingredientsStr;
-        for (const auto& [ingredientItemID, ingredientCount] : craftingRecipe.ingredients)
-        {
-            const ItemData& ingredientItem = ITEM_TABLE.at(ingredientItemID);
-            ingredientsStr += ingredientItem.name + " x" + std::to_string(ingredientCount) + ", ";
-        }
-        ingredientsStr.erase(ingredientsStr.length() - 2);
-        std::cout << ingredientsStr << "]" << "\n";
-    }
-    std::cout << "========================================" << "\n";
-}
-
 int Crafter::TRY_CRAFT_ITEM(Inventory* inventory, EItemID targetItemID, int count)
 {
     // 유효하지 않는 인벤토리

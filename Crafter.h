@@ -25,7 +25,6 @@ class Crafter
     bool IsRecipeMatchingFilter(const CraftingRecipe& craftingRecipe, const std::string& filterKeyword, const EFilterFlag filterFlag) const;  // 필터 매칭 여부 반환
 
    public:
-    static void SHOW_ALL_RECIPES();                                                        // 모든 제작 레시피 출력
     static int TRY_CRAFT_ITEM(Inventory* inventory, EItemID targetItemID, int count = 1);  // 아이템 제작 시도 (가능한 최대로 제작 및 성공 개수 반환)
 
     void SetFilter(std::string keyword, EFilterFlag filterFlag = EFilterFlag::ALL_NAME);  // 필터 설정
