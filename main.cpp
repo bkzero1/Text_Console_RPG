@@ -533,15 +533,17 @@ void Crafting()
     Crafter crafter = Crafter();
 
     std::cout << "=========== [ 아이템 제작소 ] ===========" << "\n";
-    std::cout << " 1. 전체 레시피 확인" << "\n";
-    std::cout << " 2. 전체 검색" << "\n";
-    std::cout << " 3. 제작 아이템 검색" << "\n";
-    std::cout << " 4. 재료 아이템 검색" << "\n";
+    std::cout << " 1. 인벤토리 확인" << "\n";
+    std::cout << " 2. 전체 레시피 확인" << "\n";
+    std::cout << " 3. 전체 검색" << "\n";
+    std::cout << " 4. 제작 아이템 검색" << "\n";
+    std::cout << " 5. 재료 아이템 검색" << "\n";
     std::cout << "----------------------------------------" << "\n";
     std::cout << " 0. 마을로 돌아가기" << "\n";
     std::cout << "========================================" << "\n";
+
     std::cout << "입력: ";
-    int option;
+    int option = 0;
     if (!(std::cin >> option))
     {
         std::cin.clear();
@@ -551,7 +553,7 @@ void Crafting()
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
     // 유효하지 않은 입력
-    if (option < 0 || 4 < option)
+    if (option < 0 || 5 < option)
     {
         return;
     }
@@ -563,19 +565,22 @@ void Crafting()
             SwitchState(EGameState::MAIN_MEMU);
             return;
         case 1:
+            inventory->ShowInventory();
+            return;
+        case 2:
             crafter.ClearFilter();
             break;
-        case 2:
+        case 3:
             std::cout << "전체 이름 검색하기: ";
             std::getline(std::cin, keyword);
             crafter.SetFilter(keyword, EFilterFlag::ALL_NAME);
             break;
-        case 3:
+        case 4:
             std::cout << "제작 아이템 이름 검색하기: ";
             std::getline(std::cin, keyword);
             crafter.SetFilter(keyword, EFilterFlag::ITEM_NAME);
             break;
-        case 4:
+        case 5:
             std::cout << "재료 아이템 이름 검색하기: ";
             std::getline(std::cin, keyword);
             crafter.SetFilter(keyword, EFilterFlag::INGREDIENT_NAME);
@@ -589,26 +594,71 @@ void Crafting()
     std::vector<EItemID> craftingItemIDs = crafter.GetFilteredCraftingItemIDs();
 
     // 제작할 아이템 선택
-    std::cout << "제작할 아이템 번호 입력 (0: 최소): ";
-    int craftinigItemNum;
-    std::cin >> craftinigItemNum;
+    int craftinigItemNum = 0;
+    while (true)
+    {
+        std::cout << "제작할 아이템 번호 입력 (0: 취소): " << std::flush;
 
-    // 취소
-    if (craftinigItemNum < 1 || craftingItemIDs.size() < craftinigItemNum) return;
+        if (!(std::cin >> craftinigItemNum))
+        {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "숫자만 입력해주세요." << std::endl;
+            continue;
+        }
+
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+        if (craftinigItemNum == 0)
+        {
+            return;
+        }
+
+        if (craftinigItemNum < 1 || static_cast<size_t>(craftinigItemNum) > craftingItemIDs.size())
+        {
+            std::cout << "존재하지 않는 번호입니다." << std::endl;
+            continue;
+        }
+
+        break;
+    }
 
     // 제작 개수 입력
-    std::cout << "제작할 아이템 개수 입력 (0: 취소): ";
-    int craftingCount;
-    std::cin >> craftingCount;
+    int craftingCount = 0;
+    while (true)
+    {
+        std::cout << "제작할 아이템 개수 입력 (0: 취소): " << std::flush;
 
-    // 취소
-    if (craftingCount <= 0) return;
+        if (!(std::cin >> craftingCount))
+        {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "숫자만 입력해주세요." << std::endl;
+            continue;
+        }
+
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+        if (craftingCount == 0)
+        {
+            return;
+        }
+
+        if (craftingCount < 0)
+        {
+            std::cout << "0 이상의 숫자를 입력해주세요." << std::endl;
+            continue;
+        }
+
+        break;
+    }
 
     // 제작 시도 - 실제 제작한 개수 반환
     EItemID craftingItemID = crafter.GetFilteredCraftingItemIDByIndex(craftinigItemNum - 1);
     int finalCraftingCount = crafter.TRY_CRAFT_ITEM(inventory, craftingItemID, craftingCount);
 
     std::cout << " [" << ITEM_TABLE.at(craftingItemID).name << "] (" << finalCraftingCount << ")개 제작 성공!" << "\n";
+    inventory->ShowInventory();
 }
 
 // 게임 패배
