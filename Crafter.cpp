@@ -60,7 +60,7 @@ void Crafter::SHOW_ALL_RECIPES()
             ingredientsStr += ingredientItem.name + " x" + std::to_string(ingredientCount) + ", ";
         }
         ingredientsStr.erase(ingredientsStr.length() - 2);
-        std::cout << "]" << "\n";
+        std::cout << ingredientsStr << "]" << "\n";
     }
     std::cout << "========================================" << "\n";
 }
@@ -131,7 +131,7 @@ void Crafter::ShowFilteredRecipes() const
             ingredientsStr += ingredientItem.name + " x" + std::to_string(ingredientCount) + ", ";
         }
         ingredientsStr.erase(ingredientsStr.length() - 2);
-        std::cout << "]" << "\n";
+        std::cout << ingredientsStr << "]" << "\n";
     }
     std::cout << "========================================" << "\n";
 }
