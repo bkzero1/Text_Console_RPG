@@ -212,7 +212,7 @@ void NormalBattle()
     std::mt19937 gen(rd());
     // ENum에서 랜덤 값 가져오기 위한 준비
     std::uniform_int_distribution<int> deployDist(
-        1,
+        static_cast<int>(EMonsterID::NONE) + 1,
         static_cast<int>(EMonsterID::MAX) - 1);
 
     for (int i = 0; i < monsterCount; i++)
@@ -323,7 +323,7 @@ void BossBattle()
     std::mt19937 gen(rd());
     // ENum에서 랜덤 값 가져오기 위한 준비
     std::uniform_int_distribution<int> deployDist(
-        1,
+        static_cast<int>(EMonsterID::NONE) + 1,
         static_cast<int>(EMonsterID::MAX) - 1);
 
     for (int i = 0; i < monsterCount; i++)
