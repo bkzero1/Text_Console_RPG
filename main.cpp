@@ -234,10 +234,18 @@ void NormalBattle()
     }
 
     // 전리품 인벤토리에 추가
+    // 골드 획득
     inventory->AddGold(battleManager.GetEarnGold());    
     rpgLogger.AddLog("파티는 " + to_string(battleManager.GetEarnGold()) + "골드를 얻었다");
-    // 골드 획득
-    std::map<EItemID, int> remainingItems = inventory->AddItems(battleManager.GetEarnItems());  // 아이템 획득
+    std::map<EItemID, int> earnItems = battleManager.GetEarnItems();
+    for (auto itr = earnItems.begin(); itr != earnItems.end(); itr++)
+    {
+        std::string earnItemName = ITEM_TABLE.at(itr->first).name;
+        int earnItemNumber = itr->second;
+        rpgLogger.AddLog(earnItemName + " " + to_string(earnItemNumber) + "개 발견");
+    }
+
+    std::map<EItemID, int> remainingItems = inventory->AddItems(earnItems);  // 아이템 획득
     while (!remainingItems.empty())
     {
         inventory->ShowInventory();
