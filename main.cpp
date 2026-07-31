@@ -542,7 +542,13 @@ void Crafting()
     std::cout << "========================================" << "\n";
     std::cout << "입력: ";
     int option;
-    std::cin >> option;
+    if (!(std::cin >> option))
+    {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        return;
+    }
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
     // 유효하지 않은 입력
     if (option < 0 || 4 < option)
@@ -584,9 +590,6 @@ void Crafting()
     std::cout << keyword << "\n";
 
     // 각 출력한 값에서 입력에 따른 아이템 추가
-
-    std::cin.clear();
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
 // 게임 패배
