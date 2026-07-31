@@ -222,8 +222,7 @@ void NormalBattle()
     for (int i = 0; i < monsterCount; i++)
     {
         Monster* monster = monsterPool.Acquire();
-        //EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
-        EMonsterID randomMonster = EMonsterID::GOBLIN;
+        EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
         std::string nanori = monster->Deploy(randomMonster, avgLv);
         rpgLogger.AddLog(nanori);
         battleManager.AddMonster(monster);
@@ -341,8 +340,7 @@ void BossBattle()
     for (int i = 0; i < monsterCount; i++)
     {
         Monster* monster = monsterPool.Acquire();
-        // EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
-        EMonsterID randomMonster = EMonsterID::GOBLIN;
+        EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
         std::string nanori = monster->Deploy(randomMonster, avgLv, true);
         rpgLogger.AddLog(nanori);
         battleManager.AddMonster(monster);
