@@ -188,6 +188,10 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
             break;
         }
     }
+    for (auto itr = buffedPlayer.begin(); itr != buffedPlayer.end(); itr++)
+    {
+        itemHandler.CLEAR_BUFF(*itr, EItemID::POWER_POTION);
+    }
     return isWin;
 }
 
