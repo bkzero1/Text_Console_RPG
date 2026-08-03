@@ -198,7 +198,7 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
 // 일반 전투
 void NormalBattle()
 {
-    BattleManager battleManager = BattleManager();
+    BattleManager battleManager;
     MonsterPool monsterPool = MonsterPool();
 
     int totalLv = 0;
