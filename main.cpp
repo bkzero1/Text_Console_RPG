@@ -162,12 +162,13 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
             else
             {
                 std::vector<Monster*> monster = battleManager.GetLivingMonsters();
-                std::uniform_int_distribution<int> monsterDist(0, monster.size() - 1);
+                std::uniform_int_distribution<size_t> monsterDist(0, monster.size() - 1);
                 Monster* targetMonster = monster[monsterDist(gen)];
                 battleManager.PlayerHitMonster(targetMonster, turnPlayer->GetPower());
                 if (targetMonster->IsDead())
                 {
                     rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + targetMonster->GetName() + "을(를) 공격합니다! " + targetMonster->GetName() + " 처치!");
+                    rpgLogger.OnMonsterKilled(targetMonster->GetMonsterId());
                     monsterPool.Release(targetMonster);
                 }
                 else
@@ -196,7 +197,7 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
         {
             Monster* turnMonster = turnMonsters[i];
             std::vector<Player*> livingPlayers = battleManager.GetLivingPlayers();
-            std::uniform_int_distribution<int> monsterDist(0, livingPlayers.size() - 1);
+            std::uniform_int_distribution<size_t> monsterDist(0, livingPlayers.size() - 1);
             Player* targetPlayer = livingPlayers[monsterDist(gen)];
             battleManager.MonsterHitPlayer(targetPlayer, turnMonster->GetPower());
 
@@ -245,7 +246,7 @@ void NormalBattle()
         totalLv += players[i]->GetLevel();
     }
 
-    int avgLv = totalLv / players.size();
+    int avgLv = totalLv / (int)players.size();
 
     int monsterCount = std::max(1, avgLv / 2);
 
@@ -273,7 +274,7 @@ void NormalBattle()
         // 패배자들 체력 회복 시키고 내쫓기
         for (int i = 0; i < players.size(); i++)
         {
-            players[i]->HealHP(players[i]->GetHpMax());
+            players[i]->HealHP(1);
         }
         CurrentGameState = EGameState::GAME_OVER;
         return;
@@ -326,7 +327,7 @@ void NormalBattle()
     {
         totalLv += players[i]->GetLevel();
     }
-    avgLv = totalLv / players.size();
+    avgLv = totalLv / (int)players.size();
 
     while (true)
     {
@@ -368,7 +369,7 @@ void BossBattle()
         totalLv += players[i]->GetLevel();
     }
 
-    int avgLv = totalLv / players.size();
+    int avgLv = totalLv / (int)players.size();
 
     int monsterCount = 1;
 
@@ -396,7 +397,7 @@ void BossBattle()
         // 패배자들 체력 회복 시키고 내쫓기
         for (int i = 0; i < players.size(); i++)
         {
-            players[i]->HealHP(players[i]->GetHpMax());
+            players[i]->HealHP(1);
         }
         CurrentGameState = EGameState::GAME_OVER;
         return;
@@ -449,7 +450,7 @@ void MainMenu()
     {
         totalLv += players[i]->GetLevel();
     }
-    int avgLv = totalLv / players.size();
+    int avgLv = totalLv / (int)players.size();
 
     // 상태 전이
     switch (option)
