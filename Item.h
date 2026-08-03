@@ -6,10 +6,20 @@
 enum class EItemID
 {
     NONE,
+
+    // ========================================
+    // Consumable Items
+    // ========================================
+
+    // ---------- 회복 포션 ----------
     HP_POTION,
+
+    // ---------- 공격력 증가 포션 ----------
     POWER_POTION,
 
-    //============ 일반몹 ============
+    // ========================================
+    // Crafting Ingredient Items
+    // ========================================
 
     BOTTLE,
     WATER,
@@ -39,7 +49,7 @@ enum class EItemID
     ZOMBIE_GRAVE_CLOTH,
     ZOMBIE_PLAGUE_FANG,
 
-    //============ 정 예 =============
+    // ---------- 정예 몬스터 ----------
     // 코볼트
     KOBOLD_FANG,
     KOBOLD_CLAW,
@@ -52,7 +62,7 @@ enum class EItemID
     GOLEM_IRON_ARM,
     GOLEM_GEMSTONE,
 
-    //============ 중보스 ============
+    // ---------- 중간 보스 ----------
     // 방황하는 갑옷
     WANDERING_ARMOR_CRACKED_ARMOR_PLATE,
     WANDERING_ARMOR_CURSED_HELM_FRAGMENT,
@@ -67,8 +77,8 @@ enum class EItemID
     DRACULA_DARK_CAPE_CLOTH,
     DRACULA_MOONSTONE,
 
-    //============ 보스급 ============
-    //레드 드래곤
+    //============ 보스 ============
+    // 레드 드래곤
     RED_DRAGON_SCALE,
     RED_DRAGON_CLAW,
     RED_DRAGON_FANG,
