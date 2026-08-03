@@ -25,13 +25,12 @@ void SoundManager:: Shutdown()
     ma_engine_uninit(&engine);
 }
 
-// BGM 재생 (같은 곡이면 무시, 다른 곡이면 교체)
 void SoundManager::PlayBGM(const std::string& path, bool loop)
 {
     if (currentBgmPath == path && isBgmPlaying)
-        return;  // 이미 같은 곡 재생 중이면 그대로 둠
+        return;  
 
-    StopBGM();  // 기존 BGM 정지 및 정리
+    StopBGM();  
 
     if (ma_sound_init_from_file(&engine, path.c_str(),
                                 MA_SOUND_FLAG_STREAM, NULL, NULL, &currentBgm) == MA_SUCCESS)
@@ -54,8 +53,6 @@ void SoundManager::PlayBGM(const std::string& path, bool loop)
     }
 }
 
-
-// 효과음은 그대로 이 함수로
 void SoundManager::PlaySFX(const std::string& path)
 {
     ma_engine_play_sound(&engine, path.c_str(), NULL);

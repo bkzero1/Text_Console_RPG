@@ -140,9 +140,9 @@
     <Image Include="urbanbrush-20191130104141722382.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="TextRPGSource\AsciiArt\AsciiBattleScene.h" />
-    <ClInclude Include="TextRPGSource\AsciiArt\AsciiBattleDemo.h" />
-    <ClCompile Include="TextRPGSource\AsciiArt\AsciiBattleDemo.cpp" />
+    <ClInclude Include="AsciiArt\AsciiBattleScene.h" />
+    <ClInclude Include="AsciiArt\AsciiBattleDemo.h" />
+    <ClCompile Include="AsciiArt\AsciiBattleDemo.cpp" />
     <ClCompile Include="StandaloneMain.cpp" />
   </ItemGroup>
   <ItemGroup>
