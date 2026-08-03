@@ -12,8 +12,8 @@ bool InventorySlot::IsEmpty() const
 
 void InventorySlot::Clear()
 {
-    id == EItemID::NONE;
-    count == 0;
+    id = EItemID::NONE;
+    count = 0;
 }
 
 bool InventorySlot::COMPARE_BY_NAME(const InventorySlot &slot1, const InventorySlot &slot2)
