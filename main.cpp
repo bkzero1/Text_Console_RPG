@@ -177,14 +177,14 @@ void NormalBattle()
 
     int avgLv = totalLv / (int)players.size();
 
+    // 평균 레벨 2마다 한 마리씩 늘어나며, 기본 한 마리를 더 포함합니다.
     int monsterCount = std::max(1, avgLv / 2) + 1;
-
     vector<EMonsterID> monsterCards = battleManager.GetSpawanAbleMonsterIDs(avgLv);
 
     // 랜덤 준비
     std::random_device rd;
     std::mt19937 gen(rd());
-    //몬스터 카드에서 가져올 몬스터 준비
+    // 현재 평균 레벨에서 등장 가능한 몬스터 카드 중 하나를 고릅니다.
     std::uniform_int_distribution<size_t> deployDist(0, monsterCards.size() - 1);
 
     for (int i = 0; i < monsterCount; i++)
@@ -305,13 +305,9 @@ void BossBattle()
 
     int avgLv = totalLv / (int)players.size();
 
-    int monsterCount = AsciiArt::GetBattleTestMonsterCount(1);
-
-    vector<EMonsterID> monsterCards = battleManager.GetSpawanAbleMonsterIDs(avgLv);
-
-    //보스 몬스터 레드 드래곤 하나
+    // 보스전은 레드 드래곤 한 마리로 고정합니다.
     Monster* monster = monsterPool.Acquire();
-    std::string nanori = monster->Deploy(EMonsterID::RED_DRAGON, avgLv);
+    std::string nanori = monster->Deploy(EMonsterID::RED_DRAGON, avgLv, true);
     rpgLogger.AddLog(nanori);
     battleManager.AddMonster(monster);
 
