@@ -394,14 +394,15 @@ void MainMenu()
     std::cout << "========================================" << "\n";
     std::cout << " 1. 전투" << "\n";
     std::cout << " 2. 상점" << "\n";
-    std::cout << " 3. 플레이어 정보 확인" << "\n";
-    std::cout << " 4. 몬스터 처치 기록 확인" << "\n";
+    std::cout << " 3. 아이템 제작소" << "\n";
+    std::cout << " 4. 플레이어 정보 확인" << "\n";
+    std::cout << " 5. 몬스터 처치 기록 확인" << "\n";
     std::cout << "========================================" << "\n";
     std::cout << "입력: ";
     int option;
     std::cin >> option;
     // 유효하지 않은 입력
-    if (option < 1 || 4 < option)
+    if (option < 1 || 5 < option)
     {
         return;
     }
@@ -417,7 +418,7 @@ void MainMenu()
     // 상태 전이
     switch (option)
     {
-        case 1:
+        case 1:  //  전투
             if (avgLv < 10)
             {
                 SwitchState(EGameState::NORMAL_BATTLE);
@@ -427,14 +428,17 @@ void MainMenu()
                 SwitchState(EGameState::BOSS_BATTLE);
             }
             break;
-        case 2:
+        case 2:  // 상점
             SwitchState(EGameState::SHOP);
             break;
-        case 3:
+        case 3:  // 아이템 제작소
+            SwitchState(EGameState::CRAFTING);
+            break;
+        case 4:  // 플레이어 정보
             for (const auto& player : players)
                 player->ShowStatus();
             break;
-        case 4:
+        case 5:  // 몬스터 처치 기록
             // 킬 몬스터 로그 출력 메뉴
             break;
         default:
