@@ -226,5 +226,23 @@
     <Media Include="assets\intro.wav">
       <Filter>리소스 파일</Filter>
     </Media>
+    <Media Include="assets\INBATTLE.mp3">
+      <Filter>리소스 파일</Filter>
+    </Media>
+    <Media Include="assets\BOSS.mp3">
+      <Filter>리소스 파일</Filter>
+    </Media>
+    <Media Include="assets\village.mp3">
+      <Filter>리소스 파일</Filter>
+    </Media>
+    <Media Include="assets\attack-03.wav">
+      <Filter>리소스 파일</Filter>
+    </Media>
+    <Media Include="assets\attack-02.wav">
+      <Filter>리소스 파일</Filter>
+    </Media>
+    <Media Include="assets\attack-01.wav">
+      <Filter>리소스 파일</Filter>
+    </Media>
   </ItemGroup>
 </Project>

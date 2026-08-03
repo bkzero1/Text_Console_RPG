@@ -182,8 +182,14 @@
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\..\..\..\Downloads\intro.wav" />
+    <Media Include="assets\attack-01.wav" />
+    <Media Include="assets\attack-02.wav" />
+    <Media Include="assets\attack-03.wav" />
+    <Media Include="assets\BOSS.mp3" />
     <Media Include="assets\charity-shop.wav" />
+    <Media Include="assets\INBATTLE.mp3" />
     <Media Include="assets\intro.wav" />
+    <Media Include="assets\village.mp3" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
