@@ -237,7 +237,7 @@ void NormalBattle()
         // 패배자들 체력 회복 시키고 내쫓기
         for (int i = 0; i < players.size(); i++)
         {
-            players[i]->HealHP(players[i]->GetHpMax());
+            players[i]->HealHP(1);
         }
         CurrentGameState = EGameState::GAME_OVER;
         return;
@@ -360,7 +360,7 @@ void BossBattle()
         // 패배자들 체력 회복 시키고 내쫓기
         for (int i = 0; i < players.size(); i++)
         {
-            players[i]->HealHP(players[i]->GetHpMax());
+            players[i]->HealHP(1);
         }
         CurrentGameState = EGameState::GAME_OVER;
         return;
