@@ -39,6 +39,10 @@ struct SceneConfig
     int sceneHeight = 540;
     int battleTransitionMilliseconds = 900;
     int nextBattleTransitionMilliseconds = 950;
+    int bossDoorStageHoldMilliseconds = 420;
+    int bossDoorSweepMilliseconds = 520;
+    int bossBlackoutMilliseconds = 520;
+    int bossDragonRevealMilliseconds = 920;
 
     std::wstring heroImagePath = L"Resources\\Images\\Characters\\warrior_back_v2.png";
     std::wstring hero2ImagePath = L"Resources\\Images\\Characters\\mage_back_v2.png";
@@ -60,6 +64,12 @@ struct SceneConfig
     std::wstring battleReturnTransitionImagePath = L"Resources\\Images\\Battle\\battle_transition_forest_path_return.png";
     std::wstring nextBattleTransitionImagePath = L"Resources\\Images\\Battle\\battle_next_encounter_moonlit_path.png";
     std::wstring battleBackgroundImagePath = L"Resources\\Images\\Battle\\battle_background_moonlit_clearing.png";
+    std::wstring bossDoorStage1ImagePath = L"Resources\\Images\\Battle\\Boss\\boss_door_stage_01_closed.png";
+    std::wstring bossDoorStage2ImagePath = L"Resources\\Images\\Battle\\Boss\\boss_door_stage_02_crack.png";
+    std::wstring bossDoorStage3ImagePath = L"Resources\\Images\\Battle\\Boss\\boss_door_stage_03_glow.png";
+    std::wstring bossDoorStage4ImagePath = L"Resources\\Images\\Battle\\Boss\\boss_door_stage_04_opening.png";
+    std::wstring bossDoorStage5ImagePath = L"Resources\\Images\\Battle\\Boss\\boss_door_stage_05_blinding.png";
+    std::wstring bossDragonRevealImagePath = L"Resources\\Images\\Battle\\Boss\\boss_door_stage_06_dragon_reveal.png";
     float heroX = 100.0f, heroY = 250.0f, heroWidth = 310.0f, heroHeight = 215.0f;
     int heroLayer = 20;
     float hero2X = 420.0f, hero2Y = 260.0f, hero2Width = 190.0f, hero2Height = 210.0f;
@@ -227,6 +237,10 @@ inline void ApplySceneConfigValue(SceneConfig& c, const std::wstring& key, const
         else if (key == L"scene_height") c.sceneHeight = std::stoi(value);
         else if (key == L"battle_transition_milliseconds") c.battleTransitionMilliseconds = std::stoi(value);
         else if (key == L"next_battle_transition_milliseconds") c.nextBattleTransitionMilliseconds = std::stoi(value);
+        else if (key == L"boss_door_stage_hold_milliseconds") c.bossDoorStageHoldMilliseconds = std::stoi(value);
+        else if (key == L"boss_door_sweep_milliseconds") c.bossDoorSweepMilliseconds = std::stoi(value);
+        else if (key == L"boss_blackout_milliseconds") c.bossBlackoutMilliseconds = std::stoi(value);
+        else if (key == L"boss_dragon_reveal_milliseconds") c.bossDragonRevealMilliseconds = std::stoi(value);
         // 이전 hero/hero2 이름도 읽되, 설정 파일에는 직업 이름으로 표시합니다.
         else if (key == L"warrior_image" || key == L"hero_image") c.heroImagePath = value;
         else if (key == L"mage_image" || key == L"hero2_image") c.hero2ImagePath = value;
@@ -247,6 +261,12 @@ inline void ApplySceneConfigValue(SceneConfig& c, const std::wstring& key, const
         else if (key == L"battle_return_transition_image") c.battleReturnTransitionImagePath = value;
         else if (key == L"next_battle_transition_image") c.nextBattleTransitionImagePath = value;
         else if (key == L"battle_background_image") c.battleBackgroundImagePath = value;
+        else if (key == L"boss_door_stage_1_image") c.bossDoorStage1ImagePath = value;
+        else if (key == L"boss_door_stage_2_image") c.bossDoorStage2ImagePath = value;
+        else if (key == L"boss_door_stage_3_image") c.bossDoorStage3ImagePath = value;
+        else if (key == L"boss_door_stage_4_image") c.bossDoorStage4ImagePath = value;
+        else if (key == L"boss_door_stage_5_image") c.bossDoorStage5ImagePath = value;
+        else if (key == L"boss_dragon_reveal_image") c.bossDragonRevealImagePath = value;
         else if (key == L"hero_x") c.heroX = std::stof(value); else if (key == L"hero_y") c.heroY = std::stof(value);
         else if (key == L"hero_width") c.heroWidth = std::stof(value); else if (key == L"hero_height") c.heroHeight = std::stof(value);
         else if (key == L"hero_layer") c.heroLayer = std::stoi(value);
@@ -361,6 +381,8 @@ inline void SaveSceneConfig(const SceneConfig& c, const std::wstring& fileName =
     number(L"ansi_color", c.useAnsiColor ? L"true" : L"false"); number(L"color_mode", c.colorMode);
     number(L"frames_per_second", c.framesPerSecond); number(L"scene_width", c.sceneWidth); number(L"scene_height", c.sceneHeight);
     number(L"battle_transition_milliseconds", c.battleTransitionMilliseconds); number(L"next_battle_transition_milliseconds", c.nextBattleTransitionMilliseconds);
+    number(L"boss_door_stage_hold_milliseconds", c.bossDoorStageHoldMilliseconds); number(L"boss_door_sweep_milliseconds", c.bossDoorSweepMilliseconds);
+    number(L"boss_blackout_milliseconds", c.bossBlackoutMilliseconds); number(L"boss_dragon_reveal_milliseconds", c.bossDragonRevealMilliseconds);
 
     section(L"이미지 파일");
     string(L"warrior_image", c.heroImagePath); string(L"warrior_weapon_image", c.warriorWeaponImagePath);
@@ -371,6 +393,10 @@ inline void SaveSceneConfig(const SceneConfig& c, const std::wstring& fileName =
     string(L"hero_slash_30_image", c.heroSlash30ImagePath); string(L"hero_slash_45_image", c.heroSlash45ImagePath); string(L"hero_slash_55_image", c.heroSlash55ImagePath); string(L"heal_effect_image", c.healEffectImagePath); string(L"power_buff_effect_image", c.powerBuffEffectImagePath);
     string(L"battle_transition_image", c.battleTransitionImagePath); string(L"battle_return_transition_image", c.battleReturnTransitionImagePath);
     string(L"next_battle_transition_image", c.nextBattleTransitionImagePath); string(L"battle_background_image", c.battleBackgroundImagePath);
+    section(L"보스 문 개방 연출");
+    string(L"boss_door_stage_1_image", c.bossDoorStage1ImagePath); string(L"boss_door_stage_2_image", c.bossDoorStage2ImagePath);
+    string(L"boss_door_stage_3_image", c.bossDoorStage3ImagePath); string(L"boss_door_stage_4_image", c.bossDoorStage4ImagePath);
+    string(L"boss_door_stage_5_image", c.bossDoorStage5ImagePath); string(L"boss_dragon_reveal_image", c.bossDragonRevealImagePath);
 
     section(L"영웅 배치");
     number(L"hero_x", c.heroX); number(L"hero_y", c.heroY); number(L"hero_width", c.heroWidth); number(L"hero_height", c.heroHeight); number(L"hero_layer", c.heroLayer);

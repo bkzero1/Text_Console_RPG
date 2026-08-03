@@ -24,11 +24,16 @@
 
 namespace
 {
-    // 테스트가 끝나면 false와 0으로 되돌리면 됩니다.
-    constexpr bool kEnablePotionOnlyTest = true;
+    // 디버그 전투 메뉴 코드는 남겨 두되, 실제 게임에서는 기존 인벤토리·행동 흐름을 사용합니다.
+    // 다시 시험할 때만 true로 바꾸면 포션 99개와 행동 선택 메뉴가 함께 켜집니다.
+    constexpr bool kEnablePotionOnlyTest = false;
+    // 현재 AA 전투 배치는 4마리까지 각각의 위치를 고정해 둔 상태입니다.
+    // 배치 작업이 끝날 때까지 적 수만 독립적으로 4마리로 고정합니다.
+    constexpr bool kForceFourMonsterLayoutTest = true;
     constexpr int kStarterPowerPotionCount = 99;
     constexpr int kMaximumBattleMonsterCount = 4;
     bool gHasEnteredBattleSequence = false;
+    bool gPlayBossBattleIntro = false;
 
     std::string MakeActorId(const char* prefix, const void* address)
     {
@@ -55,13 +60,18 @@ void AsciiArt::GrantBattleTestPotions(Inventory& inventory)
 
 int AsciiArt::GetBattleTestMonsterCount(int originalMonsterCount)
 {
-    // 포션 테스트와 같은 스위치를 씁니다. false로 바꾸면 기존 전투 수를 그대로 사용합니다.
-    return kEnablePotionOnlyTest ? kMaximumBattleMonsterCount : originalMonsterCount;
+    return kForceFourMonsterLayoutTest ? kMaximumBattleMonsterCount : originalMonsterCount;
 }
 
 bool AsciiArt::RunBattlePresentation(BattleManager& battleManager, MonsterPool& monsterPool, RpgLogger& logger, Inventory& inventory)
 {
-    if (gHasEnteredBattleSequence)
+    if (gPlayBossBattleIntro)
+    {
+        RenderBossBattleEntryTransition();
+        gPlayBossBattleIntro = false;
+        gHasEnteredBattleSequence = true;
+    }
+    else if (gHasEnteredBattleSequence)
     {
         RenderNextBattleTransition();
     }
@@ -216,10 +226,16 @@ bool AsciiArt::RunBattlePresentation(BattleManager& battleManager, MonsterPool& 
     return battleManager.IsMonstersDead();
 }
 
+void AsciiArt::PrepareBossBattlePresentation()
+{
+    gPlayBossBattleIntro = true;
+}
+
 void AsciiArt::ReturnToTownFromBattlePresentation()
 {
     RenderBattleReturnTransition();
     gHasEnteredBattleSequence = false;
+    gPlayBossBattleIntro = false;
 }
 
 void AsciiArt::Presentation::ClearScreen()

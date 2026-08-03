@@ -16,6 +16,8 @@ namespace AsciiArt
     void GrantBattleTestPotions(Inventory& inventory);
     // AA 테스트가 켜진 동안에는 전투당 표시 가능한 최대 몬스터 수를 돌려줍니다.
     int GetBattleTestMonsterCount(int originalMonsterCount);
+    // 다음 전투 화면 진입 시 보스 전용 연출을 한 번 재생하도록 예약합니다.
+    void PrepareBossBattlePresentation();
     // 마을 복귀를 확정했을 때만 호출합니다. 귀환 연출 후 다음 전투는 다시 첫 진입 연출부터 시작합니다.
     void ReturnToTownFromBattlePresentation();
 

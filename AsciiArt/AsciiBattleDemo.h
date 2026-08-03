@@ -55,6 +55,8 @@ namespace AsciiArt
     // 전투 시작·연속 전투·마을 복귀 때만 쓰는 정지 연출입니다.
     // 실제 BattleManager 전투 로직은 이 함수들을 알 필요가 없습니다.
     void RenderBattleEntryTransition();
+    // 보스 전투에만 사용하는 문 개방 → 암전 → 드래곤 등장 연출입니다.
+    void RenderBossBattleEntryTransition();
     void RenderNextBattleTransition();
     void RenderBattleReturnTransition();
     // 원본 PNG를 수정하지 않고 지정된 빛 위치만 밝게/어둡게 합성해 출력합니다.

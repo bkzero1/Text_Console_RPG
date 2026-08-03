@@ -285,6 +285,7 @@ void BossBattle()
         battleManager.AddMonster(monster);
     }
 
+    AsciiArt::PrepareBossBattlePresentation();
     bool isWin = BattlePhase(battleManager, monsterPool);
 
     if (!isWin)

@@ -2577,6 +2577,236 @@ void AsciiArt::RenderBattleEntryTransition()
 
 namespace
 {
+// 보스 연출은 장면 전체를 새로 만든 뒤, 콘솔에는 이전 프레임과 달라진 행만 보냅니다.
+// 그래서 문에서 왼쪽으로 지나가는 경계 뒤쪽만 다음 장면으로 바뀌는 모습이 유지됩니다.
+RenderSettings CreateBossCutsceneSettings(const SceneConfig& config)
+{
+    RenderSettings settings;
+    settings.outputPixelWidth = ClampSetting(std::min(config.outputPixelWidth, 700));
+    settings.characterHeightScaleValue = ClampSetting(config.characterHeightScaleValue);
+    settings.contrastValue = ClampSetting(config.contrastValue);
+    settings.useOrderedDithering = config.useOrderedDithering;
+    settings.useAnsiColor = config.useAnsiColor && gAnsiColorSupported;
+    settings.colorMode = config.colorMode;
+    return settings;
+}
+
+int GetBossCutsceneMaximumWidth(Gdiplus::Bitmap& image, const RenderSettings& settings, HANDLE output)
+{
+    const COORD consoleSize = GetVisibleConsoleSize(output);
+    const int availableRows = std::max(4, static_cast<int>(consoleSize.Y) - 1);
+    const double heightScale = GetCharacterHeightScale(settings);
+    const int maximumWidthByHeight = static_cast<int>(
+        availableRows * 4.0 *
+        (static_cast<double>(image.GetWidth()) / image.GetHeight()) /
+        heightScale);
+    return std::max(16, std::min(static_cast<int>(consoleSize.X) * 2, maximumWidthByHeight));
+}
+
+bool RenderBossCutsceneFrame(Gdiplus::Bitmap& image, const SceneConfig& config, HANDLE output)
+{
+    const RenderSettings settings = CreateBossCutsceneSettings(config);
+    const int maximumWidth = GetBossCutsceneMaximumWidth(image, settings, output);
+    const std::vector<std::wstring> artLines = CreateBrailleLines(image, settings, maximumWidth);
+    if (artLines.empty()) return false;
+
+    CONSOLE_SCREEN_BUFFER_INFO outputInfo{};
+    if (!GetConsoleScreenBufferInfo(output, &outputInfo)) return false;
+
+    const short artLeft = outputInfo.srWindow.Left;
+    const short artTop = outputInfo.srWindow.Top;
+    const short artWidth = static_cast<short>(GetVisibleConsoleDisplayWidth(artLines.front()));
+    gStaticImageLeft = artLeft;
+    gStaticImageTop = artTop;
+    gStaticImageWidth = artWidth;
+    gStaticImageHeight = static_cast<short>(artLines.size());
+    gHasStaticImageBounds = true;
+    WriteLayeredFrame(output, artLines, artLeft, artTop, artWidth);
+    return true;
+}
+
+std::unique_ptr<Gdiplus::Bitmap> CreateRightToLeftDoorFrame(
+    Gdiplus::Bitmap& previous,
+    Gdiplus::Bitmap& next,
+    float nextRevealRatio)
+{
+    const UINT width = previous.GetWidth();
+    const UINT height = previous.GetHeight();
+    auto frame = std::make_unique<Gdiplus::Bitmap>(width, height, PixelFormat32bppARGB);
+    Gdiplus::Graphics graphics(frame.get());
+    graphics.SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBicubic);
+    graphics.DrawImage(&previous, 0, 0, static_cast<INT>(width), static_cast<INT>(height));
+
+    // 오른쪽 문에서 시작한 경계가 왼쪽으로 이동합니다. 경계의 오른쪽만 다음 단계로 바뀝니다.
+    const INT boundary = std::clamp(
+        static_cast<INT>(std::lround(width * (1.0f - nextRevealRatio))),
+        0,
+        static_cast<INT>(width));
+    if (boundary < static_cast<INT>(width))
+    {
+        const Gdiplus::Rect destination(boundary, 0, static_cast<INT>(width) - boundary, static_cast<INT>(height));
+        graphics.DrawImage(
+            &next,
+            destination,
+            boundary,
+            0,
+            static_cast<INT>(width) - boundary,
+            static_cast<INT>(height),
+            Gdiplus::UnitPixel);
+    }
+    return frame;
+}
+
+std::unique_ptr<Gdiplus::Bitmap> CreateCenterHorizontalRevealFrame(Gdiplus::Bitmap& source, float revealRatio)
+{
+    const UINT width = source.GetWidth();
+    const UINT height = source.GetHeight();
+    auto frame = std::make_unique<Gdiplus::Bitmap>(width, height, PixelFormat32bppARGB);
+    Gdiplus::Graphics graphics(frame.get());
+    graphics.Clear(Gdiplus::Color(255, 0, 0, 0));
+
+    const INT revealWidth = std::clamp(
+        static_cast<INT>(std::lround(width * revealRatio)),
+        1,
+        static_cast<INT>(width));
+    const INT sourceLeft = (static_cast<INT>(width) - revealWidth) / 2;
+    const Gdiplus::Rect destination(sourceLeft, 0, revealWidth, static_cast<INT>(height));
+    graphics.DrawImage(
+        &source,
+        destination,
+        sourceLeft,
+        0,
+        revealWidth,
+        static_cast<INT>(height),
+        Gdiplus::UnitPixel);
+    return frame;
+}
+
+std::unique_ptr<Gdiplus::Bitmap> CreateCrossFadeFrame(
+    Gdiplus::Bitmap& previous,
+    Gdiplus::Bitmap& next,
+    float nextAlpha)
+{
+    const UINT width = previous.GetWidth();
+    const UINT height = previous.GetHeight();
+    auto frame = std::make_unique<Gdiplus::Bitmap>(width, height, PixelFormat32bppARGB);
+    Gdiplus::Graphics graphics(frame.get());
+    graphics.DrawImage(&previous, 0, 0, static_cast<INT>(width), static_cast<INT>(height));
+
+    const float alpha = std::clamp(nextAlpha, 0.0f, 1.0f);
+    const Gdiplus::ColorMatrix matrix = {{
+        {1.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+        {0.0f, 1.0f, 0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 1.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f, alpha, 0.0f},
+        {0.0f, 0.0f, 0.0f, 0.0f, 1.0f}
+    }};
+    Gdiplus::ImageAttributes attributes;
+    attributes.SetColorMatrix(&matrix, Gdiplus::ColorMatrixFlagsDefault, Gdiplus::ColorAdjustTypeBitmap);
+    const Gdiplus::Rect destination(0, 0, static_cast<INT>(width), static_cast<INT>(height));
+    graphics.DrawImage(
+        &next,
+        destination,
+        0,
+        0,
+        static_cast<INT>(next.GetWidth()),
+        static_cast<INT>(next.GetHeight()),
+        Gdiplus::UnitPixel,
+        &attributes);
+    return frame;
+}
+}
+
+void AsciiArt::RenderBossBattleEntryTransition()
+{
+    const SceneConfig config = LoadSceneConfig();
+    const HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (output == INVALID_HANDLE_VALUE) return;
+
+    DWORD originalOutputMode = 0;
+    const bool canRestoreOutputMode = GetConsoleMode(output, &originalOutputMode) != FALSE;
+    const bool previousAnsiColorSupported = gAnsiColorSupported;
+    gAnsiColorSupported = canRestoreOutputMode &&
+        SetConsoleMode(output, originalOutputMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING) != FALSE;
+
+    Gdiplus::GdiplusStartupInput startupInput;
+    ULONG_PTR token = 0;
+    if (Gdiplus::GdiplusStartup(&token, &startupInput, nullptr) != Gdiplus::Ok)
+    {
+        if (canRestoreOutputMode) SetConsoleMode(output, originalOutputMode);
+        gAnsiColorSupported = previousAnsiColorSupported;
+        return;
+    }
+
+    {
+        std::array<std::unique_ptr<Gdiplus::Bitmap>, 6> scenes = {
+            std::make_unique<Gdiplus::Bitmap>(config.bossDoorStage1ImagePath.c_str()),
+            std::make_unique<Gdiplus::Bitmap>(config.bossDoorStage2ImagePath.c_str()),
+            std::make_unique<Gdiplus::Bitmap>(config.bossDoorStage3ImagePath.c_str()),
+            std::make_unique<Gdiplus::Bitmap>(config.bossDoorStage4ImagePath.c_str()),
+            std::make_unique<Gdiplus::Bitmap>(config.bossDoorStage5ImagePath.c_str()),
+            std::make_unique<Gdiplus::Bitmap>(config.bossDragonRevealImagePath.c_str())
+        };
+        const bool imagesReady = std::all_of(scenes.begin(), scenes.end(), [](const auto& scene)
+        {
+            return scene && scene->GetLastStatus() == Gdiplus::Ok;
+        });
+        if (imagesReady)
+        {
+            constexpr int kDoorSweepSteps = 9;
+            constexpr int kHorizontalRevealSteps = 10;
+            constexpr int kDragonRevealSteps = 10;
+            ClearConsole(output);
+            RenderBossCutsceneFrame(*scenes[0], config, output);
+            std::this_thread::sleep_for(std::chrono::milliseconds(std::max(0, config.bossDoorStageHoldMilliseconds)));
+
+            // 1→4: 문에서 시작한 변화가 왼쪽으로 쓸고 지나가며, 그 뒤쪽만 다음 장면으로 갱신됩니다.
+            for (size_t stage = 1; stage <= 3; ++stage)
+            {
+                for (int step = 1; step <= kDoorSweepSteps; ++step)
+                {
+                    const float revealRatio = static_cast<float>(step) / kDoorSweepSteps;
+                    auto frame = CreateRightToLeftDoorFrame(*scenes[stage - 1], *scenes[stage], revealRatio);
+                    RenderBossCutsceneFrame(*frame, config, output);
+                    std::this_thread::sleep_for(std::chrono::milliseconds(
+                        std::max(1, config.bossDoorSweepMilliseconds / kDoorSweepSteps)));
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(std::max(0, config.bossDoorStageHoldMilliseconds)));
+            }
+
+            // 4→5: 완전히 암전한 뒤, 중앙 세로선에서 양쪽으로 넓어지며 눈부신 문 장면을 공개합니다.
+            ClearConsole(output);
+            std::this_thread::sleep_for(std::chrono::milliseconds(std::max(0, config.bossBlackoutMilliseconds)));
+            for (int step = 1; step <= kHorizontalRevealSteps; ++step)
+            {
+                const float revealRatio = static_cast<float>(step) / kHorizontalRevealSteps;
+                auto frame = CreateCenterHorizontalRevealFrame(*scenes[4], revealRatio);
+                RenderBossCutsceneFrame(*frame, config, output);
+                std::this_thread::sleep_for(std::chrono::milliseconds(
+                    std::max(1, config.bossDoorSweepMilliseconds / kHorizontalRevealSteps)));
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(std::max(0, config.bossDoorStageHoldMilliseconds)));
+
+            // 5→6: 눈부신 빛이 가라앉는 동안 드래곤의 모습이 점차 드러납니다.
+            for (int step = 1; step <= kDragonRevealSteps; ++step)
+            {
+                const float alpha = static_cast<float>(step) / kDragonRevealSteps;
+                auto frame = CreateCrossFadeFrame(*scenes[4], *scenes[5], alpha);
+                RenderBossCutsceneFrame(*frame, config, output);
+                std::this_thread::sleep_for(std::chrono::milliseconds(
+                    std::max(1, config.bossDragonRevealMilliseconds / kDragonRevealSteps)));
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(std::max(0, config.bossDoorStageHoldMilliseconds)));
+        }
+    } // GDI+ 객체를 모두 해제한 뒤 종료해야 GdiPlus.dll 예외가 나지 않습니다.
+
+    Gdiplus::GdiplusShutdown(token);
+    if (canRestoreOutputMode) SetConsoleMode(output, originalOutputMode);
+    gAnsiColorSupported = previousAnsiColorSupported;
+}
+
+namespace
+{
 void SelectPreviousPlacementTarget(
     PlacementMode& placement,
     const AsciiArt::BattleSceneState& battleState,
