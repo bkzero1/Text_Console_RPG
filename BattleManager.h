@@ -12,7 +12,6 @@ class BattleManager
 {
 public:
 	BattleManager() {};
-	BattleManager(const BattleManager&) = delete;
 
 	void AddPlayer(Player* player);
 	void AddMonster(Monster* monster);
