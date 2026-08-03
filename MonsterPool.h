@@ -22,3 +22,4 @@ private:
     std::set<Monster*> monsterSet;
 };
 
+

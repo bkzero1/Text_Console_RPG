@@ -169,3 +169,4 @@ std::map<EItemID, int> BattleManager::GetEarnItems() const
 {
     return earnItems;
 }
+

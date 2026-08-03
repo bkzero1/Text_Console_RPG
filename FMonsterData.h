@@ -13,8 +13,8 @@ struct FDropData
 
 enum class EMonsterID
 {
-	NONE,
-    
+    NONE,
+
     // 일반몹
     SLIME,
     GOBLIN,
@@ -26,12 +26,12 @@ enum class EMonsterID
     GOLEM,
 
     // 중보스
-    WANDERING_ARMOR,    
+    WANDERING_ARMOR,
     DRACULA,
 
     // 보스급
     RED_DRAGON,
-    
+
     //순회용 플래그
     MAX
 };
