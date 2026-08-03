@@ -25,7 +25,9 @@ Monster* MonsterPool::Acquire()
 {
     if (monsterStack.empty())
     {
-        return new Monster();
+        Monster* newMonster = new Monster();
+        monsterVector.push_back(newMonster);
+        return newMonster;
     }
     Monster* monster = monsterStack.top();
     monsterStack.pop();
@@ -35,7 +37,7 @@ Monster* MonsterPool::Acquire()
 
 void MonsterPool::Release(Monster* monster)
 {
-    if (monsterSet.find(monster) != monsterSet.end())
+    if (!monster || monsterSet.find(monster) != monsterSet.end())
     {
         return;
     }
@@ -50,8 +52,8 @@ void MonsterPool::Shrink(int poolSize)
         return;
     }
 
-    int purgeCount = monsterVector.size() - poolSize;
-    for (int i = 0; i < purgeCount; i++)
+    size_t purgeCount = monsterVector.size() - poolSize;
+    for (size_t i = 0; i < purgeCount; i++)
     {
         if (monsterStack.empty())
         {
@@ -60,14 +62,28 @@ void MonsterPool::Shrink(int poolSize)
         Monster* monster = monsterStack.top();
         monsterStack.pop();
         monsterSet.erase(monster);
-        for (auto i = monsterVector.begin(); i != monsterVector.end(); i++)
+        for (auto itr = monsterVector.begin(); itr != monsterVector.end(); itr++)
         {
-            if (*i != monster)
+            if (*itr != monster)
             {
                 continue;
             }
-            monsterVector.erase(i);
+            monsterVector[i] = nullptr;
+            delete monster;
             break;
         }
     }
+
+    std::vector<Monster*> newMonsterVector;
+    for (size_t i = 0; i < monsterVector.size(); i++)
+    {
+        Monster* monster = monsterVector[i];
+        if (!monster)
+        {
+            continue;
+        }
+        newMonsterVector.push_back(monster);
+    }
+
+    monsterVector = newMonsterVector;
 }
