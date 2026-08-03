@@ -7,6 +7,7 @@ class Player;
 class Monster;
 class IDamageAble;
 enum class EItemID;
+enum class EMonsterID;
 
 class BattleManager
 {
@@ -30,6 +31,7 @@ public:
 	int GetEarnGold() const;
     int GetEarnExp() const;
 	std::map<EItemID, int> GetEarnItems() const;
+    std::vector<EMonsterID> GetSpawanAbleMonsterIDs(int avgLv) const;
 
 private:
 	std::vector<Player*> players;
