@@ -21,6 +21,15 @@ const std::map<EItemID, ItemData> ITEM_TABLE = {
                                      EItemEffectType::BUFF_POWER,
                                      10)},
     // Item.cpp - ITEM_TABLE 내부
+
+    {EItemID::BOTTLE, ItemData(EItemID::BOTTLE,
+                               "병",
+                               "포션을 담을 수 있는 빈 유리병.",
+                               10)},
+    {EItemID::WATER, ItemData(EItemID::WATER,
+                              "물",
+                              "포션 제작에 사용되는 깨끗한 물.",
+                              5)},
     // 슬라임
     {EItemID::SLIME_JELLY, ItemData(EItemID::SLIME_JELLY,
                                     "슬라임 젤리",
