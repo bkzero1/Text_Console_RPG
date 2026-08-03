@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 
 struct FDropData
 {
@@ -22,18 +23,22 @@ enum class EMonsterID
     ZOMBIE,
 
     // 정예
+    LV3,
     KOBOLD,
     GOLEM,
 
     // 중보스
+    LV6,
     WANDERING_ARMOR,    
     DRACULA,
 
     // 보스급
+    LV10,
     RED_DRAGON,
-    
-    //순회용 플래그
-    MAX
+};
+
+const std::set<EMonsterID> EXCLUDE_ID = {
+    EMonsterID::NONE, EMonsterID::LV3, EMonsterID::LV6, EMonsterID::LV10
 };
 
 struct FMonsterData
