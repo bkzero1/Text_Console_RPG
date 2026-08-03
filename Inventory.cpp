@@ -244,7 +244,7 @@ int Inventory::GetMaxAddableItemCount(EItemID itemID) const
     int count = 0;  // 추가 가능한 최대 개수
 
     // 빈 슬롯 확인
-    count += slotCapacity * (maxSlots - static_cast<int>(slots.size()));
+    count += slotCapacity * (maxSlots - (int)slots.size());
 
     // 기존 슬롯 확인
     for (const InventorySlot& slot : slots)
@@ -282,7 +282,7 @@ std::map<EItemID, int> Inventory::GetConsumableItems() const
 
 void Inventory::ShowInventory() const
 {
-    std::cout << "==============[ 인벤토리 ]===============" << "\n";
+    std::cout << "============= [ 인벤토리 ] ==============" << "\n";
 
     // 슬롯 순회하여 차레대로 출력
     for (int i = 0; i < slots.size(); i++)

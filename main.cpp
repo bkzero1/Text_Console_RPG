@@ -7,6 +7,7 @@
 #include <windows.h>
 
 #include "BattleManager.h"
+#include "Crafter.h"
 #include "FMonsterData.h"
 #include "Inventory.h"
 #include "ItemUseHandler.h"
@@ -15,6 +16,7 @@
 #include "MonsterPool.h"
 #include "Player.h"
 #include "RpgLogger.h"
+#include "ShopManager.h"
 #include "Tank.h"
 #include "Warrior.h"
 #include "ShopManager.h"
@@ -32,6 +34,7 @@ enum class EGameState
     BOSS_BATTLE,    // 보스 전투
     MAIN_MEMU,      // 메인 메뉴
     SHOP,           // 상점
+    CRAFTING,       // 아이템 제작소
     GAME_OVER,      // 게임 패배
     GAME_CLEAR,     // 게임 승리
 };
@@ -96,28 +99,62 @@ void PlayerInit()
     std::string playerName;
 
     // 전사 생성
-    std::cout << "전사의 이름을 입력하세요: ";
-    std::getline(std::cin, playerName);
-    players.push_back(new Warrior(playerName));
+    while (true)
+    {
+        std::cout << "전사의 이름을 입력하세요: ";
+        std::getline(std::cin, playerName);
+
+        // 입력 검증: 빈 칸이면 다시 입력
+        if (playerName.empty())
+        {
+            std::cout << " 이름을 입력해주세요!\n\n";
+            continue;
+        }
+
+        players.push_back(new Warrior(playerName));
+        break;
+    }
 
     // 마법사 생성
-    std::cout << "마법사의 이름을 입력하세요: ";
-    std::getline(std::cin, playerName);
-    players.push_back(new Mage(playerName));
+    while (true)
+    {
+        std::cout << "마법사의 이름을 입력하세요: ";
+        std::getline(std::cin, playerName);
+
+        // 입력 검증: 빈 칸이면 다시 입력
+        if (playerName.empty())
+        {
+            std::cout << " 이름을 입력해주세요!\n\n";
+            continue;
+        }
+
+        players.push_back(new Mage(playerName));
+        break;
+    }
 
     // 탱커 생성
-    std::cout << "탱커의 이름을 입력하세요: ";
-    std::getline(std::cin, playerName);
-    players.push_back(new Tank(playerName));
+    while (true)
+    {
+        std::cout << "탱커의 이름을 입력하세요: ";
+        std::getline(std::cin, playerName);
+
+        // 입력 검증: 빈 칸이면 다시 입력
+        if (playerName.empty())
+        {
+            std::cout << " 이름을 입력해주세요!\n\n";
+            continue;
+        }
+
+        players.push_back(new Tank(playerName));
+        break;
+    }
 
     // 인벤토리 생성
     inventory = new Inventory();
     AsciiArt::GrantBattleTestPotions(*inventory);
     // 첫 전투 시작
     SwitchState(EGameState::NORMAL_BATTLE);
-
 }
-
 bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
 {
     return AsciiArt::RunBattlePresentation(battleManager, monsterPool, rpgLogger, *inventory);
@@ -126,7 +163,7 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
 // 일반 전투
 void NormalBattle()
 {
-    BattleManager battleManager = BattleManager();
+    BattleManager battleManager;
     MonsterPool monsterPool = MonsterPool();
 
     int totalLv = 0;
@@ -136,22 +173,22 @@ void NormalBattle()
         totalLv += players[i]->GetLevel();
     }
 
-    int avgLv = totalLv / static_cast<int>(players.size());
+    int avgLv = totalLv / (int)players.size();
 
-    int monsterCount = AsciiArt::GetBattleTestMonsterCount(std::max(1, avgLv / 2));
+    int monsterCount = std::max(1, avgLv / 2) + 1;
+
+    vector<EMonsterID> monsterCards = battleManager.GetSpawanAbleMonsterIDs(avgLv);
 
     // 랜덤 준비
     std::random_device rd;
     std::mt19937 gen(rd());
-    // ENum에서 랜덤 값 가져오기 위한 준비
-    std::uniform_int_distribution<int> deployDist(
-        static_cast<int>(EMonsterID::NONE) + 1,
-        static_cast<int>(EMonsterID::MAX) - 1);
+    //몬스터 카드에서 가져올 몬스터 준비
+    std::uniform_int_distribution<size_t> deployDist(0, monsterCards.size() - 1);
 
     for (int i = 0; i < monsterCount; i++)
     {
         Monster* monster = monsterPool.Acquire();
-        EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
+        EMonsterID randomMonster = monsterCards[deployDist(gen)];
         std::string nanori = monster->Deploy(randomMonster, avgLv);
         rpgLogger.AddLog(nanori);
         battleManager.AddMonster(monster);
@@ -161,10 +198,10 @@ void NormalBattle()
 
     if (!isWin)
     {
-        //패배자들 체력 회복 시키고 내쫓기
+        // 패배자들 체력 회복 시키고 내쫓기
         for (int i = 0; i < players.size(); i++)
         {
-            players[i]->HealHP(players[i]->GetHpMax());
+            players[i]->HealHP(1);
         }
         CurrentGameState = EGameState::GAME_OVER;
         return;
@@ -175,7 +212,7 @@ void NormalBattle()
 
     // 전리품 인벤토리에 추가
     // 골드 획득
-    inventory->AddGold(battleManager.GetEarnGold());    
+    inventory->AddGold(battleManager.GetEarnGold());
     rpgLogger.AddLog("파티는 " + to_string(battleManager.GetEarnGold()) + "골드를 얻었다");
     std::map<EItemID, int> earnItems = battleManager.GetEarnItems();
     for (auto itr = earnItems.begin(); itr != earnItems.end(); itr++)
@@ -220,7 +257,7 @@ void NormalBattle()
     {
         totalLv += players[i]->GetLevel();
     }
-    avgLv = totalLv / static_cast<int>(players.size());
+    avgLv = totalLv / (int)players.size();
 
     while (true)
     {
@@ -264,26 +301,17 @@ void BossBattle()
         totalLv += players[i]->GetLevel();
     }
 
-    int avgLv = totalLv / static_cast<int>(players.size());
+    int avgLv = totalLv / (int)players.size();
 
     int monsterCount = AsciiArt::GetBattleTestMonsterCount(1);
 
-    // 랜덤 준비
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    // ENum에서 랜덤 값 가져오기 위한 준비
-    std::uniform_int_distribution<int> deployDist(
-        static_cast<int>(EMonsterID::NONE) + 1,
-        static_cast<int>(EMonsterID::MAX) - 1);
+    vector<EMonsterID> monsterCards = battleManager.GetSpawanAbleMonsterIDs(avgLv);
 
-    for (int i = 0; i < monsterCount; i++)
-    {
-        Monster* monster = monsterPool.Acquire();
-        EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
-        std::string nanori = monster->Deploy(randomMonster, avgLv, true);
-        rpgLogger.AddLog(nanori);
-        battleManager.AddMonster(monster);
-    }
+    //보스 몬스터 레드 드래곤 하나
+    Monster* monster = monsterPool.Acquire();
+    std::string nanori = monster->Deploy(EMonsterID::RED_DRAGON, avgLv);
+    rpgLogger.AddLog(nanori);
+    battleManager.AddMonster(monster);
 
     AsciiArt::PrepareBossBattlePresentation();
     bool isWin = BattlePhase(battleManager, monsterPool);
@@ -293,7 +321,7 @@ void BossBattle()
         // 패배자들 체력 회복 시키고 내쫓기
         for (int i = 0; i < players.size(); i++)
         {
-            players[i]->HealHP(players[i]->GetHpMax());
+            players[i]->HealHP(1);
         }
         CurrentGameState = EGameState::GAME_OVER;
         return;
@@ -442,14 +470,26 @@ void MainMenu()
                 if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
                 return;
             }
-            case 4:
-                // 킬 몬스터 로그 출력 메뉴
-                if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
-                return;
-            default:
-                if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
-                return;
-        }
+            else
+            {
+                SwitchState(EGameState::BOSS_BATTLE);
+            }
+            break;
+        case 2:  // 상점
+            SwitchState(EGameState::SHOP);
+            break;
+        case 3:  // 아이템 제작소
+            SwitchState(EGameState::CRAFTING);
+            break;
+        case 4:  // 플레이어 정보
+            for (const auto& player : players)
+                player->ShowStatus();
+            break;
+        case 5:  // 몬스터 처치 기록
+            // 킬 몬스터 로그 출력 메뉴
+            break;
+        default:
+            break;
     }
 }
 
@@ -528,7 +568,10 @@ void Shop()
                     int choice = 0;
                     std::cout << "판매할 아이템 번호를 입력해주세요. (0: 돌아가기) : ";
                     std::cin >> choice;
-                    if (choice == 0) { return; }
+                    if (choice == 0)
+                    {
+                        return;
+                    }
 
                     // 유저 입력이 0보다 작거나 판매 리스트의 사이즈 보다 클때
                     if (choice < 0 || choice > itemIDs.size())
@@ -565,6 +608,144 @@ void Shop()
     }
 }
 
+// 아이템 제작소
+void Crafting()
+{
+    Crafter crafter = Crafter();
+
+    std::cout << "=========== [ 아이템 제작소 ] ===========" << "\n";
+    std::cout << " 1. 인벤토리 확인" << "\n";
+    std::cout << " 2. 전체 레시피 확인" << "\n";
+    std::cout << " 3. 전체 검색" << "\n";
+    std::cout << " 4. 제작 아이템 검색" << "\n";
+    std::cout << " 5. 재료 아이템 검색" << "\n";
+    std::cout << "----------------------------------------" << "\n";
+    std::cout << " 0. 마을로 돌아가기" << "\n";
+    std::cout << "========================================" << "\n";
+
+    std::cout << "입력: ";
+    int option = 0;
+    if (!(std::cin >> option))
+    {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        return;
+    }
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+    // 유효하지 않은 입력
+    if (option < 0 || 5 < option)
+    {
+        return;
+    }
+
+    // 필터 초기화
+    crafter.ClearFilter();
+
+    std::string keyword;
+    switch (option)
+    {
+        case 0:
+            SwitchState(EGameState::MAIN_MEMU);
+            return;
+        case 1:
+            inventory->ShowInventory();
+            return;
+        case 2:
+            crafter.ClearFilter();
+            break;
+        case 3:
+            std::cout << "전체 이름 검색하기: ";
+            std::getline(std::cin, keyword);
+            crafter.SetFilter(keyword, EFilterFlag::ALL_NAME);
+            break;
+        case 4:
+            std::cout << "제작 아이템 이름 검색하기: ";
+            std::getline(std::cin, keyword);
+            crafter.SetFilter(keyword, EFilterFlag::ITEM_NAME);
+            break;
+        case 5:
+            std::cout << "재료 아이템 이름 검색하기: ";
+            std::getline(std::cin, keyword);
+            crafter.SetFilter(keyword, EFilterFlag::INGREDIENT_NAME);
+            break;
+        default:
+            break;
+    }
+
+    // 필터 적용
+    crafter.ApplyFilter();
+
+    // 필터링된 아이템 출력
+    crafter.ShowFilteredRecipes();
+
+    // 제작할 아이템 선택
+    int craftinigItemNum = 0;
+    while (true)
+    {
+        std::cout << "제작할 아이템 번호 입력 (0: 취소): " << std::flush;
+
+        if (!(std::cin >> craftinigItemNum))
+        {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "숫자만 입력해주세요." << std::endl;
+            continue;
+        }
+
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+        if (craftinigItemNum == 0)
+        {
+            return;
+        }
+
+        if (craftinigItemNum < 1 || crafter.GetFilteredCraftingRecipesSize() < craftinigItemNum)
+        {
+            std::cout << "존재하지 않는 번호입니다." << std::endl;
+            continue;
+        }
+
+        break;
+    }
+
+    // 제작 개수 입력
+    int craftingCount = 0;
+    while (true)
+    {
+        std::cout << "제작할 아이템 개수 입력 (0: 취소): " << std::flush;
+
+        if (!(std::cin >> craftingCount))
+        {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "숫자만 입력해주세요." << std::endl;
+            continue;
+        }
+
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+        if (craftingCount == 0)
+        {
+            return;
+        }
+
+        if (craftingCount < 0)
+        {
+            std::cout << "0 이상의 숫자를 입력해주세요." << std::endl;
+            continue;
+        }
+
+        break;
+    }
+
+    // 제작 시도 - 실제 제작한 개수 반환
+    const CraftingRecipe* craftingRecipe = crafter.GetCraftingRecipeByIndex(craftinigItemNum - 1);
+    int finalCraftingCount = crafter.TRY_CRAFT_ITEM(inventory, craftingRecipe, craftingCount);
+
+    std::cout << " [" << ITEM_TABLE.at(craftingRecipe->itemID).name << "] (" << finalCraftingCount << ")개 제작 성공!" << "\n";
+    inventory->ShowInventory();
+}
 
 // 게임 패배
 void GameOver()
@@ -622,6 +803,9 @@ void Run()
             case EGameState::SHOP:
                 Shop();
                 break;
+            case EGameState::CRAFTING:
+                Crafting();
+                break;
             case EGameState::GAME_OVER:
                 GameOver();
                 break;
@@ -639,11 +823,7 @@ void Run()
 
 int main()
 {
-    // 이 파일은 통합 테스트용 복사본입니다. UTF-8 문자열을 콘솔이 올바르게 표시하게 합니다.
-    SetConsoleOutputCP(CP_UTF8);
-    SetConsoleCP(CP_UTF8);
-
-    //TestMonster(3);
-    //ShowItemTable();
+    // TestMonster(3);
+    // ShowItemTable();
     Run();
 }

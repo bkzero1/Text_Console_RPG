@@ -7,12 +7,12 @@ class Player;
 class Monster;
 class IDamageAble;
 enum class EItemID;
+enum class EMonsterID;
 
 class BattleManager
 {
 public:
 	BattleManager() {};
-	BattleManager(const BattleManager&) = delete;
 
 	void AddPlayer(Player* player);
 	void AddMonster(Monster* monster);
@@ -31,6 +31,7 @@ public:
 	int GetEarnGold() const;
     int GetEarnExp() const;
 	std::map<EItemID, int> GetEarnItems() const;
+    std::vector<EMonsterID> GetSpawanAbleMonsterIDs(int avgLv) const;
 
 private:
 	std::vector<Player*> players;
