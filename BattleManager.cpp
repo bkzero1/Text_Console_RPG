@@ -86,6 +86,7 @@ bool BattleManager::IsPlayersDead() const
 
 void BattleManager::PlayerHitMonster(Monster* target, int damage)
 {
+
     target->TakeDamage(damage);
     if (!target->IsDead())
     {

@@ -24,6 +24,7 @@
     <Filter Include="소스 파일\Screen"><UniqueIdentifier>{A1010008-1C01-4001-9001-000000000008}</UniqueIdentifier></Filter>
     <Filter Include="소스 파일\AA"><UniqueIdentifier>{A1010009-1C01-4001-9001-000000000009}</UniqueIdentifier></Filter>
     <Filter Include="소스 파일\Utility"><UniqueIdentifier>{A1010010-1C01-4001-9001-000000000010}</UniqueIdentifier></Filter>
+    <Filter Include="소스 파일\Sound"><UniqueIdentifier>{A1010011-1C01-4001-9001-000000000011}</UniqueIdentifier></Filter>
     <Filter Include="소스 파일\RpgLogger"><UniqueIdentifier>{18596d14-c5f7-4e6c-b8c7-9e0287029cde}</UniqueIdentifier></Filter>
     <Filter Include="소스 파일\Crafter"><UniqueIdentifier>{6f6fb3d2-ff22-40a3-aecb-b2dd15a6b691}</UniqueIdentifier></Filter>
     <Filter Include="헤더 파일\BattlePhase"><UniqueIdentifier>{247c308b-64da-4c62-be92-17b75b2163c3}</UniqueIdentifier></Filter>
@@ -33,6 +34,7 @@
     <Filter Include="헤더 파일\Player"><UniqueIdentifier>{30ec674f-09b7-4339-bd0d-8b933a40ea2b}</UniqueIdentifier></Filter>
     <Filter Include="헤더 파일\Monster"><UniqueIdentifier>{d6358ddf-9fb5-4754-9726-448d5182245d}</UniqueIdentifier></Filter>
     <Filter Include="헤더 파일\RpgLogger"><UniqueIdentifier>{55807215-73a4-453f-bafb-310511f92a00}</UniqueIdentifier></Filter>
+    <Filter Include="헤더 파일\Sound"><UniqueIdentifier>{A1020011-1C01-4001-9001-000000000011}</UniqueIdentifier></Filter>
     <Filter Include="헤더 파일\Shop"><UniqueIdentifier>{abf8d55f-ab39-4a9f-a698-f2b8a74725f5}</UniqueIdentifier></Filter>
     <Filter Include="헤더 파일\Crafter"><UniqueIdentifier>{f57d7233-9059-4152-b205-2972e02a8c66}</UniqueIdentifier></Filter>
     <Filter Include="헤더 파일\Screen"><UniqueIdentifier>{A1020008-1C01-4001-9001-000000000008}</UniqueIdentifier></Filter>
@@ -103,6 +105,9 @@
     <ClCompile Include="AsciiArt\AsciiBattleBridge.cpp">
       <Filter>소스 파일\AA</Filter>
     </ClCompile>
+    <ClCompile Include="SoundManager.cpp">
+      <Filter>소스 파일\Sound</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BattleManager.h">
@@ -167,6 +172,9 @@
     </ClInclude>
     <ClInclude Include="AsciiArt\AsciiBattleBridge.h">
       <Filter>헤더 파일\AA</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundManager.h">
+      <Filter>헤더 파일\Sound</Filter>
     </ClInclude>
     <ClInclude Include="AsciiArt\AsciiBattleScene.h">
       <Filter>헤더 파일\AA</Filter>

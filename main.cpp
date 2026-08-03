@@ -20,6 +20,7 @@
 #include "Tank.h"
 #include "Warrior.h"
 #include "ShopManager.h"
+#include "SoundManager.h"
 #include "StartScreen.h"
 #include "ShopScreen.h"
 #include "GameClearScreen.h"
@@ -43,6 +44,7 @@ enum class EGameState
 EGameState CurrentGameState = EGameState::START_SCREEN;
 bool IsRunning = true;
 RpgLogger rpgLogger;
+SoundManager soundManager;
 
 // 메인 메뉴 전용 연출 상태입니다.
 // 처음 마을에 들어갈 때는 낮이며, 전투를 마치고 돌아올 때만 낮/밤이 바뀝니다.
@@ -752,6 +754,8 @@ void GameClear()
 // 게임 실행
 void Run()
 {
+    soundManager.Init();
+
     while (IsRunning)
     {
         switch (CurrentGameState)
@@ -775,18 +779,24 @@ void Run()
                 break;
             }
             case EGameState::PLAYER_INIT:
+                soundManager.PlayBGM(soundMap.at(SoundStates::INTRO));
                 PlayerInit();
                 break;
             case EGameState::NORMAL_BATTLE:
+                soundManager.StopBGM();
+                soundManager.PlayBGM(soundMap.at(SoundStates::NORMAL_BATTLE));
                 NormalBattle();
                 break;
             case EGameState::BOSS_BATTLE:
+                soundManager.PlayBGM(soundMap.at(SoundStates::BOSS_BATTLE));
                 BossBattle();
                 break;
             case EGameState::MAIN_MEMU:
+                soundManager.PlayBGM(soundMap.at(SoundStates::VILLAGE));
                 MainMenu();
                 break;
             case EGameState::SHOP:
+                soundManager.PlayBGM(soundMap.at(SoundStates::SHOP));
                 Shop();
                 break;
             case EGameState::CRAFTING:
@@ -803,6 +813,8 @@ void Run()
         }
     }
 
+    soundManager.Shutdown();
+
     // 메모리 해제
     delete inventory;
 }
@@ -811,5 +823,10 @@ int main()
 {
     // TestMonster(3);
     // ShowItemTable();
+
+    // 이 파일은 통합 테스트용 복사본입니다. UTF-8 문자열을 콘솔이 올바르게 표시하게 합니다.
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+
     Run();
 }
