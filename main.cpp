@@ -248,20 +248,20 @@ void NormalBattle()
 
     int avgLv = totalLv / (int)players.size();
 
-    int monsterCount = std::max(1, avgLv / 2);
+    int monsterCount = std::max(1, avgLv / 2) + 1;
+
+    vector<EMonsterID> monsterCards = battleManager.GetSpawanAbleMonsterIDs(avgLv);
 
     // 랜덤 준비
     std::random_device rd;
     std::mt19937 gen(rd());
-    // ENum에서 랜덤 값 가져오기 위한 준비
-    std::uniform_int_distribution<int> deployDist(
-        static_cast<int>(EMonsterID::NONE) + 1,
-        static_cast<int>(EMonsterID::MAX) - 1);
+    //몬스터 카드에서 가져올 몬스터 준비
+    std::uniform_int_distribution<size_t> deployDist(0, monsterCards.size() - 1);
 
     for (int i = 0; i < monsterCount; i++)
     {
         Monster* monster = monsterPool.Acquire();
-        EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
+        EMonsterID randomMonster = monsterCards[deployDist(gen)];
         std::string nanori = monster->Deploy(randomMonster, avgLv);
         rpgLogger.AddLog(nanori);
         battleManager.AddMonster(monster);
@@ -373,22 +373,13 @@ void BossBattle()
 
     int monsterCount = 1;
 
-    // 랜덤 준비
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    // ENum에서 랜덤 값 가져오기 위한 준비
-    std::uniform_int_distribution<int> deployDist(
-        static_cast<int>(EMonsterID::NONE) + 1,
-        static_cast<int>(EMonsterID::MAX) - 1);
+    vector<EMonsterID> monsterCards = battleManager.GetSpawanAbleMonsterIDs(avgLv);
 
-    for (int i = 0; i < monsterCount; i++)
-    {
-        Monster* monster = monsterPool.Acquire();
-        EMonsterID randomMonster = static_cast<EMonsterID>(deployDist(gen));
-        std::string nanori = monster->Deploy(randomMonster, avgLv, true);
-        rpgLogger.AddLog(nanori);
-        battleManager.AddMonster(monster);
-    }
+    //보스 몬스터 레드 드래곤 하나
+    Monster* monster = monsterPool.Acquire();
+    std::string nanori = monster->Deploy(EMonsterID::RED_DRAGON, avgLv);
+    rpgLogger.AddLog(nanori);
+    battleManager.AddMonster(monster);
 
     bool isWin = BattlePhase(battleManager, monsterPool);
 
