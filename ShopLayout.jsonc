@@ -1,0 +1,9 @@
+# Shop AA layout settings
+# P: placement mode, drag: move shopkeeper, +/-: resize, S: save, X: cancel
+output_pixel_width=1000
+character_height_scale=366
+contrast=166
+shopkeeper_x=635.127
+shopkeeper_y=109.011
+shopkeeper_width=458.918
+shopkeeper_height=629.33
