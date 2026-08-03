@@ -1113,7 +1113,8 @@ void DrawBattleHudOverlay(
     const std::vector<Gdiplus::Image*>& monsterImages,
     bool showHealEffectPreview,
     bool showPowerBuffEffectPreview,
-    bool autoBattleEnabled)
+    bool autoBattleEnabled,
+    bool fastResultMode)
 {
     constexpr int kBarLength = 24;
     // Braille 한 글자는 콘솔에서는 한 칸이므로, 점 느낌을 유지하면서도 체력바는 한 줄입니다.
@@ -1230,7 +1231,7 @@ void DrawBattleHudOverlay(
     if (battleState.showTestControls)
     {
         // 테스트 중에도 사라지지 않는 숫자 조작표입니다.
-        const std::array<std::wstring, 9> kTestControls = {
+        const std::array<std::wstring, 10> kTestControls = {
             L"[ 전투 테스트 조작 ]",
             L"1. HP 포션 사용",
             L"2. 공격력 버프 사용",
@@ -1240,6 +1241,7 @@ void DrawBattleHudOverlay(
             std::wstring(L"6. 버프 이펙트: ") + (showPowerBuffEffectPreview ? L"표시" : L"숨김"),
             std::wstring(L"7. 자동 전투: ") + (autoBattleEnabled ? L"켜짐" : L"꺼짐"),
             L"8. 같은 몬스터 4마리 배치 테스트 (Tab/방향키: 종류 변경, 8: 종료)",
+            std::wstring(L"9. 연출 생략 자동 전투: ") + (fastResultMode ? L"켜짐" : L"꺼짐"),
         };
         for (size_t index = 0; index < kTestControls.size(); ++index)
         {
@@ -1331,7 +1333,14 @@ void RenderScene(
     const float hero2AttackAdvance = !attack.monsterAttacking && attack.attackerIndex == 1 ? heroAdvance : 0.0f;
     const float tankAttackAdvance = !attack.monsterAttacking && attack.attackerIndex == 2 ? heroAdvance : 0.0f;
     const float monsterAttackAdvance = attack.monsterAttacking ? -heroAdvance : 0.0f;
-    const float heroShake = heroHit ? std::sin(static_cast<float>((attackTime - 0.22) * 65.0)) * config.monsterHitShakeRange : 0.0f;
+    // 피격 흔들림도 캐릭터와 장비가 한 몸처럼 같은 값으로 공유합니다.
+    // 예를 들어 전사가 맞으면 전사와 양손검이 함께 흔들려야, 무기만 공중에 남지 않습니다.
+    const float hitShake = heroHit
+        ? std::sin(static_cast<float>((attackTime - 0.22) * 65.0)) * config.monsterHitShakeRange
+        : 0.0f;
+    const float hero1HitShake = heroHit && attack.targetIndex == 0 ? hitShake : 0.0f;
+    const float hero2HitShake = heroHit && attack.targetIndex == 1 ? hitShake : 0.0f;
+    const float tankHitShake = heroHit && attack.targetIndex == 2 ? hitShake : 0.0f;
     const int monsterCount = std::max(1, battleState == nullptr ? 0 : static_cast<int>(battleState->monsterStatuses.size()));
 
     // 이펙트의 중심은 저장된 고정 좌표가 아니라 실제 맞거나 회복한 대상의 중심을 따릅니다.
@@ -1357,11 +1366,11 @@ void RenderScene(
     }
 
     std::vector<SceneObject> objects = {
-        {EObjectType::HERO, config.heroX + hero1AttackAdvance + heroBreathX + heroShake, config.heroY + heroBreathY, config.heroWidth, config.heroHeight, config.heroLayer, 0, 0, 0},
-        // 장비는 평소에도 보이며, 자기 차례의 공격 중에만 본체와 함께 전진/회전합니다.
-        {EObjectType::WARRIOR_WEAPON, config.warriorWeaponX + hero1AttackAdvance, config.warriorWeaponY + heroBreathY,
+        {EObjectType::HERO, config.heroX + hero1AttackAdvance + heroBreathX + hero1HitShake, config.heroY + heroBreathY, config.heroWidth, config.heroHeight, config.heroLayer, 0, 0, 0},
+        // 장비는 평소에도 보이며, 공격/피격/숨쉬기 때 본체의 이동값을 그대로 함께 사용합니다.
+        {EObjectType::WARRIOR_WEAPON, config.warriorWeaponX + hero1AttackAdvance + heroBreathX + hero1HitShake, config.warriorWeaponY + heroBreathY,
          config.warriorWeaponWidth, config.warriorWeaponHeight, config.warriorWeaponLayer, 0, 0, 0},
-        {EObjectType::MAGE_WEAPON, config.mageWeaponX + hero2AttackAdvance, config.mageWeaponY + hero2BreathY,
+        {EObjectType::MAGE_WEAPON, config.mageWeaponX + hero2AttackAdvance + hero2BreathX + hero2HitShake, config.mageWeaponY + hero2BreathY,
          config.mageWeaponWidth, config.mageWeaponHeight, config.mageWeaponLayer, 0, 0, 0},
         {EObjectType::HIT_EFFECT, hitEffectX, hitEffectY, config.hitEffectWidth, config.hitEffectHeight,
          config.hitEffectLayer, 0, 0, static_cast<float>(attack.hitEffectVariant), effectVisible},
@@ -1383,18 +1392,18 @@ void RenderScene(
     }
     if (hero2Image != nullptr)
     {
-        objects.push_back({EObjectType::HERO2, config.hero2X + hero2AttackAdvance + hero2BreathX, config.hero2Y + hero2BreathY, config.hero2Width, config.hero2Height,
+        objects.push_back({EObjectType::HERO2, config.hero2X + hero2AttackAdvance + hero2BreathX + hero2HitShake, config.hero2Y + hero2BreathY, config.hero2Width, config.hero2Height,
                            config.hero2Layer, 0, 0, 0});
     }
     if (tankImage != nullptr)
     {
-        objects.push_back({EObjectType::TANK, config.tankX + tankAttackAdvance + heroBreathX, config.tankY + heroBreathY,
+        objects.push_back({EObjectType::TANK, config.tankX + tankAttackAdvance + heroBreathX + tankHitShake, config.tankY + heroBreathY,
                            config.tankWidth, config.tankHeight, config.tankLayer, 0, 0, 0});
     }
     if (tankWeaponImage != nullptr)
     {
         // 방패는 탱커와 같은 숨쉬기/공격 이동을 하고, 본체보다 항상 뒤 레이어에 놓입니다.
-        objects.push_back({EObjectType::TANK_SHIELD, config.tankShieldX + tankAttackAdvance + heroBreathX, config.tankShieldY + heroBreathY,
+        objects.push_back({EObjectType::TANK_SHIELD, config.tankShieldX + tankAttackAdvance + heroBreathX + tankHitShake, config.tankShieldY + heroBreathY,
                            config.tankShieldWidth, config.tankShieldHeight, config.tankLayer - 1, 0, 0, 0});
     }
     // 회복/버프 효과는 실제 사용 중에는 대상에게, 5·6번 미리 보기 중에는 지정한 기준 영웅에게 보입니다.
@@ -2034,13 +2043,14 @@ void ProcessInput(
                      (key == VK_TAB || key == VK_RIGHT || key == VK_LEFT))
             {
                 // P를 누르기 전에는 같은 몬스터 4마리의 "종류"를 빠르게 바꿔 볼 수 있습니다.
-                requestedTestCommand = key == VK_LEFT ? 10 : 9;
+                // 9번은 연출 생략 자동 전투에 사용하므로, 내부 전용 값은 별도로 둡니다.
+                requestedTestCommand = key == VK_LEFT ? 91 : 90;
             }
             else if (testInputMode && !placement.active && !attack.playing &&
                      (key == '1' || key == VK_NUMPAD1 || key == '2' || key == VK_NUMPAD2 ||
                       key == '3' || key == VK_NUMPAD3 || key == '4' || key == VK_NUMPAD4 ||
                       key == '5' || key == VK_NUMPAD5 || key == '6' || key == VK_NUMPAD6 ||
-                      key == '7' || key == VK_NUMPAD7))
+                      key == '7' || key == VK_NUMPAD7 || key == '9' || key == VK_NUMPAD9))
             {
                 if (key == '1' || key == VK_NUMPAD1) requestedTestCommand = 1;
                 else if (key == '2' || key == VK_NUMPAD2) requestedTestCommand = 2;
@@ -2048,7 +2058,8 @@ void ProcessInput(
                 else if (key == '4' || key == VK_NUMPAD4) requestedTestCommand = 4;
                 else if (key == '5' || key == VK_NUMPAD5) requestedTestCommand = 5;
                 else if (key == '6' || key == VK_NUMPAD6) requestedTestCommand = 6;
-                else requestedTestCommand = 7;
+                else if (key == '7' || key == VK_NUMPAD7) requestedTestCommand = 7;
+                else requestedTestCommand = 9;
             }
             else if (key == 'P' && !placement.active)
             {
@@ -3418,6 +3429,8 @@ int AsciiArt::RunStandaloneDemo(
     bool showHealEffectPreview = false;
     bool showPowerBuffEffectPreview = false;
     bool autoBattleEnabled = false;
+    // 9번 테스트는 실제 BattleAction 콜백은 그대로 호출하되, 접근/피격/이펙트 대기만 생략합니다.
+    bool fastResultMode = false;
     bool sameMonsterPlacementTestMode = false;
     int sameMonsterTestTypeIndex = 0;
     bool autoBattleMonsterPhase = false;
@@ -3531,10 +3544,10 @@ int AsciiArt::RunStandaloneDemo(
                 gBattleMonsterInstanceProfiles.clear();
                 gBattleMonsterInstanceTypes.clear();
             }
-            else if ((requestedTestCommand == 9 || requestedTestCommand == 10) && sameMonsterPlacementTestMode)
+            else if ((requestedTestCommand == 90 || requestedTestCommand == 91) && sameMonsterPlacementTestMode)
             {
                 constexpr int kMonsterTypeCount = 9;
-                const int direction = requestedTestCommand == 9 ? 1 : -1;
+                const int direction = requestedTestCommand == 90 ? 1 : -1;
                 sameMonsterTestTypeIndex = (sameMonsterTestTypeIndex + direction + kMonsterTypeCount) % kMonsterTypeCount;
                 gBattleMonsterInstanceProfiles.clear();
                 gBattleMonsterInstanceTypes.clear();
@@ -3550,6 +3563,14 @@ int AsciiArt::RunStandaloneDemo(
             else if (requestedTestCommand == 7)
             {
                 autoBattleEnabled = !autoBattleEnabled;
+                fastResultMode = false;
+                autoBattleMonsterPhase = false;
+            }
+            else if (requestedTestCommand == 9)
+            {
+                // 결과 확인용: 전투 로직은 자동 전투와 같고, AA 동작 연출만 건너뜁니다.
+                fastResultMode = !fastResultMode;
+                autoBattleEnabled = fastResultMode;
                 autoBattleMonsterPhase = false;
             }
             else if (requestedTestCommand == 1 || requestedTestCommand == 2)
@@ -3613,7 +3634,10 @@ int AsciiArt::RunStandaloneDemo(
             attack.playerUsingPowerPotion = nextAction.type == EBattleActionType::PlayerUsePowerPotion;
             attack.attackerIndex = nextAction.attackerIndex;
             attack.targetIndex = nextAction.targetIndex;
-            attack.startedAt = std::chrono::steady_clock::now();
+            // 연출 생략 자동 전투는 아래의 기존 행동 완료 처리로 즉시 흘려보냅니다.
+            // 따라서 실제 피해/보상/승패 판정 코드가 따로 갈라지지 않습니다.
+            attack.startedAt = std::chrono::steady_clock::now() -
+                (fastResultMode ? std::chrono::milliseconds(721) : std::chrono::milliseconds(0));
         }
         // 자동 모드는 영웅이 순서대로 행동합니다. 수동 모드에서는 클릭한 몬스터만 공격하며,
         // 영웅 라운드가 끝나면 몬스터 턴은 두 모드 모두 자동으로 이어집니다.
@@ -3726,7 +3750,7 @@ int AsciiArt::RunStandaloneDemo(
         }
         DrawFrame(output, art, settings, layout, attack.playing, placement.active, showDeveloperPanel, floatingTextVisible);
         DrawBattleHudOverlay(output, battleState, config, layout, resolution, displayedHp, monsterImages,
-                              showHealEffectPreview, showPowerBuffEffectPreview, autoBattleEnabled);
+                              showHealEffectPreview, showPowerBuffEffectPreview, autoBattleEnabled, fastResultMode);
         DrawFloatingCombatTextOverlay(output, battleState, config, layout, resolution);
         DrawPlacementStatus(output, layout, resolution, placement);
         const int frameDelayMilliseconds = 1000 / std::max(1, config.framesPerSecond);
