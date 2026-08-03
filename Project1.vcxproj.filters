@@ -55,6 +55,9 @@
     <Filter Include="헤더 파일\Shop">
       <UniqueIdentifier>{abf8d55f-ab39-4a9f-a698-f2b8a74725f5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="헤더 파일\Miniaudio">
+      <UniqueIdentifier>{39fcfa63-bede-4c81-8ba0-c6bb54a65792}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BattleManager.cpp">
@@ -149,11 +152,20 @@
     <ClInclude Include="SoundManager.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Downloads\miniaudio.h">
+      <Filter>헤더 파일\Miniaudio</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\..\..\..\Downloads\intro.wav" />
+    <Media Include="assets\charity-shop.wav">
+      <Filter>리소스 파일</Filter>
+    </Media>
+    <Media Include="assets\intro.wav">
+      <Filter>리소스 파일</Filter>
+    </Media>
   </ItemGroup>
 </Project>

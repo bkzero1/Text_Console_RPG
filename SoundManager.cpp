@@ -1,17 +1,62 @@
-#include <windows.h>
-#include <mmsystem.h>
-#pragma comment(lib, "winmm.lib")
+#define MINIAUDIO_IMPLEMENTATION
+#include "miniaudio.h"
+#include <iostream>
 #include "SoundManager.h"
 
-void SoundManager ::StartSound(const std::string filePath)
-{
-    std::wstring wFilePath(filePath.begin(), filePath.end());
+std::map<SoundStates, std::string> soundMap = {
+    {SoundStates::INTRO,  "assets/intro.mp3"}, 
+    {SoundStates::NORMAL_BATTLE,  "assets/INBATTLE.mp3"},
+    {SoundStates::BOSS_BATTLE, "assets/BOSS.mp3"},
+    {SoundStates::SHOP, "assets/charity-shop.wav"},
+    {SoundStates::VILLAGE, "assets/village.mp3"},
+    {SoundStates::ATTACK_01, "assets/attack-01.wav"},
+    {SoundStates::ATTACK_02, "assets/attack-02.wav"},
+    {SoundStates::ATTACK_03, "assets/attack-03.wav"},
+};
 
-    ::PlaySound(wFilePath.c_str(), NULL, SND_FILENAME | SND_ASYNC);
+bool SoundManager::Init()
+{
+    return ma_engine_init(NULL, &engine) == MA_SUCCESS;
 }
 
-void SoundManager::StopSound()
+void SoundManager:: Shutdown()
 {
-  
-    ::PlaySound(NULL, 0, 0);
+    StopBGM();
+    ma_engine_uninit(&engine);
+}
+
+// BGM 재생 (같은 곡이면 무시, 다른 곡이면 교체)
+void SoundManager::PlayBGM(const std::string& path, bool loop)
+{
+    if (currentBgmPath == path && isBgmPlaying)
+        return;  // 이미 같은 곡 재생 중이면 그대로 둠
+
+    StopBGM();  // 기존 BGM 정지 및 정리
+
+    if (ma_sound_init_from_file(&engine, path.c_str(),
+                                MA_SOUND_FLAG_STREAM, NULL, NULL, &currentBgm) == MA_SUCCESS)
+    {
+        ma_sound_set_looping(&currentBgm, loop ? MA_TRUE : MA_FALSE);
+        ma_sound_start(&currentBgm);
+        currentBgmPath = path;
+        isBgmPlaying = true;
+    }
+}
+
+ void SoundManager :: StopBGM()
+{
+    if (isBgmPlaying)
+    {
+        ma_sound_stop(&currentBgm);
+        ma_sound_uninit(&currentBgm);
+        isBgmPlaying = false;
+        currentBgmPath.clear();
+    }
+}
+
+
+// 효과음은 그대로 이 함수로
+void SoundManager::PlaySFX(const std::string& path)
+{
+    ma_engine_play_sound(&engine, path.c_str(), NULL);
 }

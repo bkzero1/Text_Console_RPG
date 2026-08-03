@@ -65,7 +65,6 @@ bool StringCompare(string a, string b)
 // 캐릭터 생성
 void PlayerInit()
 {
-    soundManager.StartSound("intro.wav");
     std::string playerName;
 
     // 전사 생성
@@ -88,7 +87,6 @@ void PlayerInit()
     // 첫 전투 시작
     SwitchState(EGameState::NORMAL_BATTLE);
 
-    soundManager.StopSound();
 }
 
 bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
@@ -132,6 +130,9 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
                 std::uniform_int_distribution<int> monsterDist(0, monster.size() - 1);
                 Monster* targetMonster = monster[monsterDist(gen)];
                 battleManager.PlayerHitMonster(targetMonster, turnPlayer->GetPower());
+
+                soundManager.PlaySFX(soundMap.at(SoundStates::ATTACK_01));
+
                 if (targetMonster->IsDead())
                 {
                     rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + targetMonster->GetName() + "을(를) 공격합니다! " + targetMonster->GetName() + " 처치!");
@@ -166,6 +167,8 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
             std::uniform_int_distribution<int> monsterDist(0, livingPlayers.size() - 1);
             Player* targetPlayer = livingPlayers[monsterDist(gen)];
             battleManager.MonsterHitPlayer(targetPlayer, turnMonster->GetPower());
+
+            soundManager.PlaySFX(soundMap.at(SoundStates::ATTACK_02));
 
             // 플레이어가 죽었는지 확인
             if (targetPlayer->IsDead())
@@ -448,7 +451,6 @@ void MainMenu()
 // 상점
 void Shop()
 {
-    soundManager.StartSound("charity-shop");
     ShopManager shop;
     std::cout << "---------- TEAM_3 TRPG SHOP ----------" << std::endl;
     std::cout << "1. 아이템 구매" << std::endl;
@@ -550,8 +552,6 @@ void Shop()
                 break;
         }
     }
-
-    soundManager.StopSound();
 }
 
 
@@ -572,23 +572,31 @@ void GameClear()
 // 게임 실행
 void Run()
 {
+    soundManager.Init();
+
     while (IsRunning)
     {
         switch (CurrentGameState)
         {
             case EGameState::PLAYER_INIT:
+                soundManager.PlayBGM(soundMap.at(SoundStates::INTRO));
                 PlayerInit();
                 break;
             case EGameState::NORMAL_BATTLE:
+                soundManager.StopBGM();
+                soundManager.PlayBGM(soundMap.at(SoundStates::NORMAL_BATTLE));
                 NormalBattle();
                 break;
             case EGameState::BOSS_BATTLE:
+                soundManager.PlayBGM(soundMap.at(SoundStates::BOSS_BATTLE));
                 BossBattle();
                 break;
             case EGameState::MAIN_MEMU:
+                soundManager.PlayBGM(soundMap.at(SoundStates::VILLAGE));
                 MainMenu();
                 break;
             case EGameState::SHOP:
+                soundManager.PlayBGM(soundMap.at(SoundStates::SHOP));
                 Shop();
                 break;
             case EGameState::GAME_OVER:
@@ -608,8 +616,6 @@ void Run()
 
 int main()
 {
-   
-
   
     //TestMonster(3);
     //ShowItemTable();

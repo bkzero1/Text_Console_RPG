@@ -124,6 +124,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\Downloads\miniaudio.h" />
     <ClInclude Include="BattleManager.h" />
     <ClInclude Include="Mage.h" />
     <ClInclude Include="MonsterPool.h" />
@@ -162,6 +163,8 @@
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\..\..\..\Downloads\intro.wav" />
+    <Media Include="assets\charity-shop.wav" />
+    <Media Include="assets\intro.wav" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
