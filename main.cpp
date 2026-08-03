@@ -3,6 +3,7 @@
 #include <random>
 #include <thread>
 
+
 #include "BattleManager.h"
 #include "FMonsterData.h"
 #include "Inventory.h"
@@ -15,6 +16,7 @@
 #include "Tank.h"
 #include "Warrior.h"
 #include "ShopManager.h"
+#include "SoundManager.h"
 
 // 게임 상태
 enum class EGameState
@@ -32,7 +34,7 @@ enum class EGameState
 EGameState CurrentGameState = EGameState::PLAYER_INIT;
 bool IsRunning = true;
 RpgLogger rpgLogger;
-
+SoundManager soundManager;
 Inventory* inventory;          // 인벤토리
 std::vector<Player*> players;  // 플레이어 목록
 // 게임 상태 전환
@@ -63,6 +65,7 @@ bool StringCompare(string a, string b)
 // 캐릭터 생성
 void PlayerInit()
 {
+    soundManager.StartSound("intro.wav");
     std::string playerName;
 
     // 전사 생성
@@ -85,6 +88,7 @@ void PlayerInit()
     // 첫 전투 시작
     SwitchState(EGameState::NORMAL_BATTLE);
 
+    soundManager.StopSound();
 }
 
 bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
@@ -444,6 +448,7 @@ void MainMenu()
 // 상점
 void Shop()
 {
+    soundManager.StartSound("charity-shop");
     ShopManager shop;
     std::cout << "---------- TEAM_3 TRPG SHOP ----------" << std::endl;
     std::cout << "1. 아이템 구매" << std::endl;
@@ -545,6 +550,8 @@ void Shop()
                 break;
         }
     }
+
+    soundManager.StopSound();
 }
 
 
@@ -601,6 +608,9 @@ void Run()
 
 int main()
 {
+   
+
+  
     //TestMonster(3);
     //ShowItemTable();
     Run();

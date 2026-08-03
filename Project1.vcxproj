@@ -135,6 +135,7 @@
     <ClInclude Include="ItemUseHandler.h" />
     <ClInclude Include="InventorySlot.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="SoundManager.h" />
     <ClInclude Include="Tank.h" />
     <ClInclude Include="Warrior.h" />
     <ClInclude Include="ShopManager.h" />
@@ -151,12 +152,16 @@
     <ClCompile Include="ItemUseHandler.cpp" />
     <ClCompile Include="InventorySlot.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="SoundManager.cpp" />
     <ClCompile Include="Tank.cpp" />
     <ClCompile Include="Warrior.cpp" />
     <ClCompile Include="ShopManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="..\..\..\..\Downloads\intro.wav" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

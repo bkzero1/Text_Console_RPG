@@ -99,6 +99,9 @@
     <ClCompile Include="ShopManager.cpp">
       <Filter>소스 파일\Shop</Filter>
     </ClCompile>
+    <ClCompile Include="SoundManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BattleManager.h">
@@ -143,8 +146,14 @@
     <ClInclude Include="ShopManager.h">
       <Filter>헤더 파일\Shop</Filter>
     </ClInclude>
+    <ClInclude Include="SoundManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="..\..\..\..\Downloads\intro.wav" />
   </ItemGroup>
 </Project>
