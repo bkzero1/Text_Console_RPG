@@ -770,8 +770,8 @@ const MonsterVisualProfile& GetMonsterVisualProfile(const SceneConfig& config, c
 const std::array<std::string, 9>& GetMonsterDisplayNames()
 {
     static const std::array<std::string, 9> names = {
-        u8"슬라임", u8"고블린", u8"스켈레톤", u8"좀비", u8"코볼트",
-        u8"골렘", u8"방황하는 갑옷", u8"드라큘라", u8"레드 드래곤"
+        "슬라임", "고블린", "스켈레톤", "좀비", "코볼트",
+        "골렘", "방황하는 갑옷", "드라큘라", "레드 드래곤"
     };
     return names;
 }
@@ -3694,20 +3694,28 @@ int AsciiArt::RunStandaloneDemo(
             SetConsoleCursorPosition(output, {0, static_cast<short>(layout.artStartY + 2)});
             if (onBattleAction && !onBattleAction(action))
             {
-                // 승리/패배 같은 실제 전투 종료는 이미 결정됐지만, HP 바의 빨간 잔상은 끝까지 보여 줍니다.
-                pendingBattleExit = true;
-                finalBattleState = battleState;
-                std::vector<ActorBattleStatus>& defeatedStatuses = action.type == EBattleActionType::PlayerAttack
-                    ? finalBattleState.monsterStatuses
-                    : finalBattleState.playerStatuses;
-                if (!defeatedStatuses.empty())
+                if (fastResultMode)
                 {
-                    const int defeatedIndex = std::clamp(action.targetIndex, 0, static_cast<int>(defeatedStatuses.size()) - 1);
-                    defeatedStatuses[defeatedIndex].previousHp = defeatedStatuses[defeatedIndex].currentHp;
-                    defeatedStatuses[defeatedIndex].currentHp = 0;
-                    defeatedStatuses[defeatedIndex].isDead = true;
+                    // 9번은 결과만 보는 기능이므로 마지막 HP 잔상까지 기다리지 않고 즉시 기본 전투 결과 화면으로 넘깁니다.
+                    running = false;
                 }
-                hasFinalBattleState = true;
+                else
+                {
+                    // 일반 전투는 승리/패배 직전의 HP 바 애니메이션을 끝까지 보여 줍니다.
+                    pendingBattleExit = true;
+                    finalBattleState = battleState;
+                    std::vector<ActorBattleStatus>& defeatedStatuses = action.type == EBattleActionType::PlayerAttack
+                        ? finalBattleState.monsterStatuses
+                        : finalBattleState.playerStatuses;
+                    if (!defeatedStatuses.empty())
+                    {
+                        const int defeatedIndex = std::clamp(action.targetIndex, 0, static_cast<int>(defeatedStatuses.size()) - 1);
+                        defeatedStatuses[defeatedIndex].previousHp = defeatedStatuses[defeatedIndex].currentHp;
+                        defeatedStatuses[defeatedIndex].currentHp = 0;
+                        defeatedStatuses[defeatedIndex].isDead = true;
+                    }
+                    hasFinalBattleState = true;
+                }
             }
             else if (!potionOnlyTestMode && action.type == EBattleActionType::MonsterAttack)
             {
@@ -3725,6 +3733,18 @@ int AsciiArt::RunStandaloneDemo(
                 ++currentTurn;
                 nextAutomaticAttackAt = std::chrono::steady_clock::now() + std::chrono::milliseconds(420);
             }
+        }
+
+        if (!running)
+        {
+            // 빠른 결과 모드에서 마지막 행동을 처리한 프레임은 다시 그리지 않습니다.
+            continue;
+        }
+
+        // 빠른 결과 모드는 중간 프레임을 만들지 않으므로, 이미지 변환/콘솔 출력 비용도 함께 생략합니다.
+        if (fastResultMode && autoBattleEnabled && !pendingBattleExit)
+        {
+            continue;
         }
 
         layout = CreateControlPanelLayout(output, showDeveloperPanel);
