@@ -152,6 +152,7 @@
     <ClInclude Include="AsciiArt\AsciiBattleBridge.h" />
     <ClInclude Include="AsciiArt\AsciiBattleScene.h" />
     <ClInclude Include="AsciiArt\SceneConfig.h" />
+    <ClInclude Include="SoundManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BattleManager.cpp" />
@@ -173,6 +174,7 @@
     <ClCompile Include="StartScreen.cpp" />
     <ClCompile Include="ShopScreen.cpp" />
     <ClCompile Include="GameClearScreen.cpp" />
+    <ClCompile Include="SoundManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SceneConfig.jsonc" />

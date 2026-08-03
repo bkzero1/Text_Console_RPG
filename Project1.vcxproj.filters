@@ -45,6 +45,8 @@
     <ClCompile Include="AsciiArt\AsciiBattleDemo.cpp"><Filter>소스 파일\AA</Filter></ClCompile>
     <ClCompile Include="AsciiArt\AsciiBattleBridge.cpp"><Filter>소스 파일\AA</Filter></ClCompile>
     <ClCompile Include="RpgLogger.cpp"><Filter>소스 파일\Utility</Filter></ClCompile>
+    <ClCompile Include="SoundManager.cpp"><Filter>소스 파일\Sound</Filter></ClCompile>
+
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BattleManager.h"><Filter>헤더 파일\Battle</Filter></ClInclude>
@@ -68,6 +70,7 @@
     <ClInclude Include="AsciiArt\AsciiBattleScene.h"><Filter>헤더 파일\AA</Filter></ClInclude>
     <ClInclude Include="AsciiArt\SceneConfig.h"><Filter>헤더 파일\AA</Filter></ClInclude>
     <ClInclude Include="RpgLogger.h"><Filter>헤더 파일\Utility</Filter></ClInclude>
+<ClInclude Include="SoundManager.h"><Filter>헤더 파일\Sound</Filter></ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SceneConfig.jsonc"><Filter>리소스 파일\설정</Filter></None>
