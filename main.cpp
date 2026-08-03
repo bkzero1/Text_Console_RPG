@@ -132,6 +132,7 @@ bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
                 if (targetMonster->IsDead())
                 {
                     rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + targetMonster->GetName() + "을(를) 공격합니다! " + targetMonster->GetName() + " 처치!");
+                    rpgLogger.OnMonsterKilled(targetMonster->GetMonsterId());
                     monsterPool.Release(targetMonster);
                 }
                 else

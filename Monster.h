@@ -29,6 +29,7 @@ class Monster
     int GetHp() const { return hp; }
     int GetGold() const { return gold; }
     int GetExp() const { return exp; }
+    EMonsterID GetMonsterId() const { return id; }
 
 
    private:
