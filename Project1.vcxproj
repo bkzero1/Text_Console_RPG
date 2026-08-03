@@ -140,9 +140,7 @@
     <ClInclude Include="InventorySlot.h" />
     <ClInclude Include="Item.h" />
     <ClInclude Include="ItemUseHandler.h" />
-    <ClInclude Include="Mage.h" />
     <ClInclude Include="Monster.h" />
-    <ClInclude Include="MonsterPool.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="RpgLogger.h" />
     <ClInclude Include="ShopManager.h" />
@@ -168,7 +166,6 @@
     <ClCompile Include="MonsterPool.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Monster.cpp" />
-    <ClCompile Include="MonsterPool.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="RpgLogger.cpp" />
     <ClCompile Include="ShopManager.cpp" />

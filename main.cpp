@@ -470,28 +470,14 @@ void MainMenu()
                 if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
                 return;
             }
-            else
-            {
-                SwitchState(EGameState::BOSS_BATTLE);
+            case 4:
+                // 처치 기록 화면은 아직 별도 상태가 없으므로, 현재 메뉴를 다시 표시합니다.
+                break;
+            default:
+                break;
             }
-            break;
-        case 2:  // 상점
-            SwitchState(EGameState::SHOP);
-            break;
-        case 3:  // 아이템 제작소
-            SwitchState(EGameState::CRAFTING);
-            break;
-        case 4:  // 플레이어 정보
-            for (const auto& player : players)
-                player->ShowStatus();
-            break;
-        case 5:  // 몬스터 처치 기록
-            // 킬 몬스터 로그 출력 메뉴
-            break;
-        default:
-            break;
+        }
     }
-}
 
 // 상점
 void Shop()
