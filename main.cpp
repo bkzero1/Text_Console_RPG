@@ -68,26 +68,62 @@ void PlayerInit()
     std::string playerName;
 
     // 전사 생성
-    std::cout << "전사의 이름을 입력하세요: ";
-    std::getline(std::cin, playerName);
-    players.push_back(new Warrior(playerName));
+    while (true)
+    {
+        std::cout << "전사의 이름을 입력하세요: ";
+        std::getline(std::cin, playerName);
+
+        // 입력 검증: 빈 칸이면 다시 입력
+        if (playerName.empty())
+        {
+            std::cout << " 이름을 입력해주세요!\n\n";
+            continue;
+        }
+
+        players.push_back(new Warrior(playerName));
+        break;
+    }
 
     // 마법사 생성
-    std::cout << "마법사의 이름을 입력하세요: ";
-    std::getline(std::cin, playerName);
-    players.push_back(new Mage(playerName));
+    while (true)
+    {
+        std::cout << "마법사의 이름을 입력하세요: ";
+        std::getline(std::cin, playerName);
+
+        // 입력 검증: 빈 칸이면 다시 입력
+        if (playerName.empty())
+        {
+            std::cout << " 이름을 입력해주세요!\n\n";
+            continue;
+        }
+
+        players.push_back(new Mage(playerName));
+        break;
+    }
 
     // 탱커 생성
-    std::cout << "탱커의 이름을 입력하세요: ";
-    std::getline(std::cin, playerName);
-    players.push_back(new Tank(playerName));
+    while (true)
+    {
+        std::cout << "탱커의 이름을 입력하세요: ";
+        std::getline(std::cin, playerName);
+
+        // 입력 검증: 빈 칸이면 다시 입력
+        if (playerName.empty())
+        {
+            std::cout << " 이름을 입력해주세요!\n\n";
+            continue;
+        }
+
+        players.push_back(new Tank(playerName));
+        break;
+    }
 
     // 인벤토리 생성
     inventory = new Inventory();
+
     // 첫 전투 시작
     SwitchState(EGameState::NORMAL_BATTLE);
 }
-
 bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
 {
     ItemUseHandler itemHandler;
