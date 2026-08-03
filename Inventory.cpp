@@ -282,7 +282,7 @@ std::map<EItemID, int> Inventory::GetConsumableItems() const
 
 void Inventory::ShowInventory() const
 {
-    std::cout << "==============[ 인벤토리 ]===============" << "\n";
+    std::cout << "============= [ 인벤토리 ] ==============" << "\n";
 
     // 슬롯 순회하여 차레대로 출력
     for (int i = 0; i < slots.size(); i++)

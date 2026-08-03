@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <vector>
 
 #include "Item.h"
 
@@ -12,4 +13,4 @@ struct CraftingRecipe
     CraftingRecipe(EItemID itemID, std::map<EItemID, int> ingredients);
 };
 
-extern const std::map<EItemID, CraftingRecipe> CRAFTING_RECIPE_TABLE;
+extern const std::map<EItemID, std::vector<CraftingRecipe>> CRAFTING_RECIPE_TABLE;

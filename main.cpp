@@ -586,6 +586,9 @@ void Crafting()
         return;
     }
 
+    // 필터 초기화
+    crafter.ClearFilter();
+
     std::string keyword;
     switch (option)
     {
@@ -617,9 +620,11 @@ void Crafting()
             break;
     }
 
+    // 필터 적용
+    crafter.ApplyFilter();
+
     // 필터링된 아이템 출력
     crafter.ShowFilteredRecipes();
-    std::vector<EItemID> craftingItemIDs = crafter.GetFilteredCraftingItemIDs();
 
     // 제작할 아이템 선택
     int craftinigItemNum = 0;
@@ -642,7 +647,7 @@ void Crafting()
             return;
         }
 
-        if (craftinigItemNum < 1 || static_cast<size_t>(craftinigItemNum) > craftingItemIDs.size())
+        if (craftinigItemNum < 1 || crafter.GetFilteredCraftingRecipesSize() < craftinigItemNum)
         {
             std::cout << "존재하지 않는 번호입니다." << std::endl;
             continue;
@@ -682,10 +687,10 @@ void Crafting()
     }
 
     // 제작 시도 - 실제 제작한 개수 반환
-    EItemID craftingItemID = crafter.GetFilteredCraftingItemIDByIndex(craftinigItemNum - 1);
-    int finalCraftingCount = crafter.TRY_CRAFT_ITEM(inventory, craftingItemID, craftingCount);
+    const CraftingRecipe* craftingRecipe = crafter.GetCraftingRecipeByIndex(craftinigItemNum - 1);
+    int finalCraftingCount = crafter.TRY_CRAFT_ITEM(inventory, craftingRecipe, craftingCount);
 
-    std::cout << " [" << ITEM_TABLE.at(craftingItemID).name << "] (" << finalCraftingCount << ")개 제작 성공!" << "\n";
+    std::cout << " [" << ITEM_TABLE.at(craftingRecipe->itemID).name << "] (" << finalCraftingCount << ")개 제작 성공!" << "\n";
     inventory->ShowInventory();
 }
 
