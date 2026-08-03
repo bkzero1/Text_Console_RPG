@@ -298,3 +298,4 @@ const std::map<EItemID, ItemData> ITEM_TABLE = {
                                                 EItemEffectType::NONE,
                                                 0)}
 };
+

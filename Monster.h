@@ -8,7 +8,8 @@ class Monster
 {
    public:
 	Monster()
-		: hp(0), 
+		: hp(0),
+        hpMax(0),
 		power(0), 
 		gold(0), 
 		exp(0)
@@ -27,6 +28,7 @@ class Monster
 
 	const std::string& GetName() const { return name; }
     int GetHp() const { return hp; }
+    int GetHpMax() const { return hpMax; }
     int GetGold() const { return gold; }
     int GetExp() const { return exp; }
 
@@ -36,7 +38,9 @@ class Monster
 	std::string name;
 
 	int hp;
-    int power;
+	// 생성 당시의 최대 체력입니다. AA 체력 바의 백분율과 감소 애니메이션에 사용합니다.
+    int hpMax;
+	int power;
 
 	int gold;
     int exp;
@@ -45,4 +49,3 @@ class Monster
 };
 
 void TestMonster(int playerLevel);
-

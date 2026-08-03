@@ -244,7 +244,7 @@ int Inventory::GetMaxAddableItemCount(EItemID itemID) const
     int count = 0;  // 추가 가능한 최대 개수
 
     // 빈 슬롯 확인
-    count += slotCapacity * (maxSlots - slots.size());
+    count += slotCapacity * (maxSlots - static_cast<int>(slots.size()));
 
     // 기존 슬롯 확인
     for (const InventorySlot& slot : slots)

@@ -45,12 +45,12 @@ void MonsterPool::Release(Monster* monster)
 
 void MonsterPool::Shrink(int poolSize)
 {
-    if (poolSize < monsterVector.size())
+    if (poolSize >= static_cast<int>(monsterVector.size()))
     {
         return;
     }
 
-    int purgeCount = monsterVector.size() - poolSize;
+    const int purgeCount = static_cast<int>(monsterVector.size()) - poolSize;
     for (int i = 0; i < purgeCount; i++)
     {
         if (monsterStack.empty())

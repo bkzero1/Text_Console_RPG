@@ -9,3 +9,4 @@ class ItemUseHandler
     static bool USE_ITEM(Player* player, EItemID itemID);
     static void CLEAR_BUFF(Player* player, EItemID itemID);
 };
+
