@@ -40,16 +40,17 @@ void BattleManager::AddMonster(Monster* monster)
     monsters.push_back(monster);
 }
 
-void BattleManager::BattleEnd(bool isWin)
+void BattleManager::EarnExpToParty()
 {
-    if (isWin)
+    for (int i = 0; i < players.size(); i++)
     {
-        for (int i = 0; i < players.size(); i++)
-        {
-            //next : 딜 기여에 따라 경험치 전달
-            players[i]->AddExp(earnExp);
-        }
+        // next : 딜 기여에 따라 경험치 전달
+        players[i]->AddExp(earnExp);
     }
+}
+
+void BattleManager::BattleEnd()
+{
     players.clear();
     monsters.clear();
     dealPies.clear();
@@ -91,6 +92,7 @@ void BattleManager::PlayerHitMonster(Monster* target, int damage)
         return;
     }
     earnGold += target->GetGold();
+    earnExp += target->GetExp();
 
     std::vector<EItemID> dropItem = target->GetDropItems();
 
@@ -156,6 +158,11 @@ std::vector<Monster*> BattleManager::GetLivingMonsters() const
 int BattleManager::GetEarnGold() const
 {
     return earnGold;
+}
+
+int BattleManager::GetEarnExp() const
+{
+    return earnExp;
 }
 
 std::map<EItemID, int> BattleManager::GetEarnItems() const
