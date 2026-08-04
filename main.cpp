@@ -20,14 +20,18 @@
 // 게임 상태
 enum class EGameState
 {
-    PLAYER_INIT,    // 캐릭터 생성 (이름, 스탯 초기 설정)
+    PLAYER_INIT,  // 캐릭터 생성 (이름, 스탯 초기 설정)
+
     NORMAL_BATTLE,  // 일반 전투
     BOSS_BATTLE,    // 보스 전투
-    MAIN_MEMU,      // 메인 메뉴
-    SHOP,           // 상점
-    CRAFTING,       // 아이템 제작소
-    GAME_OVER,      // 게임 패배
-    GAME_CLEAR,     // 게임 승리
+
+    MAIN_MEMU,  // 메인 메뉴
+    INN,        // 여관
+    SHOP,       // 상점
+    CRAFTING,   // 아이템 제작소
+
+    GAME_OVER,   // 게임 패배
+    GAME_CLEAR,  // 게임 승리
 };
 
 // 전역 변수
@@ -393,16 +397,17 @@ void MainMenu()
 {
     std::cout << "========================================" << "\n";
     std::cout << " 1. 전투" << "\n";
-    std::cout << " 2. 상점" << "\n";
-    std::cout << " 3. 아이템 제작소" << "\n";
-    std::cout << " 4. 플레이어 정보 확인" << "\n";
-    std::cout << " 5. 몬스터 처치 기록 확인" << "\n";
+    std::cout << " 2. 여관" << "\n";
+    std::cout << " 3. 상점" << "\n";
+    std::cout << " 4. 아이템 제작소" << "\n";
+    std::cout << " 5. 플레이어 정보 확인" << "\n";
+    std::cout << " 6. 몬스터 처치 기록 확인" << "\n";
     std::cout << "========================================" << "\n";
     std::cout << "입력: ";
     int option;
     std::cin >> option;
     // 유효하지 않은 입력
-    if (option < 1 || 5 < option)
+    if (option < 1 || 6 < option)
     {
         return;
     }
@@ -428,22 +433,135 @@ void MainMenu()
                 SwitchState(EGameState::BOSS_BATTLE);
             }
             break;
-        case 2:  // 상점
+        case 2:  // 여관
+            SwitchState(EGameState::INN);
+            break;
+        case 3:  // 상점
             SwitchState(EGameState::SHOP);
             break;
-        case 3:  // 아이템 제작소
+        case 4:  // 아이템 제작소
             SwitchState(EGameState::CRAFTING);
             break;
-        case 4:  // 플레이어 정보
+        case 5:  // 플레이어 정보
             for (const auto& player : players)
                 player->ShowStatus();
             break;
-        case 5:  // 몬스터 처치 기록
+        case 6:  // 몬스터 처치 기록
             // 킬 몬스터 로그 출력 메뉴
             break;
         default:
             break;
     }
+}
+
+// 여관
+void Inn()
+{
+    // 회복 시 골드 소모량: INN_BASE_COST + ceil(INN_COST_PER_HP * 회복량)
+    const int INN_BASE_COST = 10;       // 기본 골드 소모량
+    const float INN_COST_PER_HP = 0.5;  // 회복 HP당 골드 소모량
+
+    // 회복 가능한 HP량 반환
+    auto GetMaxHealHP = [&INN_BASE_COST, &INN_COST_PER_HP](const Player* player, const Inventory* inventory) -> int
+    {
+        int missingHP = player->GetMissingHP();                                                          // 부족한 HP
+        int maxHealByGold = std::max(int((inventory->GetGold() - INN_BASE_COST) / INN_COST_PER_HP), 0);  // 골드로 회복 가능한 최대 HP
+        return std::min(missingHP, maxHealByGold);
+    };
+    // 회복 시 소모하는 골드량 반환
+    auto GetHealCost = [&INN_BASE_COST, &INN_COST_PER_HP](const int& healHP) -> int
+    {
+        return INN_BASE_COST + std::ceil(INN_COST_PER_HP * healHP);
+    };
+
+    // 회복 메뉴 출력
+    std::cout << "=============== [ 여관 ] ===============" << "\n";
+    std::cout << " 💰 보유 골드: " << inventory->GetGold() << " G" << "\n";
+    std::cout << "----------------------------------------" << "\n";
+    for (int i = 0; i < (int)players.size(); i++)
+    {
+        const Player* player = players.at(i);
+        int maxHealHP = GetMaxHealHP(player, inventory);  // 최대 회복 가능한 HP
+        int healCost = GetHealCost(maxHealHP);            // 회복 비용
+
+        std::cout << " " << i + 1 << ". [" << player->GetName() << "] (" << player->GetHp() << "/" << player->GetHpMax() << ")";
+
+        if (player->GetMissingHP() <= 0)
+        {
+            std::cout << " | [최대 체력]" << "\n";
+            continue;
+        }
+
+        int fullHealCost = INN_BASE_COST + std::ceil(INN_COST_PER_HP * player->GetMissingHP());
+        std::cout << " | 필요: " << fullHealCost << " G ➔ ";
+
+        if (inventory->GetGold() <= INN_BASE_COST)
+        {
+            std::cout << "(골드 부족)" << "\n";
+        }
+        else
+        {
+            maxHealHP = GetMaxHealHP(player, inventory);
+            healCost = GetHealCost(maxHealHP);
+            std::cout << "회복 후: " << player->GetHp() + maxHealHP << " (+" << maxHealHP << ")" << (player->GetHp() + maxHealHP == player->GetHpMax() ? " [완치]" : "") << "\n";
+        }
+    }
+    std::cout << "----------------------------------------" << "\n";
+    std::cout << " 0. 마을로 돌아가기" << "\n";
+    std::cout << "========================================" << "\n";
+
+    // 선택지 입력
+    std::cout << "입력: ";
+    int option = 0;
+    if (!(std::cin >> option))
+    {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        return;
+    }
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+    // 유효하지 않은 입력
+    if (option < 0 || (int)players.size() < option)
+    {
+        return;
+    }
+
+    // 마을로 돌아가기
+    if (option == 0)
+    {
+        SwitchState(EGameState::MAIN_MEMU);
+        return;
+    }
+
+    // 특정 캐릭터 회복
+    Player* player = players.at(option - 1);
+    int maxHealHP = GetMaxHealHP(player, inventory);  // 실제로 회복할 체력
+    int healCost = GetHealCost(maxHealHP);            // 회복 비용
+
+    // 회복 메시지 출력
+    std::cout << "\n";
+    std::cout << "========================================" << "\n";
+    std::cout << " 🛌 [" << player->GetName() << "]이(가) 여관에서 휴식을 취했습니다.\n";
+
+    if (player->IsFullHP())
+    {
+        std::cout << " ✨ HP가 완전히 회복되었습니다.\n";
+    }
+    else
+    {
+        std::cout << " ⚠️ 골드가 부족하여 일부만 회복되었습니다.\n";
+    }
+
+    std::cout << " ➔ HP: " << player->GetHp() << " / " << player->GetHpMax()
+              << "  ➔  " << player->GetHp() + maxHealHP << " / " << player->GetHpMax()
+              << " (+" << maxHealHP << " 회복)\n";
+
+    std::cout << " 💰 -" << healCost << " Gold 소모 (남은 골드: " << inventory->GetGold() - healCost << " G)\n";
+    std::cout << "========================================\n";
+
+    player->HealHP(maxHealHP);      // 체력 회복
+    inventory->AddGold(-healCost);  // 골드 소모
 }
 
 // 상점
@@ -726,6 +844,9 @@ void Run()
                 break;
             case EGameState::MAIN_MEMU:
                 MainMenu();
+                break;
+            case EGameState::INN:
+                Inn();
                 break;
             case EGameState::SHOP:
                 Shop();
