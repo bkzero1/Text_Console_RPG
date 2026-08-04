@@ -1,4 +1,4 @@
-// TextRPGSource/AsciiArt/AsciiBattleBridge.cpp
+﻿// TextRPGSource/AsciiArt/AsciiBattleBridge.cpp
 #define NOMINMAX
 #include <windows.h>
 
@@ -205,6 +205,7 @@ bool AsciiArt::RunBattlePresentation(BattleManager& battleManager, MonsterPool& 
                 if (target->IsDead())
                 {
                     logger.AddLog(target->GetName() + " 처치!", false);
+                    logger.OnMonsterKilled(target->GetMonsterId());
                     monsterPool.Release(target);
                 }
             }
