@@ -255,7 +255,7 @@ void NormalBattle()
     // 랜덤 준비
     std::random_device rd;
     std::mt19937 gen(rd());
-    //몬스터 카드에서 가져올 몬스터 준비
+    // 몬스터 카드에서 가져올 몬스터 준비
     std::uniform_int_distribution<size_t> deployDist(0, monsterCards.size() - 1);
 
     for (int i = 0; i < monsterCount; i++)
@@ -375,7 +375,7 @@ void BossBattle()
 
     vector<EMonsterID> monsterCards = battleManager.GetSpawanAbleMonsterIDs(avgLv);
 
-    //보스 몬스터 레드 드래곤 하나
+    // 보스 몬스터 레드 드래곤 하나
     Monster* monster = monsterPool.Acquire();
     std::string nanori = monster->Deploy(EMonsterID::RED_DRAGON, avgLv);
     rpgLogger.AddLog(nanori);
@@ -775,6 +775,10 @@ void Run()
 
     // 메모리 해제
     delete inventory;
+    for (Player* player : players)
+    {
+        delete player;
+    }
 }
 
 int main()
