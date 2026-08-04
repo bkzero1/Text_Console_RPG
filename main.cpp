@@ -766,7 +766,7 @@ void Inn()
     std::cout << "========================================" << "\n";
     std::cout << " 🛌 [" << player->GetName() << "]이(가) 여관에서 휴식을 취했습니다.\n";
 
-    if (player->IsFullHP())
+    if (player->GetHp() + maxHealHP == player->GetHpMax())
     {
         std::cout << " ✨ HP가 완전히 회복되었습니다.\n";
     }
