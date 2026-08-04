@@ -2,6 +2,7 @@
 #include <map>
 #include <queue>
 #include <string>
+#include <vector>
 
 #include "FMonsterData.h"
 
@@ -13,6 +14,9 @@ class RpgLogger
 
     // 킬 로그 출력
     void ShowKillLogs() const;
+
+    // 화면 UI에서 재사용할 수 있도록 처치 기록을 문자열 목록으로 반환합니다.
+    std::vector<std::string> GetKillLogLines() const;
 
     // Queue에 로그 추가(10개 까지). 기본값은 기존처럼 즉시 콘솔에도 출력합니다.
     // AA 전투처럼 화면을 직접 그리는 곳에서는 false로 넘겨 로그만 기록합니다.

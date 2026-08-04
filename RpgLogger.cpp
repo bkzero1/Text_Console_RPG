@@ -28,6 +28,24 @@ void RpgLogger::ShowKillLogs() const
     std::cout << "----------------------------------------------" << std::endl;
 }
 
+std::vector<std::string> RpgLogger::GetKillLogLines() const
+{
+    std::vector<std::string> killLogLines;
+
+    if (killCounts.empty())
+    {
+        killLogLines.push_back("아직 처치한 몬스터가 없습니다.");
+        return killLogLines;
+    }
+
+    for (const auto& [monsterID, count] : killCounts)
+    {
+        killLogLines.push_back(MONSTER_MAP.at(monsterID).name + " : " + std::to_string(count) + "마리 처치");
+    }
+
+    return killLogLines;
+}
+
 void RpgLogger::AddLog(std::string log, bool printToConsole)
 {
     logs.push(log);

@@ -522,8 +522,7 @@ void MainMenu()
                 return;
             }
             case 6:
-                // 처치 기록 화면은 아직 별도 상태가 없으므로, 현재 메뉴를 다시 표시합니다.
-                rpgLogger.ShowKillLogs();
+                AsciiArt::Presentation::ShowInfoPanel("몬스터 처치 기록", rpgLogger.GetKillLogLines());
                 if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
                 return;
             default:
@@ -731,8 +730,28 @@ void Crafting()
             SwitchState(EGameState::MAIN_MEMU);
             return;
         case 1:
-            inventory->ShowInventory();
+        {
+            std::vector<std::string> inventoryLines;
+            const auto& slots = inventory->GetSlots();
+            inventoryLines.reserve(slots.size() + 2);
+
+            for (size_t i = 0; i < slots.size(); ++i)
+            {
+                const InventorySlot& slot = slots[i];
+                const ItemData& item = ITEM_TABLE.at(slot.id);
+                inventoryLines.push_back(std::to_string(i + 1) + ". " + item.name + " x " + std::to_string(slot.count));
+            }
+
+            if (inventoryLines.empty())
+            {
+                inventoryLines.push_back("인벤토리가 비어 있습니다.");
+            }
+
+            inventoryLines.push_back("");
+            inventoryLines.push_back("보유 골드 : " + std::to_string(inventory->GetGold()) + " G");
+            AsciiArt::Presentation::ShowInfoPanel("인벤토리", inventoryLines);
             return;
+        }
         case 2:
             crafter.ClearFilter();
             break;
