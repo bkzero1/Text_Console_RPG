@@ -468,6 +468,7 @@ void MainMenu()
             break;
         case 5:  // 몬스터 처치 기록
             // 킬 몬스터 로그 출력 메뉴
+            rpgLogger.ShowKillLogs();
             break;
         default:
             break;
