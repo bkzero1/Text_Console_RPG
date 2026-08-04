@@ -35,6 +35,7 @@ enum class EGameState
     BOSS_BATTLE,    // 보스 전투
     MAIN_MEMU,      // 메인 메뉴
     SHOP,           // 상점
+    INN,            // 여관
     CRAFTING,       // 아이템 제작소
     GAME_OVER,      // 게임 패배
     GAME_CLEAR,     // 게임 승리
@@ -53,6 +54,44 @@ bool HasVisitedMainMenu = false;
 
 Inventory* inventory;          // 인벤토리
 std::vector<Player*> players;  // 플레이어 목록
+
+namespace
+{
+// 임시 메인 메뉴 번호입니다.
+// 팀에서 최종 번호를 정하면 아래 숫자 두 개만 바꾸면 메뉴 표시와 입력 처리가 함께 바뀝니다.
+constexpr int kInnMenuNumber = 8;
+constexpr int kCraftingMenuNumber = 9;
+
+// 테스트 종료 후 false로 바꾸면 첫 전투 레벨 10 보정을 끌 수 있습니다.
+constexpr bool kEnableFirstBattleLevelTenTest = true;
+bool gHasAppliedFirstBattleLevelTenTest = false;
+
+void ApplyFirstBattleLevelTenTest(const std::vector<Player*>& currentPlayers)
+{
+    if (!kEnableFirstBattleLevelTenTest || gHasAppliedFirstBattleLevelTenTest)
+    {
+        return;
+    }
+
+    for (Player* player : currentPlayers)
+    {
+        if (player == nullptr)
+        {
+            continue;
+        }
+
+        while (player->GetLevel() < 10)
+        {
+            // 직업별 LevelUp() 규칙을 그대로 사용합니다.
+            player->LevelUp();
+        }
+    }
+
+    gHasAppliedFirstBattleLevelTenTest = true;
+    rpgLogger.AddLog("[테스트] 첫 전투 완료: 파티 레벨을 10으로 설정했습니다.");
+}
+}  // namespace
+
 // 게임 상태 전환
 void SwitchState(EGameState newGameState)
 {
@@ -252,6 +291,7 @@ void NormalBattle()
     }
     battleManager.EarnExpToParty();
     rpgLogger.AddLog("파티는 " + to_string(battleManager.GetEarnExp()) + " exp 를 얻었다");
+    ApplyFirstBattleLevelTenTest(players);
 
     // 전투 후 레벨 확인
     totalLv = 0;
@@ -393,7 +433,9 @@ void MainMenu()
 
                 // 메뉴는 이미지가 끝난 바로 다음 줄에 가로 한 줄로 표시합니다.
                 AsciiArt::Presentation::MoveCursorBelowStaticImage(0);
-                std::cout << "1. 전투    2. 상점    3. 플레이어 정보    4. 처치 기록\n";
+                std::cout << "1. 전투    2. 상점    3. 플레이어 정보    4. 처치 기록    "
+                          << kInnMenuNumber << ". 여관    "
+                          << kCraftingMenuNumber << ". 제작소\n";
                 std::cout << "입력: ";
                 previousFrameTime = now;
             }
@@ -421,11 +463,11 @@ void MainMenu()
             continue;
         }
 
+        // 숫자열과 키패드 숫자를 같은 메뉴 번호로 바꿉니다.
+        // 여관·제작소 번호를 나중에 바꿔도 위 상수만 수정하면 됩니다.
         const int option =
-            menuKey == '1' || menuKey == VK_NUMPAD1 ? 1 :
-            menuKey == '2' || menuKey == VK_NUMPAD2 ? 2 :
-            menuKey == '3' || menuKey == VK_NUMPAD3 ? 3 :
-            menuKey == '4' || menuKey == VK_NUMPAD4 ? 4 : 0;
+            menuKey >= '0' && menuKey <= '9' ? menuKey - '0' :
+            menuKey >= VK_NUMPAD0 && menuKey <= VK_NUMPAD9 ? menuKey - VK_NUMPAD0 : 0;
 
         if (option == 0)
         {
@@ -480,6 +522,14 @@ void MainMenu()
             case 4:
                 // 처치 기록 화면은 아직 별도 상태가 없으므로, 현재 메뉴를 다시 표시합니다.
                 break;
+            case kInnMenuNumber:
+                SwitchState(EGameState::INN);
+                if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
+                return;
+            case kCraftingMenuNumber:
+                SwitchState(EGameState::CRAFTING);
+                if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
+                return;
             default:
                 break;
             }
@@ -601,22 +651,64 @@ void Shop()
     }
 }
 
+// 여관
+// 실제 회복 비용과 회복 규칙은 팀 기획이 정해지면 이 함수 안에만 추가하면 됩니다.
+void Inn()
+{
+    while (true)
+    {
+        AsciiArt::Presentation::ClearScreen();
+        AsciiArt::Presentation::RenderStaticScene(AsciiArt::EStaticScene::Inn);
+        AsciiArt::Presentation::DrawStaticSceneMenu(
+            L"[ TEAM_3 TRPG INN ]",
+            inventory->GetGold(),
+            {
+                L"따뜻한 불빛이 비추는 여관입니다.",
+                L"0. 마을로 돌아가기",
+            });
+        AsciiArt::Presentation::MoveCursorBelowStaticImage(2);
+        std::cout << "선택해주세요: ";
+
+        int option = -1;
+        if (!(std::cin >> option))
+        {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            continue;
+        }
+
+        if (option == 0)
+        {
+            SwitchState(EGameState::MAIN_MEMU);
+            return;
+        }
+
+        std::cout << "0을 입력하면 마을로 돌아갑니다.\n";
+        Sleep(800);
+    }
+}
+
 // 아이템 제작소
 void Crafting()
 {
     Crafter crafter = Crafter();
 
-    std::cout << "=========== [ 아이템 제작소 ] ===========" << "\n";
-    std::cout << " 1. 인벤토리 확인" << "\n";
-    std::cout << " 2. 전체 레시피 확인" << "\n";
-    std::cout << " 3. 전체 검색" << "\n";
-    std::cout << " 4. 제작 아이템 검색" << "\n";
-    std::cout << " 5. 재료 아이템 검색" << "\n";
-    std::cout << "----------------------------------------" << "\n";
-    std::cout << " 0. 마을로 돌아가기" << "\n";
-    std::cout << "========================================" << "\n";
+    AsciiArt::Presentation::ClearScreen();
+    AsciiArt::Presentation::RenderStaticScene(AsciiArt::EStaticScene::Crafting);
+    AsciiArt::Presentation::DrawStaticSceneMenu(
+        L"[ TEAM_3 TRPG CRAFTING ]",
+        inventory->GetGold(),
+        {
+            L"1. 인벤토리 확인",
+            L"2. 전체 레시피 확인",
+            L"3. 전체 검색",
+            L"4. 제작 아이템 검색",
+            L"5. 재료 아이템 검색",
+            L"0. 마을로 돌아가기",
+        });
+    AsciiArt::Presentation::MoveCursorBelowStaticImage(2);
 
-    std::cout << "입력: ";
+    std::cout << "선택해주세요: ";
     int option = 0;
     if (!(std::cin >> option))
     {
@@ -804,7 +896,12 @@ void Run()
                 soundManager.PlayBGM(soundMap.at(SoundStates::SHOP));
                 Shop();
                 break;
+            case EGameState::INN:
+                soundManager.PlayBGM(soundMap.at(SoundStates::VILLAGE));
+                Inn();
+                break;
             case EGameState::CRAFTING:
+                soundManager.PlayBGM(soundMap.at(SoundStates::VILLAGE));
                 Crafting();
                 break;
             case EGameState::GAME_OVER:

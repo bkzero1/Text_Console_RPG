@@ -5,6 +5,7 @@
 #include "AsciiBattleBridge.h"
 
 #include "AsciiBattleDemo.h"
+#include "SceneConfig.h"
 #include "../BattleManager.h"
 #include "../Inventory.h"
 #include "../ItemUseHandler.h"
@@ -35,7 +36,7 @@ namespace
     bool gHasEnteredBattleSequence = false;
     bool gPlayBossBattleIntro = false;
 
-    std::wstring Utf8ToWide(const std::string& text)
+    std::wstring BridgeUtf8ToWide(const std::string& text)
     {
         if (text.empty()) return {};
 
@@ -255,6 +256,59 @@ void AsciiArt::Presentation::ClearScreen()
     AsciiArt::ClearScreen();
 }
 
+bool AsciiArt::Presentation::RenderStaticScene(EStaticScene scene)
+{
+    const SceneConfig config = LoadSceneConfig();
+    const std::wstring& imagePath = scene == EStaticScene::Inn
+        ? config.innBackgroundImagePath
+        : config.craftingBackgroundImagePath;
+
+    return AsciiArt::RenderStaticImage(
+        imagePath,
+        true,
+        0,
+        AsciiArt::EStaticArtStyle::Braille,
+        config.mainMenuContrast,
+        config.mainMenuOutputPixelWidth,
+        config.mainMenuCharacterHeightScale);
+}
+
+void AsciiArt::Presentation::DrawStaticSceneMenu(
+    const std::wstring& title,
+    int gold,
+    const std::vector<std::wstring>& menuLines)
+{
+    // 상점 화면과 같은 상단 정보 위치를 사용합니다.
+    AsciiArt::DrawStaticImageText(title, 0.16f, 0.08f);
+    AsciiArt::DrawStaticImageText(
+        L"보유 골드: " + std::to_wstring(gold) + L" G",
+        0.84f,
+        0.08f,
+        true);
+
+    if (menuLines.empty())
+    {
+        return;
+    }
+
+    // 제작소처럼 항목이 많아도 겹치지 않도록 이미지 하단 영역에 고르게 배치합니다.
+    constexpr float kFirstMenuVerticalRatio = 0.64f;
+    constexpr float kLastMenuVerticalRatio = 0.88f;
+    const float step = menuLines.size() > 1
+        ? (kLastMenuVerticalRatio - kFirstMenuVerticalRatio) /
+            static_cast<float>(menuLines.size() - 1)
+        : 0.0f;
+
+    for (size_t index = 0; index < menuLines.size(); ++index)
+    {
+        AsciiArt::DrawStaticImageText(
+            menuLines[index],
+            0.5f,
+            kFirstMenuVerticalRatio + step * static_cast<float>(index),
+            index == 0);
+    }
+}
+
 bool AsciiArt::Presentation::RenderPulsingMainMenuImage(const std::wstring& imagePath, double elapsedSeconds)
 {
     return AsciiArt::RenderPulsingMainMenuImage(imagePath, elapsedSeconds);
@@ -292,9 +346,9 @@ void AsciiArt::Presentation::ShowInfoPanel(const std::string& title, const std::
     wideLines.reserve(lines.size());
     for (const std::string& line : lines)
     {
-        wideLines.push_back(Utf8ToWide(line));
+        wideLines.push_back(BridgeUtf8ToWide(line));
     }
-    DrawStaticImageInfoPanel(Utf8ToWide(title), wideLines);
+    DrawStaticImageInfoPanel(BridgeUtf8ToWide(title), wideLines);
 
     const HANDLE input = GetStdHandle(STD_INPUT_HANDLE);
     INPUT_RECORD record{};

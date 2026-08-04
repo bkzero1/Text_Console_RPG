@@ -781,6 +781,25 @@ const MonsterVisualProfile& GetMonsterVisualProfile(const SceneConfig& config, c
     return config.monsterProfiles[static_cast<size_t>(GetMonsterVisualProfileIndex(status))];
 }
 
+bool IsBossMonster(const AsciiArt::ActorBattleStatus& status)
+{
+    return GetMonsterVisualProfileIndex(status) == EMonsterVisualProfileIndex::RED_DRAGON;
+}
+
+MonsterVisualProfile GetBossVisualProfile(const SceneConfig& config)
+{
+    return { config.bossX, config.bossY, config.bossWidth, config.bossHeight, config.bossLayer };
+}
+
+void SaveBossVisualProfile(SceneConfig& config, const MonsterVisualProfile& profile)
+{
+    config.bossX = profile.x;
+    config.bossY = profile.y;
+    config.bossWidth = profile.width;
+    config.bossHeight = profile.height;
+    config.bossLayer = profile.layer;
+}
+
 const std::array<std::string, 9>& GetMonsterDisplayNames()
 {
     static const std::array<std::string, 9> names = {
@@ -811,6 +830,11 @@ MonsterVisualArea GetMonsterVisualArea(const SceneConfig& config, const AsciiArt
         const MonsterVisualProfile& profile = instance->second;
         return { profile.x, profile.y, profile.width, profile.height };
     }
+    if (IsBossMonster(status))
+    {
+        const MonsterVisualProfile profile = GetBossVisualProfile(config);
+        return { profile.x, profile.y, profile.width, profile.height };
+    }
     const MonsterVisualProfile& profile = GetMonsterVisualProfile(config, status);
     return { profile.x + sameTypeOrder * 46.0f, profile.y + sameTypeOrder * 24.0f,
              profile.width, profile.height };
@@ -823,6 +847,10 @@ MonsterVisualProfile GetMonsterSlotProfile(
     int slotIndex,
     const AsciiArt::ActorBattleStatus& status)
 {
+    if (IsBossMonster(status))
+    {
+        return GetBossVisualProfile(config);
+    }
     // 슬롯은 자리만, 몬스터 종류 설정은 크기만 담당합니다.
     const MonsterVisualProfile& typeProfile = GetMonsterVisualProfile(config, status);
     switch (slotIndex)
@@ -848,7 +876,15 @@ void CopyBattleMonsterInstancesToSlots(SceneConfig& config, const AsciiArt::Batt
     for (int index = 0; index < count; ++index)
     {
         const auto found = gBattleMonsterInstanceProfiles.find(battleState.monsterStatuses[index].id);
-        if (found != gBattleMonsterInstanceProfiles.end()) SaveMonsterSlotProfile(config, index, found->second);
+        if (found == gBattleMonsterInstanceProfiles.end()) continue;
+        if (IsBossMonster(battleState.monsterStatuses[index]))
+        {
+            SaveBossVisualProfile(config, found->second);
+        }
+        else
+        {
+            SaveMonsterSlotProfile(config, index, found->second);
+        }
     }
 }
 
@@ -1882,6 +1918,16 @@ void ScalePlacementTarget(PlacementMode& placement, SceneConfig& config, float s
         const auto typeFound = gBattleMonsterInstanceTypes.find(placement.monsterInstanceId);
         if (typeFound == gBattleMonsterInstanceTypes.end()) return;
 
+        if (typeFound->second == static_cast<int>(EMonsterVisualProfileIndex::RED_DRAGON))
+        {
+            config.bossWidth = std::clamp(config.bossWidth * scale, 20.0f, 2000.0f);
+            config.bossHeight = std::clamp(config.bossHeight * scale, 20.0f, 2000.0f);
+            MonsterVisualProfile& instance = gBattleMonsterInstanceProfiles[placement.monsterInstanceId];
+            instance.width = config.bossWidth;
+            instance.height = config.bossHeight;
+            return;
+        }
+
         // 위치는 슬롯별로 유지하고, 크기는 몬스터 종류별 설정에 저장합니다.
         MonsterVisualProfile& typeProfile = config.monsterProfiles[static_cast<size_t>(typeFound->second)];
         typeProfile.width = std::clamp(typeProfile.width * scale, 20.0f, 2000.0f);
@@ -2796,7 +2842,9 @@ void AsciiArt::RenderBossBattleEntryTransition()
         });
         if (imagesReady)
         {
-            constexpr int kDoorSweepSteps = 9;
+            // 1→4 문 개방은 단계마다 두 장면만 갱신해 빠르게 넘어갑니다.
+            // 문이 열리는 1~4단계는 중간 스윕 없이 한 번에 다음 장면으로 전환한다.
+            constexpr int kDoorSweepSteps = 1;
             constexpr int kHorizontalRevealSteps = 10;
             constexpr int kDragonRevealSteps = 10;
             ClearConsole(output);
@@ -3689,6 +3737,7 @@ int AsciiArt::RunStandaloneDemo(
     const std::unique_ptr<Gdiplus::Image> healEffect = loadOptionalWeapon(config.healEffectImagePath);
     const std::unique_ptr<Gdiplus::Image> powerBuffEffect = loadOptionalWeapon(config.powerBuffEffectImagePath);
     const std::unique_ptr<Gdiplus::Image> battleBackground = loadOptionalWeapon(config.battleBackgroundImagePath);
+    const std::unique_ptr<Gdiplus::Image> bossBattleBackground = loadOptionalWeapon(config.bossBattleBackgroundImagePath);
 
     // 전투 중 프레임마다 파일을 다시 열지 않도록, 실제로 등장한 몬스터 스프라이트만 캐시합니다.
     // 경로를 찾지 못한 경우에는 설정 파일의 기존 monster_image를 안전한 대체 이미지로 씁니다.
@@ -4164,7 +4213,14 @@ int AsciiArt::RunStandaloneDemo(
             monsterImages.push_back(loadMonsterVisual(status));
         }
 
-        RenderScene(scene, battleBackground.get(), hero, hero2ToRender, tankToRender, monster, monsterImages,
+        const bool isBossBattle = std::any_of(
+            battleState.monsterStatuses.begin(), battleState.monsterStatuses.end(),
+            [](const ActorBattleStatus& status) { return IsBossMonster(status); });
+        Gdiplus::Image* backgroundToRender = isBossBattle && bossBattleBackground != nullptr
+            ? bossBattleBackground.get()
+            : battleBackground.get();
+
+        RenderScene(scene, backgroundToRender, hero, hero2ToRender, tankToRender, monster, monsterImages,
                     warriorWeapon.get(), mageWeapon.get(), tankWeapon.get(), hitEffectImages, heroSlashEffectImages, healEffect.get(), powerBuffEffect.get(),
                     config, placement, attack, &battleState, displayedHp, GetElapsedSeconds(startedAt), showHealEffectPreview, showPowerBuffEffectPreview);
         const int maximumWidth = CalculateMaximumOutputPixelWidth(output, settings, layout, config);

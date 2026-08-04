@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <algorithm>
 #include <array>
@@ -64,12 +64,16 @@ struct SceneConfig
     std::wstring battleReturnTransitionImagePath = L"Resources\\Images\\Battle\\battle_transition_forest_path_return.png";
     std::wstring nextBattleTransitionImagePath = L"Resources\\Images\\Battle\\battle_next_encounter_moonlit_path.png";
     std::wstring battleBackgroundImagePath = L"Resources\\Images\\Battle\\battle_background_moonlit_clearing.png";
+    // 보스전은 일반 전투 배경·몬스터 슬롯과 분리합니다.
+    std::wstring bossBattleBackgroundImagePath = L"Resources\\Images\\Battle\\Boss\\Candidates\\boss_arena_diagonal_b.png";
+    std::wstring innBackgroundImagePath = L"Resources\\Images\\MainMenu\\BuildingCandidates\\inn_entrance_elf_lantern_refined2.png";
+    std::wstring craftingBackgroundImagePath = L"Resources\\Images\\MainMenu\\BuildingCandidates\\crafting_market_blacksmith_alchemy.png";
     std::wstring bossDoorStage1ImagePath = L"Resources\\Images\\Battle\\Boss\\boss_door_stage_01_closed.png";
     std::wstring bossDoorStage2ImagePath = L"Resources\\Images\\Battle\\Boss\\boss_door_stage_02_crack.png";
     std::wstring bossDoorStage3ImagePath = L"Resources\\Images\\Battle\\Boss\\boss_door_stage_03_glow.png";
     std::wstring bossDoorStage4ImagePath = L"Resources\\Images\\Battle\\Boss\\boss_door_stage_04_opening.png";
     std::wstring bossDoorStage5ImagePath = L"Resources\\Images\\Battle\\Boss\\boss_door_stage_05_blinding.png";
-    std::wstring bossDragonRevealImagePath = L"Resources\\Images\\Battle\\Boss\\boss_door_stage_06_dragon_reveal.png";
+    std::wstring bossDragonRevealImagePath = L"Resources\\Images\\Battle\\Boss\\boss_door_stage_05_dragon_softened.png";
     float heroX = 100.0f, heroY = 250.0f, heroWidth = 310.0f, heroHeight = 215.0f;
     int heroLayer = 20;
     float hero2X = 420.0f, hero2Y = 260.0f, hero2Width = 190.0f, hero2Height = 210.0f;
@@ -94,6 +98,9 @@ struct SceneConfig
     int monster4Layer = 20;
     // 순서: 슬라임, 고블린, 스켈레톤, 좀비, 코볼트, 골렘, 방황하는 갑옷, 드라큘라, 레드 드래곤
     std::array<MonsterVisualProfile, 9> monsterProfiles{};
+    // 레드 드래곤 보스 전용 배치값입니다. 일반 몬스터 1~4번 슬롯에는 영향을 주지 않습니다.
+    float bossX = 640.0f, bossY = 65.0f, bossWidth = 310.0f, bossHeight = 385.0f;
+    int bossLayer = 20;
     float weaponX = 370.0f, weaponY = 365.0f;
     int weaponLayer = 30;
     float hitEffectX = 735.0f, hitEffectY = 305.0f;
@@ -221,6 +228,13 @@ inline void ApplySceneConfigValue(SceneConfig& c, const std::wstring& key, const
             if (key == prefix + L"height") { profile.height = std::stof(value); return; }
             if (key == prefix + L"layer") { profile.layer = std::stoi(value); return; }
         }
+        // 이 키들은 긴 아래 else-if 체인에 넣지 않아 MSVC 중첩 한계를 피합니다.
+        if (key == L"boss_battle_background_image") { c.bossBattleBackgroundImagePath = value; return; }
+        if (key == L"boss_x") { c.bossX = std::stof(value); return; }
+        if (key == L"boss_y") { c.bossY = std::stof(value); return; }
+        if (key == L"boss_width") { c.bossWidth = std::stof(value); return; }
+        if (key == L"boss_height") { c.bossHeight = std::stof(value); return; }
+        if (key == L"boss_layer") { c.bossLayer = std::stoi(value); return; }
         if (key == L"output_pixel_width") c.outputPixelWidth = std::stoi(value);
         else if (key == L"character_height_scale") c.characterHeightScaleValue = std::stoi(value);
         else if (key == L"contrast") c.contrastValue = std::stoi(value);
@@ -261,6 +275,8 @@ inline void ApplySceneConfigValue(SceneConfig& c, const std::wstring& key, const
         else if (key == L"battle_return_transition_image") c.battleReturnTransitionImagePath = value;
         else if (key == L"next_battle_transition_image") c.nextBattleTransitionImagePath = value;
         else if (key == L"battle_background_image") c.battleBackgroundImagePath = value;
+        else if (key == L"inn_background_image") c.innBackgroundImagePath = value;
+        else if (key == L"crafting_background_image") c.craftingBackgroundImagePath = value;
         else if (key == L"boss_door_stage_1_image") c.bossDoorStage1ImagePath = value;
         else if (key == L"boss_door_stage_2_image") c.bossDoorStage2ImagePath = value;
         else if (key == L"boss_door_stage_3_image") c.bossDoorStage3ImagePath = value;
@@ -393,6 +409,8 @@ inline void SaveSceneConfig(const SceneConfig& c, const std::wstring& fileName =
     string(L"hero_slash_30_image", c.heroSlash30ImagePath); string(L"hero_slash_45_image", c.heroSlash45ImagePath); string(L"hero_slash_55_image", c.heroSlash55ImagePath); string(L"heal_effect_image", c.healEffectImagePath); string(L"power_buff_effect_image", c.powerBuffEffectImagePath);
     string(L"battle_transition_image", c.battleTransitionImagePath); string(L"battle_return_transition_image", c.battleReturnTransitionImagePath);
     string(L"next_battle_transition_image", c.nextBattleTransitionImagePath); string(L"battle_background_image", c.battleBackgroundImagePath);
+    string(L"boss_battle_background_image", c.bossBattleBackgroundImagePath);
+    string(L"inn_background_image", c.innBackgroundImagePath); string(L"crafting_background_image", c.craftingBackgroundImagePath);
     section(L"보스 문 개방 연출");
     string(L"boss_door_stage_1_image", c.bossDoorStage1ImagePath); string(L"boss_door_stage_2_image", c.bossDoorStage2ImagePath);
     string(L"boss_door_stage_3_image", c.bossDoorStage3ImagePath); string(L"boss_door_stage_4_image", c.bossDoorStage4ImagePath);
@@ -427,6 +445,7 @@ inline void SaveSceneConfig(const SceneConfig& c, const std::wstring& fileName =
     number(L"monster2_x", c.monster2X); number(L"monster2_y", c.monster2Y); number(L"monster2_width", c.monster2Width); number(L"monster2_height", c.monster2Height); number(L"monster2_layer", c.monster2Layer);
     number(L"monster3_x", c.monster3X); number(L"monster3_y", c.monster3Y); number(L"monster3_width", c.monster3Width); number(L"monster3_height", c.monster3Height); number(L"monster3_layer", c.monster3Layer);
     number(L"monster4_x", c.monster4X); number(L"monster4_y", c.monster4Y); number(L"monster4_width", c.monster4Width); number(L"monster4_height", c.monster4Height); number(L"monster4_layer", c.monster4Layer);
+    number(L"boss_x", c.bossX); number(L"boss_y", c.bossY); number(L"boss_width", c.bossWidth); number(L"boss_height", c.bossHeight); number(L"boss_layer", c.bossLayer);
     number(L"weapon_x", c.weaponX); number(L"weapon_y", c.weaponY); number(L"weapon_layer", c.weaponLayer);
     number(L"hit_effect_x", c.hitEffectX); number(L"hit_effect_y", c.hitEffectY); number(L"hit_effect_layer", c.hitEffectLayer);
     number(L"hit_effect_width", c.hitEffectWidth); number(L"hit_effect_height", c.hitEffectHeight);
