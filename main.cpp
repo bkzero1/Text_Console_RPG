@@ -57,11 +57,6 @@ std::vector<Player*> players;  // 플레이어 목록
 
 namespace
 {
-// 임시 메인 메뉴 번호입니다.
-// 팀에서 최종 번호를 정하면 아래 숫자 두 개만 바꾸면 메뉴 표시와 입력 처리가 함께 바뀝니다.
-constexpr int kInnMenuNumber = 8;
-constexpr int kCraftingMenuNumber = 9;
-
 // 테스트 종료 후 false로 바꾸면 첫 전투 레벨 10 보정을 끌 수 있습니다.
 constexpr bool kEnableFirstBattleLevelTenTest = true;
 bool gHasAppliedFirstBattleLevelTenTest = false;
@@ -433,9 +428,7 @@ void MainMenu()
 
                 // 메뉴는 이미지가 끝난 바로 다음 줄에 가로 한 줄로 표시합니다.
                 AsciiArt::Presentation::MoveCursorBelowStaticImage(0);
-                std::cout << "1. 전투    2. 상점    3. 플레이어 정보    4. 처치 기록    "
-                          << kInnMenuNumber << ". 여관    "
-                          << kCraftingMenuNumber << ". 제작소\n";
+                std::cout << "1. 전투    2. 여관    3. 상점    4. 아이템 제작소    5. 캐릭터 정보    6. 킬 로그    " << std::endl;
                 std::cout << "입력: ";
                 previousFrameTime = now;
             }
@@ -466,7 +459,7 @@ void MainMenu()
         // 숫자열과 키패드 숫자를 같은 메뉴 번호로 바꿉니다.
         // 여관·제작소 번호를 나중에 바꿔도 위 상수만 수정하면 됩니다.
         const int option =
-            menuKey >= '0' && menuKey <= '9' ? menuKey - '0' :
+            menuKey >= '0' && menuKey <= '6' ? menuKey - '0' :
             menuKey >= VK_NUMPAD0 && menuKey <= VK_NUMPAD9 ? menuKey - VK_NUMPAD0 : 0;
 
         if (option == 0)
@@ -499,10 +492,19 @@ void MainMenu()
                 if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
                 return;
             case 2:
+                SwitchState(EGameState::INN);
+                if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
+                return;    
+            case 3:
                 SwitchState(EGameState::SHOP);
                 if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
                 return;
-            case 3:
+            
+            case 4:
+                SwitchState(EGameState::CRAFTING);
+                if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
+                return;
+            case 5:
             {
                 std::vector<std::string> statusLines;
                 statusLines.reserve(players.size() * 5);
@@ -519,18 +521,8 @@ void MainMenu()
                 if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
                 return;
             }
-            case 4:
+            case 6:
                 // 처치 기록 화면은 아직 별도 상태가 없으므로, 현재 메뉴를 다시 표시합니다.
-                break;
-            case kInnMenuNumber:
-                SwitchState(EGameState::INN);
-                if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
-                return;
-            case kCraftingMenuNumber:
-                SwitchState(EGameState::CRAFTING);
-                if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
-                return;
-            case 7:
                 rpgLogger.ShowKillLogs();
                 if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
                 return;
