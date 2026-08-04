@@ -665,6 +665,25 @@ void Inn()
     {
         return INN_BASE_COST + std::ceil(INN_COST_PER_HP * healHP);
     };
+    // string 타입의 한글 데이터를 wstring으로 안전하게 변환하는 헬퍼 함수
+    auto ToWString = [](const std::string& str)
+    {
+        if (str.empty()) return std::wstring();
+
+        // CP_UTF8 환경에서 string(UTF-8)을 wstring(UTF-16)으로 올바르게 변환
+        int targetLength = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
+        if (targetLength <= 0) return std::wstring();
+
+        std::wstring wstr(targetLength, 0);
+        MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wstr[0], targetLength);
+
+        // 널 문자 제거
+        if (!wstr.empty() && wstr.back() == L'\0')
+        {
+            wstr.pop_back();
+        }
+        return wstr;
+    };
 
     // 메뉴 목록 생성
     std::vector<std::wstring> menuLines = {L"따뜻한 불빛이 비추는 여관입니다."};
@@ -675,7 +694,7 @@ void Inn()
         int maxHealHP = GetMaxHealHP(player, inventory);  // 최대 회복 가능한 HP
         int healCost = GetHealCost(maxHealHP);            // 회복 비용
 
-        std::wstring line = L" " + to_wstring(i + 1) + L". [" + std::wstring(playerName.begin(), playerName.end()) + L"] (" + to_wstring(player->GetHp()) + L"/" + to_wstring(player->GetHpMax()) + L")";
+        std::wstring line = L" " + to_wstring(i + 1) + L". [" + ToWString(playerName) + L"] (" + to_wstring(player->GetHp()) + L"/" + to_wstring(player->GetHpMax()) + L")";
 
         if (player->GetMissingHP() <= 0)
         {
