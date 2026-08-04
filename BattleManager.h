@@ -43,3 +43,4 @@ private:
     std::map<EItemID, int> earnItems;
 };
 
+

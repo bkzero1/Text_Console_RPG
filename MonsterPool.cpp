@@ -47,7 +47,7 @@ void MonsterPool::Release(Monster* monster)
 
 void MonsterPool::Shrink(int poolSize)
 {
-    if (poolSize < monsterVector.size())
+    if (poolSize >= static_cast<int>(monsterVector.size()))
     {
         return;
     }

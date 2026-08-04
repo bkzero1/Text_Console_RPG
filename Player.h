@@ -22,6 +22,8 @@ class Player
 
     string GetName();
     int GetLevel();
+    int GetExp();
+    int GetExpMax();
     void AddExp(int exp);
 
     void TakeDamage(int damage);

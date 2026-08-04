@@ -28,7 +28,7 @@ void RpgLogger::ShowKillLogs() const
     std::cout << "----------------------------------------------" << std::endl;
 }
 
-void RpgLogger::AddLog(std::string log)
+void RpgLogger::AddLog(std::string log, bool printToConsole)
 {
     logs.push(log);
 
@@ -37,7 +37,10 @@ void RpgLogger::AddLog(std::string log)
         logs.pop();
     }
 
-    std::cout << log << std::endl;
+    if (printToConsole)
+    {
+        std::cout << log << std::endl;
+    }
 }
 
 void RpgLogger::OnMonsterKilled(EMonsterID id)

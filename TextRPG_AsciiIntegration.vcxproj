@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{A1B48309-9D25-4D9C-8F8A-8BC6A937A602}</ProjectGuid>
+    <RootNamespace>TextRPG_AsciiIntegration</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="TextRPGSource\BattleManager.cpp" />
+    <ClCompile Include="TextRPGSource\Inventory.cpp" />
+    <ClCompile Include="TextRPGSource\InventorySlot.cpp" />
+    <ClCompile Include="TextRPGSource\Item.cpp" />
+    <ClCompile Include="TextRPGSource\ItemUseHandler.cpp" />
+    <ClCompile Include="TextRPGSource\Mage.cpp" />
+    <ClCompile Include="TextRPGSource\main.cpp" />
+    <ClCompile Include="TextRPGSource\Monster.cpp" />
+    <ClCompile Include="TextRPGSource\MonsterPool.cpp" />
+    <ClCompile Include="TextRPGSource\Player.cpp" />
+    <ClCompile Include="TextRPGSource\RpgLogger.cpp" />
+    <ClCompile Include="TextRPGSource\ShopManager.cpp" />
+    <ClCompile Include="TextRPGSource\Tank.cpp" />
+    <ClCompile Include="TextRPGSource\Warrior.cpp" />
+    <ClCompile Include="TextRPGSource\AsciiArt\AsciiBattleDemo.cpp" />
+    <ClCompile Include="TextRPGSource\AsciiArt\AsciiBattleBridge.cpp" />
+    <ClCompile Include="TextRPGSource\StartScreen.cpp" />
+    <ClCompile Include="TextRPGSource\ShopScreen.cpp" />
+    <ClCompile Include="TextRPGSource\GameClearScreen.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="TextRPGSource\BattleManager.h" />
+    <ClInclude Include="TextRPGSource\FMonsterData.h" />
+    <ClInclude Include="TextRPGSource\Inventory.h" />
+    <ClInclude Include="TextRPGSource\InventorySlot.h" />
+    <ClInclude Include="TextRPGSource\Item.h" />
+    <ClInclude Include="TextRPGSource\ItemUseHandler.h" />
+    <ClInclude Include="TextRPGSource\Mage.h" />
+    <ClInclude Include="TextRPGSource\Monster.h" />
+    <ClInclude Include="TextRPGSource\MonsterPool.h" />
+    <ClInclude Include="TextRPGSource\Player.h" />
+    <ClInclude Include="TextRPGSource\RpgLogger.h" />
+    <ClInclude Include="TextRPGSource\ShopManager.h" />
+    <ClInclude Include="TextRPGSource\StartScreen.h" />
+    <ClInclude Include="TextRPGSource\ShopScreen.h" />
+    <ClInclude Include="TextRPGSource\GameClearScreen.h" />
+    <ClInclude Include="TextRPGSource\Tank.h" />
+    <ClInclude Include="TextRPGSource\Warrior.h" />
+    <ClInclude Include="TextRPGSource\AsciiArt\AsciiBattleDemo.h" />
+    <ClInclude Include="TextRPGSource\AsciiArt\AsciiBattleBridge.h" />
+    <ClInclude Include="TextRPGSource\AsciiArt\AsciiBattleScene.h" />
+    <ClInclude Include="TextRPGSource\AsciiArt\SceneConfig.h" />
+    <None Include="SceneConfig.jsonc" />
+    <None Include=".clang-format" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\images\191af32bcae88d41.png" />
+    <Image Include="resources\images\3561912736885df2.png" />
+    <Image Include="resources\images\start_background_morning.png" />
+    <Image Include="resources\images\start_background_valley.png" />
+    <Image Include="resources\images\test.png" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>
