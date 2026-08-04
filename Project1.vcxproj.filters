@@ -219,20 +219,16 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Media Include="..\..\..\..\Downloads\intro.wav" />
-    <Media Include="assets\charity-shop.wav">
+    <Media Include="assets\shop.wav">
       <Filter>리소스 파일</Filter>
     </Media>
     <Media Include="assets\intro.wav">
       <Filter>리소스 파일</Filter>
     </Media>
-    <Media Include="assets\INBATTLE.mp3">
+    <Media Include="assets\battle-normal.mp3">
       <Filter>리소스 파일</Filter>
     </Media>
-    <Media Include="assets\BOSS.mp3">
-      <Filter>리소스 파일</Filter>
-    </Media>
-    <Media Include="assets\village.mp3">
+    <Media Include="assets\battle-boss.mp3">
       <Filter>리소스 파일</Filter>
     </Media>
     <Media Include="assets\attack-03.wav">
@@ -242,6 +238,21 @@
       <Filter>리소스 파일</Filter>
     </Media>
     <Media Include="assets\attack-01.wav">
+      <Filter>리소스 파일</Filter>
+    </Media>
+    <Media Include="Assets\footsteps.wav">
+      <Filter>리소스 파일</Filter>
+    </Media>
+    <Media Include="Assets\money-use.wav">
+      <Filter>리소스 파일</Filter>
+    </Media>
+    <Media Include="Assets\potion-use.wav">
+      <Filter>리소스 파일</Filter>
+    </Media>
+    <Media Include="Assets\village-day.mp3">
+      <Filter>리소스 파일</Filter>
+    </Media>
+    <Media Include="Assets\village-night.mp3">
       <Filter>리소스 파일</Filter>
     </Media>
   </ItemGroup>

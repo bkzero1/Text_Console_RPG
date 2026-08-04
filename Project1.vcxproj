@@ -181,15 +181,18 @@
     <None Include=".clang-format" />
   </ItemGroup>
   <ItemGroup>
-    <Media Include="..\..\..\..\Downloads\intro.wav" />
     <Media Include="assets\attack-01.wav" />
     <Media Include="assets\attack-02.wav" />
     <Media Include="assets\attack-03.wav" />
-    <Media Include="assets\BOSS.mp3" />
-    <Media Include="assets\charity-shop.wav" />
-    <Media Include="assets\INBATTLE.mp3" />
+    <Media Include="assets\battle-boss.mp3" />
+    <Media Include="Assets\money-use.wav" />
+    <Media Include="Assets\potion-use.wav" />
+    <Media Include="assets\shop.wav" />
+    <Media Include="Assets\footsteps.wav" />
+    <Media Include="assets\battle-normal.mp3" />
     <Media Include="assets\intro.wav" />
-    <Media Include="assets\village.mp3" />
+    <Media Include="Assets\village-day.mp3" />
+    <Media Include="Assets\village-night.mp3" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
