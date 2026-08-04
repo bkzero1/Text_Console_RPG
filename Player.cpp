@@ -7,22 +7,22 @@ Player::Player(const string& playerName)
 {
 }
 
-string Player::GetName()
+string Player::GetName() const
 {
     return name;
 }
 
-int Player::GetLevel()
+int Player::GetLevel() const
 {
     return level;
 }
 
-int Player::GetExp()
+int Player::GetExp() const
 {
     return exp;
 }
 
-int Player::GetExpMax()
+int Player::GetExpMax() const
 {
     return expMax;
 }
@@ -47,22 +47,22 @@ void Player::TakeDamage(int damage)
     }
 }
 
-int Player::GetPower()
+int Player::GetPower() const
 {
     return power;
 }
 
-int Player::GetHpMax()
+int Player::GetHpMax() const
 {
     return hpMax;
 }
 
-int Player::GetHp()
+int Player::GetHp() const
 {
     return hp;
 }
 
-void Player::ShowStatus()
+void Player::ShowStatus() const
 {
     cout << "==================== 캐릭터 정보 ====================\n";
     cout << "이름       : " << name << "\n";
@@ -82,17 +82,17 @@ void Player::HealHP(int hp)
     }
 }
 
-bool Player::IsDead()
+bool Player::IsDead() const
 {
     return hp <= 0;
 }
 
-bool Player::IsFullHP()
+bool Player::IsFullHP() const
 {
     return hp == hpMax;
 }
 
-int Player::GetMissingHP()
+int Player::GetMissingHP() const
 {
     return hpMax - hp;
 }
