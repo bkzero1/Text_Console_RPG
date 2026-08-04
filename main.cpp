@@ -6,9 +6,11 @@
 #define NOMINMAX
 #include <windows.h>
 
+#include "AsciiArt/AsciiBattleBridge.h"
 #include "BattleManager.h"
 #include "Crafter.h"
 #include "FMonsterData.h"
+#include "GameClearScreen.h"
 #include "Inventory.h"
 #include "ItemUseHandler.h"
 #include "Mage.h"
@@ -17,14 +19,11 @@
 #include "Player.h"
 #include "RpgLogger.h"
 #include "ShopManager.h"
-#include "Tank.h"
-#include "Warrior.h"
-#include "ShopManager.h"
+#include "ShopScreen.h"
 #include "SoundManager.h"
 #include "StartScreen.h"
-#include "ShopScreen.h"
-#include "GameClearScreen.h"
-#include "AsciiArt/AsciiBattleBridge.h"
+#include "Tank.h"
+#include "Warrior.h"
 
 // 게임 상태
 enum class EGameState
@@ -396,8 +395,8 @@ void MainMenu()
     {
         // 상점과 같은 방식으로 키 이벤트를 받아 P와 숫자 키를 즉시 처리합니다.
         SetConsoleMode(input,
-            (originalInputMode | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS) &
-            ~(ENABLE_QUICK_EDIT_MODE | ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT));
+                       (originalInputMode | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS) &
+                           ~(ENABLE_QUICK_EDIT_MODE | ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT));
     }
 
     while (true)
@@ -459,15 +458,15 @@ void MainMenu()
         // 숫자열과 키패드 숫자를 같은 메뉴 번호로 바꿉니다.
         // 여관·제작소 번호를 나중에 바꿔도 위 상수만 수정하면 됩니다.
         const int option =
-            menuKey >= '0' && menuKey <= '6' ? menuKey - '0' :
-            menuKey >= VK_NUMPAD0 && menuKey <= VK_NUMPAD9 ? menuKey - VK_NUMPAD0 : 0;
+            menuKey >= '0' && menuKey <= '6' ? menuKey - '0' : menuKey >= VK_NUMPAD0 && menuKey <= VK_NUMPAD9 ? menuKey - VK_NUMPAD0
+                                                                                                              : 0;
 
         if (option == 0)
         {
             continue;
         }
 
-    // 유효하지 않은 입력
+        // 유효하지 않은 입력
         // 플레이어 레벨
         int totalLv = 0;
         for (int i = 0; i < players.size(); i++)
@@ -494,12 +493,12 @@ void MainMenu()
             case 2:
                 SwitchState(EGameState::INN);
                 if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
-                return;    
+                return;
             case 3:
                 SwitchState(EGameState::SHOP);
                 if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
                 return;
-            
+
             case 4:
                 SwitchState(EGameState::CRAFTING);
                 if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
@@ -528,10 +527,9 @@ void MainMenu()
                 return;
             default:
                 break;
-            }
         }
     }
-
+}
 
 // 상점
 void Shop()
@@ -652,37 +650,124 @@ void Shop()
 // 실제 회복 비용과 회복 규칙은 팀 기획이 정해지면 이 함수 안에만 추가하면 됩니다.
 void Inn()
 {
-    while (true)
+    // 회복 시 골드 소모량: INN_BASE_COST + ceil(INN_COST_PER_HP * 회복량)
+    const int INN_BASE_COST = 10;       // 기본 골드 소모량
+    const float INN_COST_PER_HP = 0.5;  // 회복 HP당 골드 소모량
+
+    // 회복 가능한 HP량 반환
+    auto GetMaxHealHP = [&INN_BASE_COST, &INN_COST_PER_HP](const Player* player, const Inventory* inventory) -> int
     {
-        AsciiArt::Presentation::ClearScreen();
-        AsciiArt::Presentation::RenderStaticScene(AsciiArt::EStaticScene::Inn);
-        AsciiArt::Presentation::DrawStaticSceneMenu(
-            L"[ TEAM_3 TRPG INN ]",
-            inventory->GetGold(),
+        int missingHP = player->GetMissingHP();                                                          // 부족한 HP
+        int maxHealByGold = std::max(int((inventory->GetGold() - INN_BASE_COST) / INN_COST_PER_HP), 0);  // 골드로 회복 가능한 최대 HP
+        return std::min(missingHP, maxHealByGold);
+    };
+    // 회복 시 소모하는 골드량 반환
+    auto GetHealCost = [&INN_BASE_COST, &INN_COST_PER_HP](const int& healHP) -> int
+    {
+        return INN_BASE_COST + std::ceil(INN_COST_PER_HP * healHP);
+    };
+
+    // 메뉴 목록 생성
+    std::vector<std::wstring> menuLines = {L"따뜻한 불빛이 비추는 여관입니다."};
+    for (int i = 0; i < (int)players.size(); i++)
+    {
+        const Player* player = players.at(i);
+        const std::string playerName = player->GetName();
+        int maxHealHP = GetMaxHealHP(player, inventory);  // 최대 회복 가능한 HP
+        int healCost = GetHealCost(maxHealHP);            // 회복 비용
+
+        std::wstring line = L" " + to_wstring(i + 1) + L". [" + std::wstring(playerName.begin(), playerName.end()) + L"] (" + to_wstring(player->GetHp()) + L"/" + to_wstring(player->GetHpMax()) + L")";
+
+        if (player->GetMissingHP() <= 0)
+        {
+            line += L" | [최대 체력]";
+        }
+        else
+        {
+            int fullHealCost = INN_BASE_COST + std::ceil(INN_COST_PER_HP * player->GetMissingHP());  // 최대 체력에 필요한 골드
+            line += L" | 필요: " + to_wstring(fullHealCost) + L" G ➔ ";
+
+            if (inventory->GetGold() <= INN_BASE_COST)
             {
-                L"따뜻한 불빛이 비추는 여관입니다.",
-                L"0. 마을로 돌아가기",
-            });
-        AsciiArt::Presentation::MoveCursorBelowStaticImage(2);
-        std::cout << "선택해주세요: ";
-
-        int option = -1;
-        if (!(std::cin >> option))
-        {
-            std::cin.clear();
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            continue;
+                line += L"(골드 부족)";
+            }
+            else
+            {
+                maxHealHP = GetMaxHealHP(player, inventory);
+                healCost = GetHealCost(maxHealHP);
+                line += L"회복 후: " + to_wstring(player->GetHp() + maxHealHP) + L" (+" + to_wstring(maxHealHP) + L")" + (player->GetHp() + maxHealHP == player->GetHpMax() ? L" [완치]" : L"");
+            }
         }
 
-        if (option == 0)
-        {
-            SwitchState(EGameState::MAIN_MEMU);
-            return;
-        }
-
-        std::cout << "0을 입력하면 마을로 돌아갑니다.\n";
-        Sleep(800);
+        menuLines.push_back(line);
     }
+    menuLines.push_back(L"0. 마을로 돌아가기");
+
+    AsciiArt::Presentation::ClearScreen();
+    AsciiArt::Presentation::RenderStaticScene(AsciiArt::EStaticScene::Inn);
+    AsciiArt::Presentation::DrawStaticSceneMenu(
+        L"[ TEAM_3 TRPG INN ]",
+        inventory->GetGold(),
+        menuLines);
+    AsciiArt::Presentation::MoveCursorBelowStaticImage(2);
+
+    // 선택지 입력
+    std::cout << "선택해주세요: ";
+    int option = -1;
+    if (!(std::cin >> option))
+    {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        return;
+    }
+
+    // 유효하지 않은 입력
+    if (option < 0 || (int)players.size() < option)
+    {
+        return;
+    }
+
+    // 마을로 돌아가기
+    if (option == 0)
+    {
+        SwitchState(EGameState::MAIN_MEMU);
+        return;
+    }
+
+    // 특정 캐릭터 회복
+    Player* player = players.at(option - 1);
+    int maxHealHP = GetMaxHealHP(player, inventory);  // 실제로 회복할 체력
+    if (maxHealHP == 0)                               // 최대 체력 or 골드 부족
+    {
+        return;
+    }
+    int healCost = GetHealCost(maxHealHP);  // 회복 비용
+
+    // 회복 메시지 출력
+    std::cout << "\n";
+    std::cout << "========================================" << "\n";
+    std::cout << " 🛌 [" << player->GetName() << "]이(가) 여관에서 휴식을 취했습니다.\n";
+
+    if (player->IsFullHP())
+    {
+        std::cout << " ✨ HP가 완전히 회복되었습니다.\n";
+    }
+    else
+    {
+        std::cout << " ⚠️ 골드가 부족하여 일부만 회복되었습니다.\n";
+    }
+
+    std::cout << " ➔ HP: " << player->GetHp() << " / " << player->GetHpMax()
+              << "  ➔  " << player->GetHp() + maxHealHP << " / " << player->GetHpMax()
+              << " (+" << maxHealHP << " 회복)\n";
+
+    std::cout << " 💰 -" << healCost << " Gold 소모 (남은 골드: " << inventory->GetGold() - healCost << " G)\n";
+    std::cout << "========================================\n";
+
+    player->HealHP(maxHealHP);      // 체력 회복
+    inventory->AddGold(-healCost);  // 골드 소모
+
+    Sleep(4000);
 }
 
 // 아이템 제작소
