@@ -344,6 +344,8 @@ void MainMenu()
     {
         const wchar_t* const mainMenuBackground =
             IsMainMenuNight ? kMainMenuNightBackground : kMainMenuDayBackground;
+        IsMainMenuNight ? soundManager.PlayBGM(soundMap.at(SoundStates::VILLAGE_NIGHT)) : soundManager.PlayBGM(soundMap.at(SoundStates::VILLAGE_DAY));
+        
 
         AsciiArt::Presentation::ClearScreen();
         INPUT_RECORD record{};
