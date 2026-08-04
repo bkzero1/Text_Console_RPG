@@ -42,6 +42,10 @@ constexpr short kControlWidth = kSliderLabelWidth + kSliderWidth + 10;
 constexpr WORD kTextColor = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
 bool gAnsiColorSupported = false;
 
+// 전투 연출 전용 배속입니다. 설정 파일에 저장하지 않으므로 프로그램을 다시 실행하면 항상 1배속으로 시작합니다.
+// 같은 실행 중에는 전투를 나갔다 다시 들어와도 현재 선택한 배속을 유지합니다.
+float gBattleSpeedMultiplier = 1.0f;
+
 // 마지막으로 그린 정지 배경의 실제 콘솔 범위입니다.
 // 메뉴 문구를 콘솔 전체가 아니라 이 이미지의 가운데에 맞추는 데 사용합니다.
 short gStaticImageLeft = 0;
@@ -225,6 +229,16 @@ float SmoothStep(float value)
 double GetElapsedSeconds(const std::chrono::steady_clock::time_point& startedAt)
 {
     return std::chrono::duration<double>(std::chrono::steady_clock::now() - startedAt).count();
+}
+
+double GetBattleAnimationSeconds(const std::chrono::steady_clock::time_point& startedAt)
+{
+    return GetElapsedSeconds(startedAt) * gBattleSpeedMultiplier;
+}
+
+int GetBattleAnimationDelayMilliseconds(int baseMilliseconds)
+{
+    return std::max(1, static_cast<int>(std::lround(baseMilliseconds / gBattleSpeedMultiplier)));
 }
 
 unsigned char CalculateBrightness(const Gdiplus::Color& color)
@@ -1007,14 +1021,15 @@ void DrawFloatingCombatText(
     float y)
 {
     constexpr double kDuration = 0.72;
+    const double animationAge = battleState.floatingTextAgeSeconds * gBattleSpeedMultiplier;
     if (battleState.floatingTextTargetId != actorId ||
         battleState.floatingTextValue == 0 ||
-        battleState.floatingTextAgeSeconds >= kDuration)
+        animationAge >= kDuration)
     {
         return;
     }
 
-    const float progress = static_cast<float>(battleState.floatingTextAgeSeconds / kDuration);
+    const float progress = static_cast<float>(animationAge / kDuration);
     const BYTE alpha = static_cast<BYTE>(std::clamp((1.0f - progress) * 255.0f, 0.0f, 255.0f));
     const bool isPositive = battleState.floatingTextIsHealing || battleState.floatingTextIsPowerBuff;
     const std::wstring text = std::wstring(isPositive ? L"+" : L"-") +
@@ -1040,8 +1055,9 @@ void DrawFloatingCombatTextOverlay(
     const ArtResolution& resolution)
 {
     constexpr double kDuration = 0.72;
+    const double animationAge = battleState.floatingTextAgeSeconds * gBattleSpeedMultiplier;
     if (battleState.floatingTextTargetId.empty() || battleState.floatingTextValue == 0 ||
-        battleState.floatingTextAgeSeconds >= kDuration)
+        animationAge >= kDuration)
     {
         return;
     }
@@ -1075,7 +1091,7 @@ void DrawFloatingCombatTextOverlay(
     }
     if (!found) return;
 
-    const float progress = static_cast<float>(battleState.floatingTextAgeSeconds / kDuration);
+    const float progress = static_cast<float>(animationAge / kDuration);
     const bool isPositive = battleState.floatingTextIsHealing || battleState.floatingTextIsPowerBuff;
     const std::wstring text = battleState.floatingTextIsPowerBuff
         ? L"⚔ + " + std::to_wstring(battleState.floatingTextValue)
@@ -1200,6 +1216,20 @@ void DrawBattleHudOverlay(
     WriteConsoleW(output, turnText.c_str(), static_cast<DWORD>(turnText.size()), &written, nullptr);
     SetConsoleTextAttribute(output, kTextColor);
 
+    // S/F 키 안내는 전투 화면에서만 표시합니다.
+    // S는 9번과 같은 "연출 생략 자동 전투" 토글이고, F는 1배속/2배속 토글입니다.
+    const std::wstring speedText = gBattleSpeedMultiplier >= 2.0f ? L"전투 배속: F (x2)" : L"전투 배속: F (x1)";
+    const std::wstring skipText = L"전투연출 스킵: S";
+    const short speedX = static_cast<short>(std::max(0, static_cast<int>(info.dwSize.X) - GetConsoleDisplayWidth(speedText) - 2));
+    const short skipX = static_cast<short>(std::max(0, static_cast<int>(speedX) - GetConsoleDisplayWidth(skipText) - 3));
+    SetConsoleCursorPosition(output, {skipX, static_cast<short>(layout.artStartY)});
+    SetConsoleTextAttribute(output, static_cast<WORD>(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE));
+    WriteConsoleW(output, skipText.c_str(), static_cast<DWORD>(skipText.size()), &written, nullptr);
+    SetConsoleCursorPosition(output, {speedX, static_cast<short>(layout.artStartY)});
+    SetConsoleTextAttribute(output, static_cast<WORD>(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE));
+    WriteConsoleW(output, speedText.c_str(), static_cast<DWORD>(speedText.size()), &written, nullptr);
+    SetConsoleTextAttribute(output, kTextColor);
+
     // 실제 전투 코드가 마지막으로 전달한 행동 문구입니다.
     // 턴 문구와 섞이지 않도록 두 줄 아래에서 다음 행동 전까지 유지합니다.
     const std::wstring actionText = Utf8ToWide(battleState.turnActorName);
@@ -1290,7 +1320,7 @@ void RenderScene(
         graphics.DrawImage(backgroundImage, 0, 0, static_cast<INT>(canvas.GetWidth()), static_cast<INT>(canvas.GetHeight()));
     }
 
-    double attackTime = attack.playing ? GetElapsedSeconds(attack.startedAt) : -1.0;
+    double attackTime = attack.playing ? GetBattleAnimationSeconds(attack.startedAt) : -1.0;
     const bool effectVisible = !attack.playerUsingPotion && attackTime >= 0.18 && attackTime < 0.44;
     const bool monsterHit = !attack.monsterAttacking && attackTime >= 0.22 && attackTime < 0.62;
     const bool heroHit = attack.monsterAttacking && attackTime >= 0.22 && attackTime < 0.62;
@@ -1408,9 +1438,9 @@ void RenderScene(
     }
     // 회복/버프 효과는 실제 사용 중에는 대상에게, 5·6번 미리 보기 중에는 지정한 기준 영웅에게 보입니다.
     const bool actualHealEffect = battleState != nullptr && battleState->floatingTextIsHealing &&
-        battleState->floatingTextAgeSeconds >= 0.0 && battleState->floatingTextAgeSeconds < 0.75;
+        battleState->floatingTextAgeSeconds >= 0.0 && battleState->floatingTextAgeSeconds * gBattleSpeedMultiplier < 0.75;
     const bool actualPowerEffect = battleState != nullptr && battleState->floatingTextIsPowerBuff &&
-        battleState->floatingTextAgeSeconds >= 0.0 && battleState->floatingTextAgeSeconds < 0.75;
+        battleState->floatingTextAgeSeconds >= 0.0 && battleState->floatingTextAgeSeconds * gBattleSpeedMultiplier < 0.75;
     const auto addSupportEffect = [&](EObjectType effectType, bool visible, Gdiplus::Image* image, bool useMagePreview)
     {
         if (!visible || image == nullptr) return;
@@ -2016,7 +2046,8 @@ void ProcessInput(
     bool showPowerBuffEffect,
     const AsciiArt::BattleSceneState& battleState,
     int& requestedMonsterIndex,
-    int& requestedTestCommand)
+    int& requestedTestCommand,
+    bool& skipBattleRequested)
 {
     const int monsterCount = static_cast<int>(battleState.monsterStatuses.size());
     DWORD count = 0;
@@ -2108,12 +2139,24 @@ void ProcessInput(
             {
                 settings.useOrderedDithering = !settings.useOrderedDithering;
             }
+            else if (key == 'F' && !placement.active)
+            {
+                // 배속은 현재 프로그램 실행 중에만 유지합니다. SceneConfig에는 저장하지 않습니다.
+                gBattleSpeedMultiplier = gBattleSpeedMultiplier >= 2.0f ? 1.0f : 2.0f;
+            }
+            else if (key == 'S' && !placement.active)
+            {
+                // 현재 진행 중인 공격도 기다리지 않고, 남은 전투 행동을 내부에서 즉시 계산합니다.
+                // 전투 전후 이동 화면이나 보스 진입 연출에는 영향을 주지 않습니다.
+                skipBattleRequested = true;
+            }
             else if (key == 'C')
             {
                 settings.useAnsiColor = !settings.useAnsiColor;
             }
-            else if (key == 'S')
+            else if (key == 'S' && placement.active)
             {
+                // 배치 편집 중 S는 기존처럼 현재 배치값을 저장합니다.
                 CopyBattleMonsterInstancesToSlots(config, battleState);
                 CopyRenderSettingsToConfig(settings, config);
                 SaveSceneConfig(config);
@@ -2570,7 +2613,7 @@ void AsciiArt::RenderBattleEntryTransition()
     if (RenderStaticImage(config.battleTransitionImagePath, true, 0, EStaticArtStyle::Braille,
                           config.contrastValue, config.outputPixelWidth, config.characterHeightScaleValue))
     {
-        DrawCenteredTextOnClearPanel(L"[ 전투를 향해 ]", 0.50f);
+        DrawCenteredTextOnClearPanel(L"[ 출정합니다 ]", 0.50f);
         std::this_thread::sleep_for(std::chrono::milliseconds(std::max(0, config.battleTransitionMilliseconds)));
     }
 }
@@ -2884,6 +2927,7 @@ void AsciiArt::RenderBattleReturnTransition()
     if (RenderStaticImage(config.battleReturnTransitionImagePath, true, 0, EStaticArtStyle::Braille,
                           config.contrastValue, config.outputPixelWidth, config.characterHeightScaleValue))
     {
+        DrawCenteredTextOnClearPanel(L"[ 마을로 돌아갑니다 ]", 0.50f);
         std::this_thread::sleep_for(std::chrono::milliseconds(std::max(0, config.battleTransitionMilliseconds)));
     }
 }
@@ -3399,6 +3443,73 @@ void AsciiArt::DrawCenteredTextOnClearPanel(const std::wstring& text, float vert
     WriteAt(output, x, y, panel);
 }
 
+void AsciiArt::DrawStaticImageInfoPanel(
+    const std::wstring& title,
+    const std::vector<std::wstring>& lines)
+{
+    const HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+    if (GetConsoleScreenBufferInfo(output, &consoleInfo) == FALSE)
+    {
+        return;
+    }
+
+    constexpr int kHorizontalPadding = 2;
+    const std::wstring heading = L"[ " + title + L" ]";
+    const std::wstring closeGuide = L"Enter / Space / ESC : 돌아가기";
+
+    int contentWidth = std::max(GetConsoleDisplayWidth(heading), GetConsoleDisplayWidth(closeGuide));
+    for (const std::wstring& line : lines)
+    {
+        contentWidth = std::max(contentWidth, GetConsoleDisplayWidth(line));
+    }
+    contentWidth = std::max(36, contentWidth);
+
+    const short alignmentLeft = gHasStaticImageBounds ? gStaticImageLeft : consoleInfo.srWindow.Left;
+    const short alignmentTop = gHasStaticImageBounds ? gStaticImageTop : consoleInfo.srWindow.Top;
+    const short alignmentWidth = gHasStaticImageBounds
+        ? gStaticImageWidth
+        : static_cast<short>(consoleInfo.srWindow.Right - consoleInfo.srWindow.Left + 1);
+    const short alignmentHeight = gHasStaticImageBounds
+        ? gStaticImageHeight
+        : static_cast<short>(consoleInfo.srWindow.Bottom - consoleInfo.srWindow.Top + 1);
+
+    // 테두리와 좌우 여백을 포함한 폭입니다. 너무 좁은 콘솔에서는 안전하게 잘라 냅니다.
+    contentWidth = std::min(contentWidth, std::max(1, static_cast<int>(alignmentWidth) - 2 - kHorizontalPadding * 2));
+    const int panelWidth = contentWidth + kHorizontalPadding * 2 + 2;
+    const int panelHeight = static_cast<int>(lines.size()) + 6;
+    const short x = static_cast<short>(alignmentLeft + std::max(0, (static_cast<int>(alignmentWidth) - panelWidth) / 2));
+    const short y = static_cast<short>(alignmentTop + std::max(0, (static_cast<int>(alignmentHeight) - panelHeight) / 2));
+
+    const auto makeContentRow = [&](const std::wstring& text)
+    {
+        const int textWidth = std::min(contentWidth, GetConsoleDisplayWidth(text));
+        std::wstring row = L"|" + std::wstring(kHorizontalPadding, L' ') + text;
+        row += std::wstring(std::max(0, contentWidth - textWidth), L' ');
+        row += std::wstring(kHorizontalPadding, L' ') + L"|";
+        return row;
+    };
+    const std::wstring border = L"+" + std::wstring(panelWidth - 2, L'-') + L"+";
+    const std::wstring emptyRow = makeContentRow(L"");
+
+    // 기존 AA 점을 공백으로 덮은 뒤 패널을 그려야 글자가 배경에 묻히지 않습니다.
+    for (int row = 0; row < panelHeight; ++row)
+    {
+        WriteAt(output, x, static_cast<short>(y + row), std::wstring(panelWidth, L' '));
+    }
+
+    WriteAt(output, x, y, border);
+    WriteAt(output, x, static_cast<short>(y + 1), emptyRow);
+    WriteAt(output, x, static_cast<short>(y + 2), makeContentRow(heading));
+    for (size_t index = 0; index < lines.size(); ++index)
+    {
+        WriteAt(output, x, static_cast<short>(y + 3 + index), makeContentRow(lines[index]));
+    }
+    WriteAt(output, x, static_cast<short>(y + 3 + lines.size()), emptyRow);
+    WriteAt(output, x, static_cast<short>(y + 4 + lines.size()), makeContentRow(closeGuide));
+    WriteAt(output, x, static_cast<short>(y + 5 + lines.size()), border);
+}
+
 void AsciiArt::DrawStaticImageText(
     const std::wstring& text,
     float horizontalRatio,
@@ -3665,6 +3776,7 @@ int AsciiArt::RunStandaloneDemo(
     int sameMonsterTestTypeIndex = 0;
     bool autoBattleMonsterPhase = false;
     bool battleRevealPlayed = false;
+    bool skipBattleRequested = false;
     std::deque<BattleAction> testActionQueue;
     std::map<std::string, float> displayedHp;
     gBattleMonsterInstanceProfiles.clear();
@@ -3757,7 +3869,71 @@ int AsciiArt::RunStandaloneDemo(
         {
             ProcessInput(input, layout, settings, config, currentTurn, placement, resolution, activeSlider, attack, running, showDeveloperPanel, manualAttackMode,
                          potionOnlyTestMode, sameMonsterPlacementTestMode, showHealEffectPreview, showPowerBuffEffectPreview,
-                         battleState, requestedMonsterIndex, requestedTestCommand);
+                         battleState, requestedMonsterIndex, requestedTestCommand, skipBattleRequested);
+        }
+        if (!pendingBattleExit && skipBattleRequested)
+        {
+            // S 키는 보여 주는 연출만 건너뜁니다. 실제 전투는 평소와 같은
+            // "아군 전체 행동 → 생존 몬스터 전체 행동" 순서로 끝까지 계산합니다.
+            // 그래서 전투 후 보상/승패/마을 선택은 기존 기본 코드 흐름으로 그대로 이어집니다.
+            skipBattleRequested = false;
+            attack = AttackAnimation{};
+            testActionQueue.clear();
+            autoBattleEnabled = false;
+            fastResultMode = false;
+            pendingMonsterPhase = false;
+
+            constexpr int kMaximumSkippedActions = 10000;
+            bool battleContinues = true;
+            for (int actionCount = 0; actionCount < kMaximumSkippedActions && battleContinues; ++actionCount)
+            {
+                const BattleSceneState skippedState = getBattleState ? getBattleState() : BattleSceneState{};
+                const int livingMonsterIndex = FindNextLivingMonsterIndex(skippedState, 0);
+                if (skippedState.playerStatuses.empty() || livingMonsterIndex < 0)
+                {
+                    break;
+                }
+
+                // 그 순간 살아 있는 아군이 한 번씩 공격합니다.
+                for (int playerIndex = 0; playerIndex < static_cast<int>(skippedState.playerStatuses.size()); ++playerIndex)
+                {
+                    if (skippedState.playerStatuses[playerIndex].isDead) continue;
+                    const BattleSceneState currentState = getBattleState ? getBattleState() : BattleSceneState{};
+                    const int targetIndex = FindNextLivingMonsterIndex(currentState, 0);
+                    if (targetIndex < 0)
+                    {
+                        battleContinues = false;
+                        break;
+                    }
+                    if (!onBattleAction || !onBattleAction({ EBattleActionType::PlayerAttack, playerIndex, targetIndex }))
+                    {
+                        battleContinues = false;
+                        break;
+                    }
+                }
+                if (!battleContinues) break;
+
+                // 이어서 그 순간 살아 있는 몬스터가 한 번씩 공격합니다.
+                const BattleSceneState monsterTurnState = getBattleState ? getBattleState() : BattleSceneState{};
+                const int livingPlayerCount = static_cast<int>(monsterTurnState.playerStatuses.size());
+                if (livingPlayerCount <= 0)
+                {
+                    break;
+                }
+                for (int monsterIndex = 0; monsterIndex < static_cast<int>(monsterTurnState.monsterStatuses.size()); ++monsterIndex)
+                {
+                    if (monsterTurnState.monsterStatuses[monsterIndex].isDead) continue;
+                    if (!onBattleAction || !onBattleAction({ EBattleActionType::MonsterAttack, monsterIndex, monsterIndex % livingPlayerCount }))
+                    {
+                        battleContinues = false;
+                        break;
+                    }
+                }
+            }
+
+            // 기본 전투 함수가 기존 결과 출력과 보상 처리를 이어서 하도록 AA 루프만 끝냅니다.
+            running = false;
+            continue;
         }
         // 임시 테스트 모드: 숫자 입력이 들어올 때만 행동 큐를 만들고, 큐가 끝나면 다시 입력을 기다립니다.
         if (!pendingBattleExit && potionOnlyTestMode && requestedTestCommand != 0 && !attack.playing && testActionQueue.empty() &&
@@ -3909,7 +4085,7 @@ int AsciiArt::RunStandaloneDemo(
             attack.targetIndex = livingTargetIndex;
             attack.startedAt = std::chrono::steady_clock::now();
         }
-        if (attack.playing && GetElapsedSeconds(attack.startedAt) >= 0.72)
+        if (attack.playing && GetBattleAnimationSeconds(attack.startedAt) >= 0.72)
         {
             const BattleAction action{
                 attack.monsterAttacking ? EBattleActionType::MonsterAttack :
@@ -3950,18 +4126,21 @@ int AsciiArt::RunStandaloneDemo(
             else if (!potionOnlyTestMode && action.type == EBattleActionType::MonsterAttack)
             {
                 ++currentMonsterTurn;
-                nextAutomaticAttackAt = std::chrono::steady_clock::now() + std::chrono::milliseconds(360);
+                nextAutomaticAttackAt = std::chrono::steady_clock::now() +
+                    std::chrono::milliseconds(GetBattleAnimationDelayMilliseconds(360));
             }
             else if (!potionOnlyTestMode && currentTurn + 1 >= playerCount)
             {
                 pendingMonsterPhase = true;
                 currentMonsterTurn = 0;
-                nextAutomaticAttackAt = std::chrono::steady_clock::now() + std::chrono::milliseconds(420);
+                nextAutomaticAttackAt = std::chrono::steady_clock::now() +
+                    std::chrono::milliseconds(GetBattleAnimationDelayMilliseconds(420));
             }
             else if (!potionOnlyTestMode)
             {
                 ++currentTurn;
-                nextAutomaticAttackAt = std::chrono::steady_clock::now() + std::chrono::milliseconds(420);
+                nextAutomaticAttackAt = std::chrono::steady_clock::now() +
+                    std::chrono::milliseconds(GetBattleAnimationDelayMilliseconds(420));
             }
         }
 
@@ -3992,7 +4171,7 @@ int AsciiArt::RunStandaloneDemo(
         resolution = CalculateArtResolution(scene, settings, maximumWidth);
         const std::vector<std::wstring> art = CreateBrailleLines(scene, settings, maximumWidth);
         const bool floatingTextVisible = !battleState.floatingTextTargetId.empty() &&
-            battleState.floatingTextValue != 0 && battleState.floatingTextAgeSeconds < 0.72;
+            battleState.floatingTextValue != 0 && battleState.floatingTextAgeSeconds * gBattleSpeedMultiplier < 0.72;
         if (!battleRevealPlayed)
         {
             PlayVerticalReveal(output, art, layout.artStartY, L"[ 전투 개시 ]");
@@ -4003,7 +4182,8 @@ int AsciiArt::RunStandaloneDemo(
                               showHealEffectPreview, showPowerBuffEffectPreview, autoBattleEnabled, fastResultMode);
         DrawFloatingCombatTextOverlay(output, battleState, config, layout, resolution);
         DrawPlacementStatus(output, layout, resolution, placement);
-        const int frameDelayMilliseconds = 1000 / std::max(1, config.framesPerSecond);
+        const int frameDelayMilliseconds = GetBattleAnimationDelayMilliseconds(
+            1000 / std::max(1, config.framesPerSecond));
         std::this_thread::sleep_for(std::chrono::milliseconds(frameDelayMilliseconds));
     }
 

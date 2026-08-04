@@ -462,9 +462,18 @@ void MainMenu()
                 return;
             case 3:
             {
-                AsciiArt::Presentation::MoveCursorBelowStaticImage(2);
+                std::vector<std::string> statusLines;
+                statusLines.reserve(players.size() * 5);
                 for (const auto& player : players)
-                    player->ShowStatus();
+                {
+                    statusLines.push_back("이름     : " + player->GetName());
+                    statusLines.push_back("레벨     : " + std::to_string(player->GetLevel()));
+                    statusLines.push_back("체력     : " + std::to_string(player->GetHp()) + " / " + std::to_string(player->GetHpMax()));
+                    statusLines.push_back("공격력   : " + std::to_string(player->GetPower()));
+                    statusLines.push_back("경험치   : " + std::to_string(player->GetExp()) + " / " + std::to_string(player->GetExpMax()));
+                    statusLines.push_back("");
+                }
+                AsciiArt::Presentation::ShowInfoPanel("캐릭터 정보", statusLines);
                 if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
                 return;
             }

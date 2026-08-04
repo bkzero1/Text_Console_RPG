@@ -37,8 +37,8 @@ struct SceneConfig
     int framesPerSecond = 30;
     int sceneWidth = 960;
     int sceneHeight = 540;
-    int battleTransitionMilliseconds = 900;
-    int nextBattleTransitionMilliseconds = 950;
+    int battleTransitionMilliseconds = 3000;
+    int nextBattleTransitionMilliseconds = 3000;
     int bossDoorStageHoldMilliseconds = 420;
     int bossDoorSweepMilliseconds = 520;
     int bossBlackoutMilliseconds = 520;

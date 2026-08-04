@@ -2,6 +2,7 @@
 
 #include <string>
 #include <functional>
+#include <vector>
 
 #include "AsciiBattleScene.h"
 
@@ -82,6 +83,11 @@ namespace AsciiArt
     void MoveCursorBelowStaticImage(int blankRowCount = 1);
     void DrawCenteredText(const std::wstring& text, float verticalRatio);
     void DrawCenteredTextOnClearPanel(const std::wstring& text, float verticalRatio);
+    // 정지 AA 화면 위에 여러 화면에서 공용으로 쓸 수 있는 정보 패널을 그립니다.
+    void DrawStaticImageInfoPanel(
+        const std::wstring& title,
+        const std::vector<std::wstring>& lines
+    );
     void DrawStaticImageText(
         const std::wstring& text,
         float horizontalRatio,

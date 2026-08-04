@@ -2,6 +2,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 class BattleManager;
 class MonsterPool;
@@ -30,5 +31,8 @@ namespace AsciiArt
         void MoveCursorBelowStaticImage(int blankRowCount = 1);
         void RunMainMenuImageTuner(const std::wstring& imagePath);
         void PrepareBattleSummaryArea();
+        // Enter, Space 또는 ESC를 누를 때까지 정보를 유지하는 공용 패널입니다.
+        // 캐릭터 정보·처치 기록처럼 마을 배경 위에 표시할 화면이 함께 사용합니다.
+        void ShowInfoPanel(const std::string& title, const std::vector<std::string>& lines);
     }
 }

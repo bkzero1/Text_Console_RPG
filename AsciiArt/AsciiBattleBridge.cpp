@@ -35,6 +35,18 @@ namespace
     bool gHasEnteredBattleSequence = false;
     bool gPlayBossBattleIntro = false;
 
+    std::wstring Utf8ToWide(const std::string& text)
+    {
+        if (text.empty()) return {};
+
+        const int requiredLength = MultiByteToWideChar(CP_UTF8, 0, text.c_str(), static_cast<int>(text.size()), nullptr, 0);
+        if (requiredLength <= 0) return {};
+
+        std::wstring result(static_cast<size_t>(requiredLength), L'\0');
+        MultiByteToWideChar(CP_UTF8, 0, text.c_str(), static_cast<int>(text.size()), result.data(), requiredLength);
+        return result;
+    }
+
     std::string MakeActorId(const char* prefix, const void* address)
     {
         return std::string(prefix) + std::to_string(reinterpret_cast<std::uintptr_t>(address));
@@ -272,4 +284,29 @@ void AsciiArt::Presentation::PrepareBattleSummaryArea()
         FillConsoleOutputCharacterW(output, L' ', width, {info.srWindow.Left, static_cast<short>(startY + row)}, &written);
     }
     SetConsoleCursorPosition(output, {info.srWindow.Left, startY});
+}
+
+void AsciiArt::Presentation::ShowInfoPanel(const std::string& title, const std::vector<std::string>& lines)
+{
+    std::vector<std::wstring> wideLines;
+    wideLines.reserve(lines.size());
+    for (const std::string& line : lines)
+    {
+        wideLines.push_back(Utf8ToWide(line));
+    }
+    DrawStaticImageInfoPanel(Utf8ToWide(title), wideLines);
+
+    const HANDLE input = GetStdHandle(STD_INPUT_HANDLE);
+    INPUT_RECORD record{};
+    DWORD read = 0;
+    while (ReadConsoleInputW(input, &record, 1, &read))
+    {
+        if (record.EventType != KEY_EVENT || !record.Event.KeyEvent.bKeyDown) continue;
+
+        const WORD key = record.Event.KeyEvent.wVirtualKeyCode;
+        if (key == VK_RETURN || key == VK_SPACE || key == VK_ESCAPE)
+        {
+            return;
+        }
+    }
 }
