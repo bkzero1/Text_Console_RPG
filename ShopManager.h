@@ -6,7 +6,8 @@
 
 extern Inventory* inventory;
 extern RpgLogger rpgLogger;
-extern SoundManager soundManager;
+
+class SoundManager;
 
 class ShopManager
 {
@@ -22,13 +23,13 @@ class ShopManager
     // 구매 가능한 아이템 ID 목록 (ShowBuyableList와 동일한 순서)
     std::vector<EItemID> GetBuyableItemIDs() const;
     // 아이템 구매
-    void BuyItem(const ItemData& item, int count) const;
+    void BuyItem(const ItemData& item, int count, SoundManager soundManager) const;
     // 판매 가능한 리스트 출력
     void ShowSellableList() const;
     // 판매 가능한 아이템 ID 목록 (ShowSellableList와 동일한 순서)
     std::vector<EItemID> GetSellableItemIDs() const;
     // 아이템 판매
-    void SellItem(const ItemData& item, int count) const;
+    void SellItem(const ItemData& item, int count, SoundManager soundManager) const;
 
    private:
 };

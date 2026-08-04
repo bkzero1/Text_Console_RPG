@@ -499,7 +499,7 @@ void Shop()
                         const ItemData& itemTarget = ITEM_TABLE.at(id);
                         if (buyCount > 0)
                         {
-                            shop.BuyItem(itemTarget, buyCount);
+                            shop.BuyItem(itemTarget, buyCount, soundManager);
                         }
                         else
                         {
@@ -552,7 +552,7 @@ void Shop()
                     EItemID id = itemIDs.at(choice - 1);
                     const ItemData& item = ITEM_TABLE.at(id);
 
-                    shop.SellItem(item, sellCount);
+                    shop.SellItem(item, sellCount, soundManager);
                 }
                 break;
             }
