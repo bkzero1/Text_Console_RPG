@@ -12,6 +12,7 @@
 #include "../MonsterPool.h"
 #include "../Player.h"
 #include "../RpgLogger.h"
+#include "../SoundManager.h"
 
 #include <algorithm>
 #include <chrono>
@@ -20,6 +21,7 @@
 #include <set>
 #include <string>
 #include <vector>
+
 
 
 namespace
@@ -59,7 +61,7 @@ int AsciiArt::GetBattleTestMonsterCount(int originalMonsterCount)
     return kEnablePotionOnlyTest ? kMaximumBattleMonsterCount : originalMonsterCount;
 }
 
-bool AsciiArt::RunBattlePresentation(BattleManager& battleManager, MonsterPool& monsterPool, RpgLogger& logger, Inventory& inventory)
+bool AsciiArt::RunBattlePresentation(BattleManager& battleManager, MonsterPool& monsterPool, RpgLogger& logger, Inventory& inventory, SoundManager& soundManager)
 {
     if (gHasEnteredBattleSequence)
     {
@@ -147,6 +149,7 @@ bool AsciiArt::RunBattlePresentation(BattleManager& battleManager, MonsterPool& 
                     actionResultIsPowerBuff = usePowerPotion;
                     floatingTextStartedAt = std::chrono::steady_clock::now();
                     logger.AddLog(target->GetName() + " used a potion.", false);
+                    soundManager.PlaySFX(soundMap.at(SoundStates::POTION_USE));
                 }
                 else
                 {
@@ -158,6 +161,7 @@ bool AsciiArt::RunBattlePresentation(BattleManager& battleManager, MonsterPool& 
             }
             else if (action.type == EBattleActionType::PlayerAttack)
             {
+                
                 std::vector<Player*> livingPlayers = battleManager.GetLivingPlayers();
                 if (livingPlayers.empty() || battleManager.GetLivingMonsters().empty() || battleMonsterSlots.empty()) return false;
 
@@ -170,6 +174,8 @@ bool AsciiArt::RunBattlePresentation(BattleManager& battleManager, MonsterPool& 
                 isMonsterTurn = false;
                 turnActorName = attacker->GetName() + "(이)가 " + target->GetName() + "을(를) 공격합니다.";
                 battleManager.PlayerHitMonster(target, attacker->GetPower());
+                // 타격 사운드
+                soundManager.PlaySFX(soundMap.at(SoundStates::ATTACK_01));
                 floatingTextTargetId = MakeActorId("monster_", target);
                 floatingTextValue = std::max(0, hpBefore - target->GetHp());
                 floatingTextIsHealing = false;
@@ -198,6 +204,8 @@ bool AsciiArt::RunBattlePresentation(BattleManager& battleManager, MonsterPool& 
                 isMonsterTurn = true;
                 turnActorName = attacker->GetName() + "(이)가 " + target->GetName() + "을(를) 공격합니다.";
                 battleManager.MonsterHitPlayer(target, attacker->GetPower());
+                // 타격 사운드 
+                soundManager.PlaySFX(soundMap.at(SoundStates::ATTACK_02));
                 floatingTextTargetId = MakeActorId("player_", target);
                 floatingTextValue = std::max(0, hpBefore - target->GetHp());
                 floatingTextIsHealing = false;

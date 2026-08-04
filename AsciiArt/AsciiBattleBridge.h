@@ -7,12 +7,13 @@ class BattleManager;
 class MonsterPool;
 class RpgLogger;
 class Inventory;
+class SoundManager;
 
 namespace AsciiArt
 {
     // 기본 전투 객체를 AA 전투 화면에 연결하는 유일한 진입점입니다.
     // main.cpp는 이 함수만 호출하고, 상태 변환·입력·연출은 이 모듈이 맡습니다.
-    bool RunBattlePresentation(BattleManager& battleManager, MonsterPool& monsterPool, RpgLogger& logger, Inventory& inventory);
+    bool RunBattlePresentation(BattleManager& battleManager, MonsterPool& monsterPool, RpgLogger& logger, Inventory& inventory,SoundManager& soundManager);
     void GrantBattleTestPotions(Inventory& inventory);
     // AA 테스트가 켜진 동안에는 전투당 표시 가능한 최대 몬스터 수를 돌려줍니다.
     int GetBattleTestMonsterCount(int originalMonsterCount);

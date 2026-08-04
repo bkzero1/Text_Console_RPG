@@ -5,6 +5,7 @@
 #include <sstream>
 
 #include "Item.h"
+#include "SoundManager.h"
 
 void ShopManager::ShowBuyableList() const
 {
@@ -53,6 +54,7 @@ void ShopManager::BuyItem(const ItemData& item, int count) const
     int purchasedPrice = item.purchasePrice * purchasedCount;
 
     inventory->AddGold(-purchasedPrice);
+    soundManager.PlaySFX(soundMap.at(SoundStates::MONEY_USE));
 
     // 로거 저장 및 출력
     std::ostringstream oss;
@@ -113,6 +115,7 @@ void ShopManager::SellItem(const ItemData& item, int count) const
 
     // 총 판매 가격만큼 골드 추가
     inventory->AddGold(sellPrice);
+    soundManager.PlaySFX(soundMap.at(SoundStates::MONEY_USE));
 
     // 로거 저장 및 출력
     std::ostringstream oss;

@@ -7,13 +7,17 @@
 enum class SoundStates
 {
     INTRO, // INTRO.mp3
-    NORMAL_BATTLE, // 
-    BOSS_BATTLE, // BOSS.mp3
+    NORMAL_BATTLE, // battle-normal.mp3
+    BOSS_BATTLE, // battle-boss.mp3
     SHOP, // charity-shop.mp3
-    VILLAGE,// village.mp3
+    VILLAGE_DAY,// village-day.mp3
+    VILLAGE_NIGHT,// village-night.mp3
     ATTACK_01, // attack-01.wav
     ATTACK_02, // attack-02.wav
-    ATTACK_03 // attack-03.wav
+    ATTACK_03, // attack-03.wav
+    MONEY_USE, // money-use.wav
+    POTION_USE // potion-use.wav
+
 };
 
 extern std::map<SoundStates, std::string> soundMap;

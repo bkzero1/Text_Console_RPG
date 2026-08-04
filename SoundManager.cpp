@@ -5,13 +5,16 @@
 
 std::map<SoundStates, std::string> soundMap = {
     {SoundStates::INTRO,  "assets/intro.mp3"}, 
-    {SoundStates::NORMAL_BATTLE,  "assets/INBATTLE.mp3"},
-    {SoundStates::BOSS_BATTLE, "assets/BOSS.mp3"},
-    {SoundStates::SHOP, "assets/charity-shop.wav"},
-    {SoundStates::VILLAGE, "assets/village.mp3"},
+    {SoundStates::NORMAL_BATTLE,  "assets/battle-normal.mp3"},
+    {SoundStates::BOSS_BATTLE, "assets/battle-boss.mp3"},
+    {SoundStates::SHOP, "assets/shop.mp3"},
+    {SoundStates::VILLAGE_DAY, "assets/village-day.mp3"},
+    {SoundStates::VILLAGE_NIGHT, "assets/village-night.mp3"},
     {SoundStates::ATTACK_01, "assets/attack-01.wav"},
     {SoundStates::ATTACK_02, "assets/attack-02.wav"},
     {SoundStates::ATTACK_03, "assets/attack-03.wav"},
+    {SoundStates::MONEY_USE, "assets/money-use.wav"},
+    {SoundStates::POTION_USE, "assets/potion-use.wav"},
 };
 
 bool SoundManager::Init()

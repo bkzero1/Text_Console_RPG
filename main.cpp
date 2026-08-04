@@ -122,7 +122,7 @@ void PlayerInit()
 
 bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
 {
-    return AsciiArt::RunBattlePresentation(battleManager, monsterPool, rpgLogger, *inventory);
+    return AsciiArt::RunBattlePresentation(battleManager, monsterPool, rpgLogger, *inventory, soundManager);
 }
 
 // 일반 전투
@@ -594,6 +594,8 @@ void Run()
         {
             case EGameState::START_SCREEN:
             {
+                soundManager.PlayBGM(soundMap.at(SoundStates::INTRO));
+                
                 StartScreen::Render();
 
                 const StartScreen::EAction action = StartScreen::HandleInput();
@@ -611,7 +613,6 @@ void Run()
                 break;
             }
             case EGameState::PLAYER_INIT:
-                soundManager.PlayBGM(soundMap.at(SoundStates::INTRO));
                 PlayerInit();
                 break;
             case EGameState::NORMAL_BATTLE:
@@ -624,7 +625,7 @@ void Run()
                 BossBattle();
                 break;
             case EGameState::MAIN_MEMU:
-                soundManager.PlayBGM(soundMap.at(SoundStates::VILLAGE));
+                soundManager.PlayBGM(soundMap.at(SoundStates::VILLAGE_DAY));
                 MainMenu();
                 break;
             case EGameState::SHOP:

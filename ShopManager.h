@@ -6,6 +6,7 @@
 
 extern Inventory* inventory;
 extern RpgLogger rpgLogger;
+extern SoundManager soundManager;
 
 class ShopManager
 {
