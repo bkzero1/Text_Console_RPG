@@ -1,10 +1,11 @@
-// TextRPGSource/AsciiArt/AsciiBattleBridge.cpp
+﻿// TextRPGSource/AsciiArt/AsciiBattleBridge.cpp
 #define NOMINMAX
 #include <windows.h>
 
 #include "AsciiBattleBridge.h"
 
 #include "AsciiBattleDemo.h"
+#include "SceneConfig.h"
 #include "../BattleManager.h"
 #include "../Inventory.h"
 #include "../ItemUseHandler.h"
@@ -26,11 +27,28 @@
 
 namespace
 {
-    // 테스트가 끝나면 false와 0으로 되돌리면 됩니다.
-    constexpr bool kEnablePotionOnlyTest = true;
+    // 디버그 전투 메뉴 코드는 남겨 두되, 실제 게임에서는 기존 인벤토리·행동 흐름을 사용합니다.
+    // 다시 시험할 때만 true로 바꾸면 포션 99개와 행동 선택 메뉴가 함께 켜집니다.
+    constexpr bool kEnablePotionOnlyTest = false;
+    // 현재 AA 전투 배치는 4마리까지 각각의 위치를 고정해 둔 상태입니다.
+    // 배치 작업이 끝날 때까지 적 수만 독립적으로 4마리로 고정합니다.
+    constexpr bool kForceFourMonsterLayoutTest = true;
     constexpr int kStarterPowerPotionCount = 99;
     constexpr int kMaximumBattleMonsterCount = 4;
     bool gHasEnteredBattleSequence = false;
+    bool gPlayBossBattleIntro = false;
+
+    std::wstring BridgeUtf8ToWide(const std::string& text)
+    {
+        if (text.empty()) return {};
+
+        const int requiredLength = MultiByteToWideChar(CP_UTF8, 0, text.c_str(), static_cast<int>(text.size()), nullptr, 0);
+        if (requiredLength <= 0) return {};
+
+        std::wstring result(static_cast<size_t>(requiredLength), L'\0');
+        MultiByteToWideChar(CP_UTF8, 0, text.c_str(), static_cast<int>(text.size()), result.data(), requiredLength);
+        return result;
+    }
 
     std::string MakeActorId(const char* prefix, const void* address)
     {
@@ -57,13 +75,18 @@ void AsciiArt::GrantBattleTestPotions(Inventory& inventory)
 
 int AsciiArt::GetBattleTestMonsterCount(int originalMonsterCount)
 {
-    // 포션 테스트와 같은 스위치를 씁니다. false로 바꾸면 기존 전투 수를 그대로 사용합니다.
-    return kEnablePotionOnlyTest ? kMaximumBattleMonsterCount : originalMonsterCount;
+    return kForceFourMonsterLayoutTest ? kMaximumBattleMonsterCount : originalMonsterCount;
 }
 
 bool AsciiArt::RunBattlePresentation(BattleManager& battleManager, MonsterPool& monsterPool, RpgLogger& logger, Inventory& inventory, SoundManager& soundManager)
 {
-    if (gHasEnteredBattleSequence)
+    if (gPlayBossBattleIntro)
+    {
+        RenderBossBattleEntryTransition();
+        gPlayBossBattleIntro = false;
+        gHasEnteredBattleSequence = true;
+    }
+    else if (gHasEnteredBattleSequence)
     {
         RenderNextBattleTransition();
     }
@@ -188,6 +211,7 @@ bool AsciiArt::RunBattlePresentation(BattleManager& battleManager, MonsterPool& 
                 if (target->IsDead())
                 {
                     logger.AddLog(target->GetName() + " 처치!", false);
+                    logger.OnMonsterKilled(target->GetMonsterId());
                     monsterPool.Release(target);
                 }
             }
@@ -224,15 +248,74 @@ bool AsciiArt::RunBattlePresentation(BattleManager& battleManager, MonsterPool& 
     return battleManager.IsMonstersDead();
 }
 
+void AsciiArt::PrepareBossBattlePresentation()
+{
+    gPlayBossBattleIntro = true;
+}
+
 void AsciiArt::ReturnToTownFromBattlePresentation()
 {
     RenderBattleReturnTransition();
     gHasEnteredBattleSequence = false;
+    gPlayBossBattleIntro = false;
 }
 
 void AsciiArt::Presentation::ClearScreen()
 {
     AsciiArt::ClearScreen();
+}
+
+bool AsciiArt::Presentation::RenderStaticScene(EStaticScene scene)
+{
+    const SceneConfig config = LoadSceneConfig();
+    const std::wstring& imagePath = scene == EStaticScene::Inn
+        ? config.innBackgroundImagePath
+        : config.craftingBackgroundImagePath;
+
+    return AsciiArt::RenderStaticImage(
+        imagePath,
+        true,
+        0,
+        AsciiArt::EStaticArtStyle::Braille,
+        config.mainMenuContrast,
+        config.mainMenuOutputPixelWidth,
+        config.mainMenuCharacterHeightScale);
+}
+
+void AsciiArt::Presentation::DrawStaticSceneMenu(
+    const std::wstring& title,
+    int gold,
+    const std::vector<std::wstring>& menuLines)
+{
+    // 상점 화면과 같은 상단 정보 위치를 사용합니다.
+    AsciiArt::DrawStaticImageText(title, 0.16f, 0.08f);
+    AsciiArt::DrawStaticImageText(
+        L"보유 골드: " + std::to_wstring(gold) + L" G",
+        0.84f,
+        0.08f,
+        true);
+
+    if (menuLines.empty())
+    {
+        return;
+    }
+
+    // 제작소처럼 항목이 많아도 겹치지 않도록 이미지 하단 영역에 고르게 배치합니다.
+    constexpr float kFirstMenuVerticalRatio = 0.64f;
+    constexpr float kLastMenuVerticalRatio = 0.88f;
+    const float step = menuLines.size() > 1
+        ? (kLastMenuVerticalRatio - kFirstMenuVerticalRatio) /
+            static_cast<float>(menuLines.size() - 1)
+        : 0.0f;
+
+    for (size_t index = 0; index < menuLines.size(); ++index)
+    {
+        AsciiArt::DrawStaticImageText(
+            menuLines[index],
+            0.5f,
+            kFirstMenuVerticalRatio + step * static_cast<float>(index),
+            index == 0);
+    }
 }
 
 bool AsciiArt::Presentation::RenderPulsingMainMenuImage(const std::wstring& imagePath, double elapsedSeconds)
@@ -264,4 +347,29 @@ void AsciiArt::Presentation::PrepareBattleSummaryArea()
         FillConsoleOutputCharacterW(output, L' ', width, {info.srWindow.Left, static_cast<short>(startY + row)}, &written);
     }
     SetConsoleCursorPosition(output, {info.srWindow.Left, startY});
+}
+
+void AsciiArt::Presentation::ShowInfoPanel(const std::string& title, const std::vector<std::string>& lines)
+{
+    std::vector<std::wstring> wideLines;
+    wideLines.reserve(lines.size());
+    for (const std::string& line : lines)
+    {
+        wideLines.push_back(BridgeUtf8ToWide(line));
+    }
+    DrawStaticImageInfoPanel(BridgeUtf8ToWide(title), wideLines);
+
+    const HANDLE input = GetStdHandle(STD_INPUT_HANDLE);
+    INPUT_RECORD record{};
+    DWORD read = 0;
+    while (ReadConsoleInputW(input, &record, 1, &read))
+    {
+        if (record.EventType != KEY_EVENT || !record.Event.KeyEvent.bKeyDown) continue;
+
+        const WORD key = record.Event.KeyEvent.wVirtualKeyCode;
+        if (key == VK_RETURN || key == VK_SPACE || key == VK_ESCAPE)
+        {
+            return;
+        }
+    }
 }

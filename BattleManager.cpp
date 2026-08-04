@@ -171,3 +171,34 @@ std::map<EItemID, int> BattleManager::GetEarnItems() const
     return earnItems;
 }
 
+std::vector<EMonsterID> BattleManager::GetSpawanAbleMonsterIDs(int avgLv) const
+{
+    if (avgLv >= 10)
+    {
+        return { EMonsterID::RED_DRAGON };
+    }
+
+    EMonsterID endId = EMonsterID::LV3;
+    if (avgLv >= 6)
+    {
+        endId = EMonsterID::LV10;
+    }
+    else if (avgLv >= 3)
+    {
+        endId = EMonsterID::LV6;
+    }
+
+    std::vector<EMonsterID> monsterIDs;
+    for (int id = static_cast<int>(EMonsterID::NONE) + 1;
+         id < static_cast<int>(endId);
+         ++id)
+    {
+        const EMonsterID monsterID = static_cast<EMonsterID>(id);
+        if (EXCLUDE_ID.find(monsterID) == EXCLUDE_ID.end())
+        {
+            monsterIDs.push_back(monsterID);
+        }
+    }
+
+    return monsterIDs;
+}

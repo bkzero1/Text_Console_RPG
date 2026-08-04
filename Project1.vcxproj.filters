@@ -6,89 +6,50 @@
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="헤더 파일">
-      <UniqueIdentifier>{93995380-89BD-4B04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
     <Filter Include="리소스 파일">
-      <UniqueIdentifier>{67DA6AB6-F800-4C08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="소스 파일\Core">
-      <UniqueIdentifier>{A1010001-1C01-4001-9001-000000000001}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="소스 파일\Battle">
-      <UniqueIdentifier>{A1010002-1C01-4001-9001-000000000002}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="소스 파일\Item">
-      <UniqueIdentifier>{A1010003-1C01-4001-9001-000000000003}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="소스 파일\Inventory">
-      <UniqueIdentifier>{A1010004-1C01-4001-9001-000000000004}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="소스 파일\Player">
-      <UniqueIdentifier>{A1010005-1C01-4001-9001-000000000005}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="소스 파일\Monster">
-      <UniqueIdentifier>{A1010006-1C01-4001-9001-000000000006}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="소스 파일\Shop">
-      <UniqueIdentifier>{A1010007-1C01-4001-9001-000000000007}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="소스 파일\Screen">
-      <UniqueIdentifier>{A1010008-1C01-4001-9001-000000000008}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="소스 파일\AA">
-      <UniqueIdentifier>{A1010009-1C01-4001-9001-000000000009}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="소스 파일\Utility">
-      <UniqueIdentifier>{A1010010-1C01-4001-9001-000000000010}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="헤더 파일\Battle">
-      <UniqueIdentifier>{A1020002-1C01-4001-9001-000000000002}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="헤더 파일\Item">
-      <UniqueIdentifier>{A1020003-1C01-4001-9001-000000000003}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="헤더 파일\Inventory">
-      <UniqueIdentifier>{A1020004-1C01-4001-9001-000000000004}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="헤더 파일\Player">
-      <UniqueIdentifier>{A1020005-1C01-4001-9001-000000000005}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="헤더 파일\Monster">
-      <UniqueIdentifier>{A1020006-1C01-4001-9001-000000000006}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="헤더 파일\Shop">
-      <UniqueIdentifier>{A1020007-1C01-4001-9001-000000000007}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="헤더 파일\Screen">
-      <UniqueIdentifier>{A1020008-1C01-4001-9001-000000000008}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="헤더 파일\AA">
-      <UniqueIdentifier>{A1020009-1C01-4001-9001-000000000009}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="헤더 파일\Utility">
-      <UniqueIdentifier>{A1020010-1C01-4001-9001-000000000010}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="리소스 파일\설정">
-      <UniqueIdentifier>{A1030001-1C01-4001-9001-000000000001}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="소스 파일\Sound">
-      <UniqueIdentifier>{db23da72-197e-44c2-b63a-e08b82ab2729}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="헤더 파일\Sound">
-      <UniqueIdentifier>{e1cba46b-208a-4376-ae51-f7864ee00f6a}</UniqueIdentifier>
-    </Filter>
+    <Filter Include="소스 파일\Core"><UniqueIdentifier>{A1010001-1C01-4001-9001-000000000001}</UniqueIdentifier></Filter>
+    <Filter Include="소스 파일\Battle"><UniqueIdentifier>{A1010002-1C01-4001-9001-000000000002}</UniqueIdentifier></Filter>
+    <Filter Include="소스 파일\BattlePhase"><UniqueIdentifier>{d72ab168-a7f2-489c-8f5f-541c6b8abeb1}</UniqueIdentifier></Filter>
+    <Filter Include="소스 파일\Item"><UniqueIdentifier>{106b1980-3c36-407a-8d19-d12170156258}</UniqueIdentifier></Filter>
+    <Filter Include="소스 파일\Inventory"><UniqueIdentifier>{6d3f2bcc-2b94-442f-9ae4-5f1ac9e75634}</UniqueIdentifier></Filter>
+    <Filter Include="소스 파일\Player"><UniqueIdentifier>{1fdb4c8f-a43a-498a-9537-e3f2421cc781}</UniqueIdentifier></Filter>
+    <Filter Include="소스 파일\Monster"><UniqueIdentifier>{aeca294a-9a00-4fc1-a712-b123c73cf30b}</UniqueIdentifier></Filter>
+    <Filter Include="소스 파일\Shop"><UniqueIdentifier>{407ca0dc-c491-4cad-847d-738b8ee6ec3f}</UniqueIdentifier></Filter>
+    <Filter Include="소스 파일\Screen"><UniqueIdentifier>{A1010008-1C01-4001-9001-000000000008}</UniqueIdentifier></Filter>
+    <Filter Include="소스 파일\AA"><UniqueIdentifier>{A1010009-1C01-4001-9001-000000000009}</UniqueIdentifier></Filter>
+    <Filter Include="소스 파일\Utility"><UniqueIdentifier>{A1010010-1C01-4001-9001-000000000010}</UniqueIdentifier></Filter>
+    <Filter Include="소스 파일\Sound"><UniqueIdentifier>{A1010011-1C01-4001-9001-000000000011}</UniqueIdentifier></Filter>
+    <Filter Include="소스 파일\RpgLogger"><UniqueIdentifier>{18596d14-c5f7-4e6c-b8c7-9e0287029cde}</UniqueIdentifier></Filter>
+    <Filter Include="소스 파일\Crafter"><UniqueIdentifier>{6f6fb3d2-ff22-40a3-aecb-b2dd15a6b691}</UniqueIdentifier></Filter>
+    <Filter Include="헤더 파일\BattlePhase"><UniqueIdentifier>{247c308b-64da-4c62-be92-17b75b2163c3}</UniqueIdentifier></Filter>
+    <Filter Include="헤더 파일\Battle"><UniqueIdentifier>{A1020002-1C01-4001-9001-000000000002}</UniqueIdentifier></Filter>
+    <Filter Include="헤더 파일\Item"><UniqueIdentifier>{8917743f-40dd-4753-a850-c369eb8d9292}</UniqueIdentifier></Filter>
+    <Filter Include="헤더 파일\Inventory"><UniqueIdentifier>{52277024-1793-4d81-b1f0-358649d93b40}</UniqueIdentifier></Filter>
+    <Filter Include="헤더 파일\Player"><UniqueIdentifier>{30ec674f-09b7-4339-bd0d-8b933a40ea2b}</UniqueIdentifier></Filter>
+    <Filter Include="헤더 파일\Monster"><UniqueIdentifier>{d6358ddf-9fb5-4754-9726-448d5182245d}</UniqueIdentifier></Filter>
+    <Filter Include="헤더 파일\RpgLogger"><UniqueIdentifier>{55807215-73a4-453f-bafb-310511f92a00}</UniqueIdentifier></Filter>
+    <Filter Include="헤더 파일\Sound"><UniqueIdentifier>{A1020011-1C01-4001-9001-000000000011}</UniqueIdentifier></Filter>
+    <Filter Include="헤더 파일\Shop"><UniqueIdentifier>{abf8d55f-ab39-4a9f-a698-f2b8a74725f5}</UniqueIdentifier></Filter>
+    <Filter Include="헤더 파일\Crafter"><UniqueIdentifier>{f57d7233-9059-4152-b205-2972e02a8c66}</UniqueIdentifier></Filter>
+    <Filter Include="헤더 파일\Screen"><UniqueIdentifier>{A1020008-1C01-4001-9001-000000000008}</UniqueIdentifier></Filter>
+    <Filter Include="헤더 파일\AA"><UniqueIdentifier>{A1020009-1C01-4001-9001-000000000009}</UniqueIdentifier></Filter>
+    <Filter Include="리소스 파일\설정"><UniqueIdentifier>{A1030001-1C01-4001-9001-000000000001}</UniqueIdentifier></Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>소스 파일\Core</Filter>
-    </ClCompile>
     <ClCompile Include="BattleManager.cpp">
-      <Filter>소스 파일\Battle</Filter>
+      <Filter>소스 파일\BattlePhase</Filter>
     </ClCompile>
-    <ClCompile Include="MonsterPool.cpp">
-      <Filter>소스 파일\Battle</Filter>
+    <ClCompile Include="main.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Monster.cpp">
+      <Filter>소스 파일\Monster</Filter>
     </ClCompile>
     <ClCompile Include="Item.cpp">
       <Filter>소스 파일\Item</Filter>
@@ -105,6 +66,12 @@
     <ClCompile Include="Player.cpp">
       <Filter>소스 파일\Player</Filter>
     </ClCompile>
+    <ClCompile Include="MonsterPool.cpp">
+      <Filter>소스 파일\BattlePhase</Filter>
+    </ClCompile>
+    <ClCompile Include="RpgLogger.cpp">
+      <Filter>소스 파일\RpgLogger</Filter>
+    </ClCompile>
     <ClCompile Include="Warrior.cpp">
       <Filter>소스 파일\Player</Filter>
     </ClCompile>
@@ -114,11 +81,14 @@
     <ClCompile Include="Tank.cpp">
       <Filter>소스 파일\Player</Filter>
     </ClCompile>
-    <ClCompile Include="Monster.cpp">
-      <Filter>소스 파일\Monster</Filter>
-    </ClCompile>
     <ClCompile Include="ShopManager.cpp">
       <Filter>소스 파일\Shop</Filter>
+    </ClCompile>
+    <ClCompile Include="Crafter.cpp">
+      <Filter>소스 파일\Crafter</Filter>
+    </ClCompile>
+    <ClCompile Include="CraftingRecipe.cpp">
+      <Filter>소스 파일\Crafter</Filter>
     </ClCompile>
     <ClCompile Include="StartScreen.cpp">
       <Filter>소스 파일\Screen</Filter>
@@ -135,43 +105,13 @@
     <ClCompile Include="AsciiArt\AsciiBattleBridge.cpp">
       <Filter>소스 파일\AA</Filter>
     </ClCompile>
-    <ClCompile Include="RpgLogger.cpp">
-      <Filter>소스 파일\Utility</Filter>
-    </ClCompile>
     <ClCompile Include="SoundManager.cpp">
       <Filter>소스 파일\Sound</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BattleManager.h">
-      <Filter>헤더 파일\Battle</Filter>
-    </ClInclude>
-    <ClInclude Include="MonsterPool.h">
-      <Filter>헤더 파일\Battle</Filter>
-    </ClInclude>
-    <ClInclude Include="Item.h">
-      <Filter>헤더 파일\Item</Filter>
-    </ClInclude>
-    <ClInclude Include="ItemUseHandler.h">
-      <Filter>헤더 파일\Item</Filter>
-    </ClInclude>
-    <ClInclude Include="Inventory.h">
-      <Filter>헤더 파일\Inventory</Filter>
-    </ClInclude>
-    <ClInclude Include="InventorySlot.h">
-      <Filter>헤더 파일\Inventory</Filter>
-    </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>헤더 파일\Player</Filter>
-    </ClInclude>
-    <ClInclude Include="Warrior.h">
-      <Filter>헤더 파일\Player</Filter>
-    </ClInclude>
-    <ClInclude Include="Mage.h">
-      <Filter>헤더 파일\Player</Filter>
-    </ClInclude>
-    <ClInclude Include="Tank.h">
-      <Filter>헤더 파일\Player</Filter>
+      <Filter>헤더 파일\BattlePhase</Filter>
     </ClInclude>
     <ClInclude Include="Monster.h">
       <Filter>헤더 파일\Monster</Filter>
@@ -179,8 +119,44 @@
     <ClInclude Include="FMonsterData.h">
       <Filter>헤더 파일\Monster</Filter>
     </ClInclude>
+    <ClInclude Include="Item.h">
+      <Filter>헤더 파일\Item</Filter>
+    </ClInclude>
+    <ClInclude Include="ItemUseHandler.h">
+      <Filter>헤더 파일\Item</Filter>
+    </ClInclude>
+    <ClInclude Include="InventorySlot.h">
+      <Filter>헤더 파일\Inventory</Filter>
+    </ClInclude>
+    <ClInclude Include="Inventory.h">
+      <Filter>헤더 파일\Inventory</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>헤더 파일\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="MonsterPool.h">
+      <Filter>헤더 파일\BattlePhase</Filter>
+    </ClInclude>
+    <ClInclude Include="RpgLogger.h">
+      <Filter>헤더 파일\RpgLogger</Filter>
+    </ClInclude>
+    <ClInclude Include="Mage.h">
+      <Filter>헤더 파일\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Tank.h">
+      <Filter>헤더 파일\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Warrior.h">
+      <Filter>헤더 파일\Player</Filter>
+    </ClInclude>
     <ClInclude Include="ShopManager.h">
       <Filter>헤더 파일\Shop</Filter>
+    </ClInclude>
+    <ClInclude Include="Crafter.h">
+      <Filter>헤더 파일\Crafter</Filter>
+    </ClInclude>
+    <ClInclude Include="CraftingRecipe.h">
+      <Filter>헤더 파일\Crafter</Filter>
     </ClInclude>
     <ClInclude Include="StartScreen.h">
       <Filter>헤더 파일\Screen</Filter>
@@ -197,17 +173,14 @@
     <ClInclude Include="AsciiArt\AsciiBattleBridge.h">
       <Filter>헤더 파일\AA</Filter>
     </ClInclude>
+    <ClInclude Include="SoundManager.h">
+      <Filter>헤더 파일\Sound</Filter>
+    </ClInclude>
     <ClInclude Include="AsciiArt\AsciiBattleScene.h">
       <Filter>헤더 파일\AA</Filter>
     </ClInclude>
     <ClInclude Include="AsciiArt\SceneConfig.h">
       <Filter>헤더 파일\AA</Filter>
-    </ClInclude>
-    <ClInclude Include="RpgLogger.h">
-      <Filter>헤더 파일\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="SoundManager.h">
-      <Filter>헤더 파일\Sound</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

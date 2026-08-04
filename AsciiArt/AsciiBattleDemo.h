@@ -2,6 +2,7 @@
 
 #include <string>
 #include <functional>
+#include <vector>
 
 #include "AsciiBattleScene.h"
 
@@ -55,6 +56,8 @@ namespace AsciiArt
     // 전투 시작·연속 전투·마을 복귀 때만 쓰는 정지 연출입니다.
     // 실제 BattleManager 전투 로직은 이 함수들을 알 필요가 없습니다.
     void RenderBattleEntryTransition();
+    // 보스 전투에만 사용하는 문 개방 → 암전 → 드래곤 등장 연출입니다.
+    void RenderBossBattleEntryTransition();
     void RenderNextBattleTransition();
     void RenderBattleReturnTransition();
     // 원본 PNG를 수정하지 않고 지정된 빛 위치만 밝게/어둡게 합성해 출력합니다.
@@ -80,6 +83,11 @@ namespace AsciiArt
     void MoveCursorBelowStaticImage(int blankRowCount = 1);
     void DrawCenteredText(const std::wstring& text, float verticalRatio);
     void DrawCenteredTextOnClearPanel(const std::wstring& text, float verticalRatio);
+    // 정지 AA 화면 위에 여러 화면에서 공용으로 쓸 수 있는 정보 패널을 그립니다.
+    void DrawStaticImageInfoPanel(
+        const std::wstring& title,
+        const std::vector<std::wstring>& lines
+    );
     void DrawStaticImageText(
         const std::wstring& text,
         float horizontalRatio,

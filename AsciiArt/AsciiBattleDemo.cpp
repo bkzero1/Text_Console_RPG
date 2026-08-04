@@ -42,6 +42,10 @@ constexpr short kControlWidth = kSliderLabelWidth + kSliderWidth + 10;
 constexpr WORD kTextColor = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
 bool gAnsiColorSupported = false;
 
+// 전투 연출 전용 배속입니다. 설정 파일에 저장하지 않으므로 프로그램을 다시 실행하면 항상 1배속으로 시작합니다.
+// 같은 실행 중에는 전투를 나갔다 다시 들어와도 현재 선택한 배속을 유지합니다.
+float gBattleSpeedMultiplier = 1.0f;
+
 // 마지막으로 그린 정지 배경의 실제 콘솔 범위입니다.
 // 메뉴 문구를 콘솔 전체가 아니라 이 이미지의 가운데에 맞추는 데 사용합니다.
 short gStaticImageLeft = 0;
@@ -225,6 +229,16 @@ float SmoothStep(float value)
 double GetElapsedSeconds(const std::chrono::steady_clock::time_point& startedAt)
 {
     return std::chrono::duration<double>(std::chrono::steady_clock::now() - startedAt).count();
+}
+
+double GetBattleAnimationSeconds(const std::chrono::steady_clock::time_point& startedAt)
+{
+    return GetElapsedSeconds(startedAt) * gBattleSpeedMultiplier;
+}
+
+int GetBattleAnimationDelayMilliseconds(int baseMilliseconds)
+{
+    return std::max(1, static_cast<int>(std::lround(baseMilliseconds / gBattleSpeedMultiplier)));
 }
 
 unsigned char CalculateBrightness(const Gdiplus::Color& color)
@@ -767,6 +781,25 @@ const MonsterVisualProfile& GetMonsterVisualProfile(const SceneConfig& config, c
     return config.monsterProfiles[static_cast<size_t>(GetMonsterVisualProfileIndex(status))];
 }
 
+bool IsBossMonster(const AsciiArt::ActorBattleStatus& status)
+{
+    return GetMonsterVisualProfileIndex(status) == EMonsterVisualProfileIndex::RED_DRAGON;
+}
+
+MonsterVisualProfile GetBossVisualProfile(const SceneConfig& config)
+{
+    return { config.bossX, config.bossY, config.bossWidth, config.bossHeight, config.bossLayer };
+}
+
+void SaveBossVisualProfile(SceneConfig& config, const MonsterVisualProfile& profile)
+{
+    config.bossX = profile.x;
+    config.bossY = profile.y;
+    config.bossWidth = profile.width;
+    config.bossHeight = profile.height;
+    config.bossLayer = profile.layer;
+}
+
 const std::array<std::string, 9>& GetMonsterDisplayNames()
 {
     static const std::array<std::string, 9> names = {
@@ -797,6 +830,11 @@ MonsterVisualArea GetMonsterVisualArea(const SceneConfig& config, const AsciiArt
         const MonsterVisualProfile& profile = instance->second;
         return { profile.x, profile.y, profile.width, profile.height };
     }
+    if (IsBossMonster(status))
+    {
+        const MonsterVisualProfile profile = GetBossVisualProfile(config);
+        return { profile.x, profile.y, profile.width, profile.height };
+    }
     const MonsterVisualProfile& profile = GetMonsterVisualProfile(config, status);
     return { profile.x + sameTypeOrder * 46.0f, profile.y + sameTypeOrder * 24.0f,
              profile.width, profile.height };
@@ -809,6 +847,10 @@ MonsterVisualProfile GetMonsterSlotProfile(
     int slotIndex,
     const AsciiArt::ActorBattleStatus& status)
 {
+    if (IsBossMonster(status))
+    {
+        return GetBossVisualProfile(config);
+    }
     // 슬롯은 자리만, 몬스터 종류 설정은 크기만 담당합니다.
     const MonsterVisualProfile& typeProfile = GetMonsterVisualProfile(config, status);
     switch (slotIndex)
@@ -834,7 +876,15 @@ void CopyBattleMonsterInstancesToSlots(SceneConfig& config, const AsciiArt::Batt
     for (int index = 0; index < count; ++index)
     {
         const auto found = gBattleMonsterInstanceProfiles.find(battleState.monsterStatuses[index].id);
-        if (found != gBattleMonsterInstanceProfiles.end()) SaveMonsterSlotProfile(config, index, found->second);
+        if (found == gBattleMonsterInstanceProfiles.end()) continue;
+        if (IsBossMonster(battleState.monsterStatuses[index]))
+        {
+            SaveBossVisualProfile(config, found->second);
+        }
+        else
+        {
+            SaveMonsterSlotProfile(config, index, found->second);
+        }
     }
 }
 
@@ -1007,14 +1057,15 @@ void DrawFloatingCombatText(
     float y)
 {
     constexpr double kDuration = 0.72;
+    const double animationAge = battleState.floatingTextAgeSeconds * gBattleSpeedMultiplier;
     if (battleState.floatingTextTargetId != actorId ||
         battleState.floatingTextValue == 0 ||
-        battleState.floatingTextAgeSeconds >= kDuration)
+        animationAge >= kDuration)
     {
         return;
     }
 
-    const float progress = static_cast<float>(battleState.floatingTextAgeSeconds / kDuration);
+    const float progress = static_cast<float>(animationAge / kDuration);
     const BYTE alpha = static_cast<BYTE>(std::clamp((1.0f - progress) * 255.0f, 0.0f, 255.0f));
     const bool isPositive = battleState.floatingTextIsHealing || battleState.floatingTextIsPowerBuff;
     const std::wstring text = std::wstring(isPositive ? L"+" : L"-") +
@@ -1040,8 +1091,9 @@ void DrawFloatingCombatTextOverlay(
     const ArtResolution& resolution)
 {
     constexpr double kDuration = 0.72;
+    const double animationAge = battleState.floatingTextAgeSeconds * gBattleSpeedMultiplier;
     if (battleState.floatingTextTargetId.empty() || battleState.floatingTextValue == 0 ||
-        battleState.floatingTextAgeSeconds >= kDuration)
+        animationAge >= kDuration)
     {
         return;
     }
@@ -1075,7 +1127,7 @@ void DrawFloatingCombatTextOverlay(
     }
     if (!found) return;
 
-    const float progress = static_cast<float>(battleState.floatingTextAgeSeconds / kDuration);
+    const float progress = static_cast<float>(animationAge / kDuration);
     const bool isPositive = battleState.floatingTextIsHealing || battleState.floatingTextIsPowerBuff;
     const std::wstring text = battleState.floatingTextIsPowerBuff
         ? L"⚔ + " + std::to_wstring(battleState.floatingTextValue)
@@ -1200,6 +1252,20 @@ void DrawBattleHudOverlay(
     WriteConsoleW(output, turnText.c_str(), static_cast<DWORD>(turnText.size()), &written, nullptr);
     SetConsoleTextAttribute(output, kTextColor);
 
+    // S/F 키 안내는 전투 화면에서만 표시합니다.
+    // S는 9번과 같은 "연출 생략 자동 전투" 토글이고, F는 1배속/2배속 토글입니다.
+    const std::wstring speedText = gBattleSpeedMultiplier >= 2.0f ? L"전투 배속: F (x2)" : L"전투 배속: F (x1)";
+    const std::wstring skipText = L"전투연출 스킵: S";
+    const short speedX = static_cast<short>(std::max(0, static_cast<int>(info.dwSize.X) - GetConsoleDisplayWidth(speedText) - 2));
+    const short skipX = static_cast<short>(std::max(0, static_cast<int>(speedX) - GetConsoleDisplayWidth(skipText) - 3));
+    SetConsoleCursorPosition(output, {skipX, static_cast<short>(layout.artStartY)});
+    SetConsoleTextAttribute(output, static_cast<WORD>(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE));
+    WriteConsoleW(output, skipText.c_str(), static_cast<DWORD>(skipText.size()), &written, nullptr);
+    SetConsoleCursorPosition(output, {speedX, static_cast<short>(layout.artStartY)});
+    SetConsoleTextAttribute(output, static_cast<WORD>(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE));
+    WriteConsoleW(output, speedText.c_str(), static_cast<DWORD>(speedText.size()), &written, nullptr);
+    SetConsoleTextAttribute(output, kTextColor);
+
     // 실제 전투 코드가 마지막으로 전달한 행동 문구입니다.
     // 턴 문구와 섞이지 않도록 두 줄 아래에서 다음 행동 전까지 유지합니다.
     const std::wstring actionText = Utf8ToWide(battleState.turnActorName);
@@ -1290,7 +1356,7 @@ void RenderScene(
         graphics.DrawImage(backgroundImage, 0, 0, static_cast<INT>(canvas.GetWidth()), static_cast<INT>(canvas.GetHeight()));
     }
 
-    double attackTime = attack.playing ? GetElapsedSeconds(attack.startedAt) : -1.0;
+    double attackTime = attack.playing ? GetBattleAnimationSeconds(attack.startedAt) : -1.0;
     const bool effectVisible = !attack.playerUsingPotion && attackTime >= 0.18 && attackTime < 0.44;
     const bool monsterHit = !attack.monsterAttacking && attackTime >= 0.22 && attackTime < 0.62;
     const bool heroHit = attack.monsterAttacking && attackTime >= 0.22 && attackTime < 0.62;
@@ -1408,9 +1474,9 @@ void RenderScene(
     }
     // 회복/버프 효과는 실제 사용 중에는 대상에게, 5·6번 미리 보기 중에는 지정한 기준 영웅에게 보입니다.
     const bool actualHealEffect = battleState != nullptr && battleState->floatingTextIsHealing &&
-        battleState->floatingTextAgeSeconds >= 0.0 && battleState->floatingTextAgeSeconds < 0.75;
+        battleState->floatingTextAgeSeconds >= 0.0 && battleState->floatingTextAgeSeconds * gBattleSpeedMultiplier < 0.75;
     const bool actualPowerEffect = battleState != nullptr && battleState->floatingTextIsPowerBuff &&
-        battleState->floatingTextAgeSeconds >= 0.0 && battleState->floatingTextAgeSeconds < 0.75;
+        battleState->floatingTextAgeSeconds >= 0.0 && battleState->floatingTextAgeSeconds * gBattleSpeedMultiplier < 0.75;
     const auto addSupportEffect = [&](EObjectType effectType, bool visible, Gdiplus::Image* image, bool useMagePreview)
     {
         if (!visible || image == nullptr) return;
@@ -1852,6 +1918,16 @@ void ScalePlacementTarget(PlacementMode& placement, SceneConfig& config, float s
         const auto typeFound = gBattleMonsterInstanceTypes.find(placement.monsterInstanceId);
         if (typeFound == gBattleMonsterInstanceTypes.end()) return;
 
+        if (typeFound->second == static_cast<int>(EMonsterVisualProfileIndex::RED_DRAGON))
+        {
+            config.bossWidth = std::clamp(config.bossWidth * scale, 20.0f, 2000.0f);
+            config.bossHeight = std::clamp(config.bossHeight * scale, 20.0f, 2000.0f);
+            MonsterVisualProfile& instance = gBattleMonsterInstanceProfiles[placement.monsterInstanceId];
+            instance.width = config.bossWidth;
+            instance.height = config.bossHeight;
+            return;
+        }
+
         // 위치는 슬롯별로 유지하고, 크기는 몬스터 종류별 설정에 저장합니다.
         MonsterVisualProfile& typeProfile = config.monsterProfiles[static_cast<size_t>(typeFound->second)];
         typeProfile.width = std::clamp(typeProfile.width * scale, 20.0f, 2000.0f);
@@ -2016,7 +2092,8 @@ void ProcessInput(
     bool showPowerBuffEffect,
     const AsciiArt::BattleSceneState& battleState,
     int& requestedMonsterIndex,
-    int& requestedTestCommand)
+    int& requestedTestCommand,
+    bool& skipBattleRequested)
 {
     const int monsterCount = static_cast<int>(battleState.monsterStatuses.size());
     DWORD count = 0;
@@ -2108,12 +2185,24 @@ void ProcessInput(
             {
                 settings.useOrderedDithering = !settings.useOrderedDithering;
             }
+            else if (key == 'F' && !placement.active)
+            {
+                // 배속은 현재 프로그램 실행 중에만 유지합니다. SceneConfig에는 저장하지 않습니다.
+                gBattleSpeedMultiplier = gBattleSpeedMultiplier >= 2.0f ? 1.0f : 2.0f;
+            }
+            else if (key == 'S' && !placement.active)
+            {
+                // 현재 진행 중인 공격도 기다리지 않고, 남은 전투 행동을 내부에서 즉시 계산합니다.
+                // 전투 전후 이동 화면이나 보스 진입 연출에는 영향을 주지 않습니다.
+                skipBattleRequested = true;
+            }
             else if (key == 'C')
             {
                 settings.useAnsiColor = !settings.useAnsiColor;
             }
-            else if (key == 'S')
+            else if (key == 'S' && placement.active)
             {
+                // 배치 편집 중 S는 기존처럼 현재 배치값을 저장합니다.
                 CopyBattleMonsterInstancesToSlots(config, battleState);
                 CopyRenderSettingsToConfig(settings, config);
                 SaveSceneConfig(config);
@@ -2570,9 +2659,241 @@ void AsciiArt::RenderBattleEntryTransition()
     if (RenderStaticImage(config.battleTransitionImagePath, true, 0, EStaticArtStyle::Braille,
                           config.contrastValue, config.outputPixelWidth, config.characterHeightScaleValue))
     {
-        DrawCenteredTextOnClearPanel(L"[ 전투를 향해 ]", 0.50f);
+        DrawCenteredTextOnClearPanel(L"[ 출정합니다 ]", 0.50f);
         std::this_thread::sleep_for(std::chrono::milliseconds(std::max(0, config.battleTransitionMilliseconds)));
     }
+}
+
+namespace
+{
+// 보스 연출은 장면 전체를 새로 만든 뒤, 콘솔에는 이전 프레임과 달라진 행만 보냅니다.
+// 그래서 문에서 왼쪽으로 지나가는 경계 뒤쪽만 다음 장면으로 바뀌는 모습이 유지됩니다.
+RenderSettings CreateBossCutsceneSettings(const SceneConfig& config)
+{
+    RenderSettings settings;
+    settings.outputPixelWidth = ClampSetting(std::min(config.outputPixelWidth, 700));
+    settings.characterHeightScaleValue = ClampSetting(config.characterHeightScaleValue);
+    settings.contrastValue = ClampSetting(config.contrastValue);
+    settings.useOrderedDithering = config.useOrderedDithering;
+    settings.useAnsiColor = config.useAnsiColor && gAnsiColorSupported;
+    settings.colorMode = config.colorMode;
+    return settings;
+}
+
+int GetBossCutsceneMaximumWidth(Gdiplus::Bitmap& image, const RenderSettings& settings, HANDLE output)
+{
+    const COORD consoleSize = GetVisibleConsoleSize(output);
+    const int availableRows = std::max(4, static_cast<int>(consoleSize.Y) - 1);
+    const double heightScale = GetCharacterHeightScale(settings);
+    const int maximumWidthByHeight = static_cast<int>(
+        availableRows * 4.0 *
+        (static_cast<double>(image.GetWidth()) / image.GetHeight()) /
+        heightScale);
+    return std::max(16, std::min(static_cast<int>(consoleSize.X) * 2, maximumWidthByHeight));
+}
+
+bool RenderBossCutsceneFrame(Gdiplus::Bitmap& image, const SceneConfig& config, HANDLE output)
+{
+    const RenderSettings settings = CreateBossCutsceneSettings(config);
+    const int maximumWidth = GetBossCutsceneMaximumWidth(image, settings, output);
+    const std::vector<std::wstring> artLines = CreateBrailleLines(image, settings, maximumWidth);
+    if (artLines.empty()) return false;
+
+    CONSOLE_SCREEN_BUFFER_INFO outputInfo{};
+    if (!GetConsoleScreenBufferInfo(output, &outputInfo)) return false;
+
+    const short artLeft = outputInfo.srWindow.Left;
+    const short artTop = outputInfo.srWindow.Top;
+    const short artWidth = static_cast<short>(GetVisibleConsoleDisplayWidth(artLines.front()));
+    gStaticImageLeft = artLeft;
+    gStaticImageTop = artTop;
+    gStaticImageWidth = artWidth;
+    gStaticImageHeight = static_cast<short>(artLines.size());
+    gHasStaticImageBounds = true;
+    WriteLayeredFrame(output, artLines, artLeft, artTop, artWidth);
+    return true;
+}
+
+std::unique_ptr<Gdiplus::Bitmap> CreateRightToLeftDoorFrame(
+    Gdiplus::Bitmap& previous,
+    Gdiplus::Bitmap& next,
+    float nextRevealRatio)
+{
+    const UINT width = previous.GetWidth();
+    const UINT height = previous.GetHeight();
+    auto frame = std::make_unique<Gdiplus::Bitmap>(width, height, PixelFormat32bppARGB);
+    Gdiplus::Graphics graphics(frame.get());
+    graphics.SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBicubic);
+    graphics.DrawImage(&previous, 0, 0, static_cast<INT>(width), static_cast<INT>(height));
+
+    // 오른쪽 문에서 시작한 경계가 왼쪽으로 이동합니다. 경계의 오른쪽만 다음 단계로 바뀝니다.
+    const INT boundary = std::clamp(
+        static_cast<INT>(std::lround(width * (1.0f - nextRevealRatio))),
+        0,
+        static_cast<INT>(width));
+    if (boundary < static_cast<INT>(width))
+    {
+        const Gdiplus::Rect destination(boundary, 0, static_cast<INT>(width) - boundary, static_cast<INT>(height));
+        graphics.DrawImage(
+            &next,
+            destination,
+            boundary,
+            0,
+            static_cast<INT>(width) - boundary,
+            static_cast<INT>(height),
+            Gdiplus::UnitPixel);
+    }
+    return frame;
+}
+
+std::unique_ptr<Gdiplus::Bitmap> CreateCenterHorizontalRevealFrame(Gdiplus::Bitmap& source, float revealRatio)
+{
+    const UINT width = source.GetWidth();
+    const UINT height = source.GetHeight();
+    auto frame = std::make_unique<Gdiplus::Bitmap>(width, height, PixelFormat32bppARGB);
+    Gdiplus::Graphics graphics(frame.get());
+    graphics.Clear(Gdiplus::Color(255, 0, 0, 0));
+
+    const INT revealWidth = std::clamp(
+        static_cast<INT>(std::lround(width * revealRatio)),
+        1,
+        static_cast<INT>(width));
+    const INT sourceLeft = (static_cast<INT>(width) - revealWidth) / 2;
+    const Gdiplus::Rect destination(sourceLeft, 0, revealWidth, static_cast<INT>(height));
+    graphics.DrawImage(
+        &source,
+        destination,
+        sourceLeft,
+        0,
+        revealWidth,
+        static_cast<INT>(height),
+        Gdiplus::UnitPixel);
+    return frame;
+}
+
+std::unique_ptr<Gdiplus::Bitmap> CreateCrossFadeFrame(
+    Gdiplus::Bitmap& previous,
+    Gdiplus::Bitmap& next,
+    float nextAlpha)
+{
+    const UINT width = previous.GetWidth();
+    const UINT height = previous.GetHeight();
+    auto frame = std::make_unique<Gdiplus::Bitmap>(width, height, PixelFormat32bppARGB);
+    Gdiplus::Graphics graphics(frame.get());
+    graphics.DrawImage(&previous, 0, 0, static_cast<INT>(width), static_cast<INT>(height));
+
+    const float alpha = std::clamp(nextAlpha, 0.0f, 1.0f);
+    const Gdiplus::ColorMatrix matrix = {{
+        {1.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+        {0.0f, 1.0f, 0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 1.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f, alpha, 0.0f},
+        {0.0f, 0.0f, 0.0f, 0.0f, 1.0f}
+    }};
+    Gdiplus::ImageAttributes attributes;
+    attributes.SetColorMatrix(&matrix, Gdiplus::ColorMatrixFlagsDefault, Gdiplus::ColorAdjustTypeBitmap);
+    const Gdiplus::Rect destination(0, 0, static_cast<INT>(width), static_cast<INT>(height));
+    graphics.DrawImage(
+        &next,
+        destination,
+        0,
+        0,
+        static_cast<INT>(next.GetWidth()),
+        static_cast<INT>(next.GetHeight()),
+        Gdiplus::UnitPixel,
+        &attributes);
+    return frame;
+}
+}
+
+void AsciiArt::RenderBossBattleEntryTransition()
+{
+    const SceneConfig config = LoadSceneConfig();
+    const HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (output == INVALID_HANDLE_VALUE) return;
+
+    DWORD originalOutputMode = 0;
+    const bool canRestoreOutputMode = GetConsoleMode(output, &originalOutputMode) != FALSE;
+    const bool previousAnsiColorSupported = gAnsiColorSupported;
+    gAnsiColorSupported = canRestoreOutputMode &&
+        SetConsoleMode(output, originalOutputMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING) != FALSE;
+
+    Gdiplus::GdiplusStartupInput startupInput;
+    ULONG_PTR token = 0;
+    if (Gdiplus::GdiplusStartup(&token, &startupInput, nullptr) != Gdiplus::Ok)
+    {
+        if (canRestoreOutputMode) SetConsoleMode(output, originalOutputMode);
+        gAnsiColorSupported = previousAnsiColorSupported;
+        return;
+    }
+
+    {
+        std::array<std::unique_ptr<Gdiplus::Bitmap>, 6> scenes = {
+            std::make_unique<Gdiplus::Bitmap>(config.bossDoorStage1ImagePath.c_str()),
+            std::make_unique<Gdiplus::Bitmap>(config.bossDoorStage2ImagePath.c_str()),
+            std::make_unique<Gdiplus::Bitmap>(config.bossDoorStage3ImagePath.c_str()),
+            std::make_unique<Gdiplus::Bitmap>(config.bossDoorStage4ImagePath.c_str()),
+            std::make_unique<Gdiplus::Bitmap>(config.bossDoorStage5ImagePath.c_str()),
+            std::make_unique<Gdiplus::Bitmap>(config.bossDragonRevealImagePath.c_str())
+        };
+        const bool imagesReady = std::all_of(scenes.begin(), scenes.end(), [](const auto& scene)
+        {
+            return scene && scene->GetLastStatus() == Gdiplus::Ok;
+        });
+        if (imagesReady)
+        {
+            // 1→4 문 개방은 단계마다 두 장면만 갱신해 빠르게 넘어갑니다.
+            // 문이 열리는 1~4단계는 중간 스윕 없이 한 번에 다음 장면으로 전환한다.
+            constexpr int kDoorSweepSteps = 1;
+            constexpr int kHorizontalRevealSteps = 10;
+            constexpr int kDragonRevealSteps = 10;
+            ClearConsole(output);
+            RenderBossCutsceneFrame(*scenes[0], config, output);
+            std::this_thread::sleep_for(std::chrono::milliseconds(std::max(0, config.bossDoorStageHoldMilliseconds)));
+
+            // 1→4: 문에서 시작한 변화가 왼쪽으로 쓸고 지나가며, 그 뒤쪽만 다음 장면으로 갱신됩니다.
+            for (size_t stage = 1; stage <= 3; ++stage)
+            {
+                for (int step = 1; step <= kDoorSweepSteps; ++step)
+                {
+                    const float revealRatio = static_cast<float>(step) / kDoorSweepSteps;
+                    auto frame = CreateRightToLeftDoorFrame(*scenes[stage - 1], *scenes[stage], revealRatio);
+                    RenderBossCutsceneFrame(*frame, config, output);
+                    std::this_thread::sleep_for(std::chrono::milliseconds(
+                        std::max(1, config.bossDoorSweepMilliseconds / kDoorSweepSteps)));
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(std::max(0, config.bossDoorStageHoldMilliseconds)));
+            }
+
+            // 4→5: 완전히 암전한 뒤, 중앙 세로선에서 양쪽으로 넓어지며 눈부신 문 장면을 공개합니다.
+            ClearConsole(output);
+            std::this_thread::sleep_for(std::chrono::milliseconds(std::max(0, config.bossBlackoutMilliseconds)));
+            for (int step = 1; step <= kHorizontalRevealSteps; ++step)
+            {
+                const float revealRatio = static_cast<float>(step) / kHorizontalRevealSteps;
+                auto frame = CreateCenterHorizontalRevealFrame(*scenes[4], revealRatio);
+                RenderBossCutsceneFrame(*frame, config, output);
+                std::this_thread::sleep_for(std::chrono::milliseconds(
+                    std::max(1, config.bossDoorSweepMilliseconds / kHorizontalRevealSteps)));
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(std::max(0, config.bossDoorStageHoldMilliseconds)));
+
+            // 5→6: 눈부신 빛이 가라앉는 동안 드래곤의 모습이 점차 드러납니다.
+            for (int step = 1; step <= kDragonRevealSteps; ++step)
+            {
+                const float alpha = static_cast<float>(step) / kDragonRevealSteps;
+                auto frame = CreateCrossFadeFrame(*scenes[4], *scenes[5], alpha);
+                RenderBossCutsceneFrame(*frame, config, output);
+                std::this_thread::sleep_for(std::chrono::milliseconds(
+                    std::max(1, config.bossDragonRevealMilliseconds / kDragonRevealSteps)));
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(std::max(0, config.bossDoorStageHoldMilliseconds)));
+        }
+    } // GDI+ 객체를 모두 해제한 뒤 종료해야 GdiPlus.dll 예외가 나지 않습니다.
+
+    Gdiplus::GdiplusShutdown(token);
+    if (canRestoreOutputMode) SetConsoleMode(output, originalOutputMode);
+    gAnsiColorSupported = previousAnsiColorSupported;
 }
 
 namespace
@@ -2654,6 +2975,7 @@ void AsciiArt::RenderBattleReturnTransition()
     if (RenderStaticImage(config.battleReturnTransitionImagePath, true, 0, EStaticArtStyle::Braille,
                           config.contrastValue, config.outputPixelWidth, config.characterHeightScaleValue))
     {
+        DrawCenteredTextOnClearPanel(L"[ 마을로 돌아갑니다 ]", 0.50f);
         std::this_thread::sleep_for(std::chrono::milliseconds(std::max(0, config.battleTransitionMilliseconds)));
     }
 }
@@ -3169,6 +3491,73 @@ void AsciiArt::DrawCenteredTextOnClearPanel(const std::wstring& text, float vert
     WriteAt(output, x, y, panel);
 }
 
+void AsciiArt::DrawStaticImageInfoPanel(
+    const std::wstring& title,
+    const std::vector<std::wstring>& lines)
+{
+    const HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+    if (GetConsoleScreenBufferInfo(output, &consoleInfo) == FALSE)
+    {
+        return;
+    }
+
+    constexpr int kHorizontalPadding = 2;
+    const std::wstring heading = L"[ " + title + L" ]";
+    const std::wstring closeGuide = L"Enter / Space / ESC : 돌아가기";
+
+    int contentWidth = std::max(GetConsoleDisplayWidth(heading), GetConsoleDisplayWidth(closeGuide));
+    for (const std::wstring& line : lines)
+    {
+        contentWidth = std::max(contentWidth, GetConsoleDisplayWidth(line));
+    }
+    contentWidth = std::max(36, contentWidth);
+
+    const short alignmentLeft = gHasStaticImageBounds ? gStaticImageLeft : consoleInfo.srWindow.Left;
+    const short alignmentTop = gHasStaticImageBounds ? gStaticImageTop : consoleInfo.srWindow.Top;
+    const short alignmentWidth = gHasStaticImageBounds
+        ? gStaticImageWidth
+        : static_cast<short>(consoleInfo.srWindow.Right - consoleInfo.srWindow.Left + 1);
+    const short alignmentHeight = gHasStaticImageBounds
+        ? gStaticImageHeight
+        : static_cast<short>(consoleInfo.srWindow.Bottom - consoleInfo.srWindow.Top + 1);
+
+    // 테두리와 좌우 여백을 포함한 폭입니다. 너무 좁은 콘솔에서는 안전하게 잘라 냅니다.
+    contentWidth = std::min(contentWidth, std::max(1, static_cast<int>(alignmentWidth) - 2 - kHorizontalPadding * 2));
+    const int panelWidth = contentWidth + kHorizontalPadding * 2 + 2;
+    const int panelHeight = static_cast<int>(lines.size()) + 6;
+    const short x = static_cast<short>(alignmentLeft + std::max(0, (static_cast<int>(alignmentWidth) - panelWidth) / 2));
+    const short y = static_cast<short>(alignmentTop + std::max(0, (static_cast<int>(alignmentHeight) - panelHeight) / 2));
+
+    const auto makeContentRow = [&](const std::wstring& text)
+    {
+        const int textWidth = std::min(contentWidth, GetConsoleDisplayWidth(text));
+        std::wstring row = L"|" + std::wstring(kHorizontalPadding, L' ') + text;
+        row += std::wstring(std::max(0, contentWidth - textWidth), L' ');
+        row += std::wstring(kHorizontalPadding, L' ') + L"|";
+        return row;
+    };
+    const std::wstring border = L"+" + std::wstring(panelWidth - 2, L'-') + L"+";
+    const std::wstring emptyRow = makeContentRow(L"");
+
+    // 기존 AA 점을 공백으로 덮은 뒤 패널을 그려야 글자가 배경에 묻히지 않습니다.
+    for (int row = 0; row < panelHeight; ++row)
+    {
+        WriteAt(output, x, static_cast<short>(y + row), std::wstring(panelWidth, L' '));
+    }
+
+    WriteAt(output, x, y, border);
+    WriteAt(output, x, static_cast<short>(y + 1), emptyRow);
+    WriteAt(output, x, static_cast<short>(y + 2), makeContentRow(heading));
+    for (size_t index = 0; index < lines.size(); ++index)
+    {
+        WriteAt(output, x, static_cast<short>(y + 3 + index), makeContentRow(lines[index]));
+    }
+    WriteAt(output, x, static_cast<short>(y + 3 + lines.size()), emptyRow);
+    WriteAt(output, x, static_cast<short>(y + 4 + lines.size()), makeContentRow(closeGuide));
+    WriteAt(output, x, static_cast<short>(y + 5 + lines.size()), border);
+}
+
 void AsciiArt::DrawStaticImageText(
     const std::wstring& text,
     float horizontalRatio,
@@ -3348,6 +3737,7 @@ int AsciiArt::RunStandaloneDemo(
     const std::unique_ptr<Gdiplus::Image> healEffect = loadOptionalWeapon(config.healEffectImagePath);
     const std::unique_ptr<Gdiplus::Image> powerBuffEffect = loadOptionalWeapon(config.powerBuffEffectImagePath);
     const std::unique_ptr<Gdiplus::Image> battleBackground = loadOptionalWeapon(config.battleBackgroundImagePath);
+    const std::unique_ptr<Gdiplus::Image> bossBattleBackground = loadOptionalWeapon(config.bossBattleBackgroundImagePath);
 
     // 전투 중 프레임마다 파일을 다시 열지 않도록, 실제로 등장한 몬스터 스프라이트만 캐시합니다.
     // 경로를 찾지 못한 경우에는 설정 파일의 기존 monster_image를 안전한 대체 이미지로 씁니다.
@@ -3435,6 +3825,7 @@ int AsciiArt::RunStandaloneDemo(
     int sameMonsterTestTypeIndex = 0;
     bool autoBattleMonsterPhase = false;
     bool battleRevealPlayed = false;
+    bool skipBattleRequested = false;
     std::deque<BattleAction> testActionQueue;
     std::map<std::string, float> displayedHp;
     gBattleMonsterInstanceProfiles.clear();
@@ -3527,7 +3918,71 @@ int AsciiArt::RunStandaloneDemo(
         {
             ProcessInput(input, layout, settings, config, currentTurn, placement, resolution, activeSlider, attack, running, showDeveloperPanel, manualAttackMode,
                          potionOnlyTestMode, sameMonsterPlacementTestMode, showHealEffectPreview, showPowerBuffEffectPreview,
-                         battleState, requestedMonsterIndex, requestedTestCommand);
+                         battleState, requestedMonsterIndex, requestedTestCommand, skipBattleRequested);
+        }
+        if (!pendingBattleExit && skipBattleRequested)
+        {
+            // S 키는 보여 주는 연출만 건너뜁니다. 실제 전투는 평소와 같은
+            // "아군 전체 행동 → 생존 몬스터 전체 행동" 순서로 끝까지 계산합니다.
+            // 그래서 전투 후 보상/승패/마을 선택은 기존 기본 코드 흐름으로 그대로 이어집니다.
+            skipBattleRequested = false;
+            attack = AttackAnimation{};
+            testActionQueue.clear();
+            autoBattleEnabled = false;
+            fastResultMode = false;
+            pendingMonsterPhase = false;
+
+            constexpr int kMaximumSkippedActions = 10000;
+            bool battleContinues = true;
+            for (int actionCount = 0; actionCount < kMaximumSkippedActions && battleContinues; ++actionCount)
+            {
+                const BattleSceneState skippedState = getBattleState ? getBattleState() : BattleSceneState{};
+                const int livingMonsterIndex = FindNextLivingMonsterIndex(skippedState, 0);
+                if (skippedState.playerStatuses.empty() || livingMonsterIndex < 0)
+                {
+                    break;
+                }
+
+                // 그 순간 살아 있는 아군이 한 번씩 공격합니다.
+                for (int playerIndex = 0; playerIndex < static_cast<int>(skippedState.playerStatuses.size()); ++playerIndex)
+                {
+                    if (skippedState.playerStatuses[playerIndex].isDead) continue;
+                    const BattleSceneState currentState = getBattleState ? getBattleState() : BattleSceneState{};
+                    const int targetIndex = FindNextLivingMonsterIndex(currentState, 0);
+                    if (targetIndex < 0)
+                    {
+                        battleContinues = false;
+                        break;
+                    }
+                    if (!onBattleAction || !onBattleAction({ EBattleActionType::PlayerAttack, playerIndex, targetIndex }))
+                    {
+                        battleContinues = false;
+                        break;
+                    }
+                }
+                if (!battleContinues) break;
+
+                // 이어서 그 순간 살아 있는 몬스터가 한 번씩 공격합니다.
+                const BattleSceneState monsterTurnState = getBattleState ? getBattleState() : BattleSceneState{};
+                const int livingPlayerCount = static_cast<int>(monsterTurnState.playerStatuses.size());
+                if (livingPlayerCount <= 0)
+                {
+                    break;
+                }
+                for (int monsterIndex = 0; monsterIndex < static_cast<int>(monsterTurnState.monsterStatuses.size()); ++monsterIndex)
+                {
+                    if (monsterTurnState.monsterStatuses[monsterIndex].isDead) continue;
+                    if (!onBattleAction || !onBattleAction({ EBattleActionType::MonsterAttack, monsterIndex, monsterIndex % livingPlayerCount }))
+                    {
+                        battleContinues = false;
+                        break;
+                    }
+                }
+            }
+
+            // 기본 전투 함수가 기존 결과 출력과 보상 처리를 이어서 하도록 AA 루프만 끝냅니다.
+            running = false;
+            continue;
         }
         // 임시 테스트 모드: 숫자 입력이 들어올 때만 행동 큐를 만들고, 큐가 끝나면 다시 입력을 기다립니다.
         if (!pendingBattleExit && potionOnlyTestMode && requestedTestCommand != 0 && !attack.playing && testActionQueue.empty() &&
@@ -3679,7 +4134,7 @@ int AsciiArt::RunStandaloneDemo(
             attack.targetIndex = livingTargetIndex;
             attack.startedAt = std::chrono::steady_clock::now();
         }
-        if (attack.playing && GetElapsedSeconds(attack.startedAt) >= 0.72)
+        if (attack.playing && GetBattleAnimationSeconds(attack.startedAt) >= 0.72)
         {
             const BattleAction action{
                 attack.monsterAttacking ? EBattleActionType::MonsterAttack :
@@ -3720,18 +4175,21 @@ int AsciiArt::RunStandaloneDemo(
             else if (!potionOnlyTestMode && action.type == EBattleActionType::MonsterAttack)
             {
                 ++currentMonsterTurn;
-                nextAutomaticAttackAt = std::chrono::steady_clock::now() + std::chrono::milliseconds(360);
+                nextAutomaticAttackAt = std::chrono::steady_clock::now() +
+                    std::chrono::milliseconds(GetBattleAnimationDelayMilliseconds(360));
             }
             else if (!potionOnlyTestMode && currentTurn + 1 >= playerCount)
             {
                 pendingMonsterPhase = true;
                 currentMonsterTurn = 0;
-                nextAutomaticAttackAt = std::chrono::steady_clock::now() + std::chrono::milliseconds(420);
+                nextAutomaticAttackAt = std::chrono::steady_clock::now() +
+                    std::chrono::milliseconds(GetBattleAnimationDelayMilliseconds(420));
             }
             else if (!potionOnlyTestMode)
             {
                 ++currentTurn;
-                nextAutomaticAttackAt = std::chrono::steady_clock::now() + std::chrono::milliseconds(420);
+                nextAutomaticAttackAt = std::chrono::steady_clock::now() +
+                    std::chrono::milliseconds(GetBattleAnimationDelayMilliseconds(420));
             }
         }
 
@@ -3755,14 +4213,21 @@ int AsciiArt::RunStandaloneDemo(
             monsterImages.push_back(loadMonsterVisual(status));
         }
 
-        RenderScene(scene, battleBackground.get(), hero, hero2ToRender, tankToRender, monster, monsterImages,
+        const bool isBossBattle = std::any_of(
+            battleState.monsterStatuses.begin(), battleState.monsterStatuses.end(),
+            [](const ActorBattleStatus& status) { return IsBossMonster(status); });
+        Gdiplus::Image* backgroundToRender = isBossBattle && bossBattleBackground != nullptr
+            ? bossBattleBackground.get()
+            : battleBackground.get();
+
+        RenderScene(scene, backgroundToRender, hero, hero2ToRender, tankToRender, monster, monsterImages,
                     warriorWeapon.get(), mageWeapon.get(), tankWeapon.get(), hitEffectImages, heroSlashEffectImages, healEffect.get(), powerBuffEffect.get(),
                     config, placement, attack, &battleState, displayedHp, GetElapsedSeconds(startedAt), showHealEffectPreview, showPowerBuffEffectPreview);
         const int maximumWidth = CalculateMaximumOutputPixelWidth(output, settings, layout, config);
         resolution = CalculateArtResolution(scene, settings, maximumWidth);
         const std::vector<std::wstring> art = CreateBrailleLines(scene, settings, maximumWidth);
         const bool floatingTextVisible = !battleState.floatingTextTargetId.empty() &&
-            battleState.floatingTextValue != 0 && battleState.floatingTextAgeSeconds < 0.72;
+            battleState.floatingTextValue != 0 && battleState.floatingTextAgeSeconds * gBattleSpeedMultiplier < 0.72;
         if (!battleRevealPlayed)
         {
             PlayVerticalReveal(output, art, layout.artStartY, L"[ 전투 개시 ]");
@@ -3773,7 +4238,8 @@ int AsciiArt::RunStandaloneDemo(
                               showHealEffectPreview, showPowerBuffEffectPreview, autoBattleEnabled, fastResultMode);
         DrawFloatingCombatTextOverlay(output, battleState, config, layout, resolution);
         DrawPlacementStatus(output, layout, resolution, placement);
-        const int frameDelayMilliseconds = 1000 / std::max(1, config.framesPerSecond);
+        const int frameDelayMilliseconds = GetBattleAnimationDelayMilliseconds(
+            1000 / std::max(1, config.framesPerSecond));
         std::this_thread::sleep_for(std::chrono::milliseconds(frameDelayMilliseconds));
     }
 

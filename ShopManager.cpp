@@ -83,7 +83,7 @@ void ShopManager::ShowSellableList() const
         for (auto& it : itemList)
         {
             const ItemData& item = ITEM_TABLE.at(it.first);
-            std::cout << count << ". " << item.name << " | 보유수량: " << it.second << "개 | 개당 판매 가격: " << item.purchasePrice << "골드" << std::endl;
+            std::cout << count << ". " << item.name << " | 보유수량: " << it.second << "개 | 개당 판매 가격: " << static_cast<int>(item.purchasePrice * 0.6) << "골드" << std::endl;
             count++;
         }
     }
