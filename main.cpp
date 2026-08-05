@@ -57,7 +57,7 @@ std::vector<Player *> players;  // 플레이어 목록
 namespace
 {
 // 테스트 종료 후 false로 바꾸면 첫 전투 레벨 10 보정을 끌 수 있습니다.
-constexpr bool kEnableFirstBattleLevelTenTest = true;
+constexpr bool kEnableFirstBattleLevelTenTest = false;
 bool gHasAppliedFirstBattleLevelTenTest = false;
 
 void ApplyFirstBattleLevelTenTest(const std::vector<Player *> &currentPlayers)
