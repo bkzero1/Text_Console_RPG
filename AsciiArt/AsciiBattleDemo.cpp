@@ -141,6 +141,7 @@ struct AttackAnimation
     int attackerIndex = 0;
     int targetIndex = 0;
     int hitEffectVariant = 0;
+    bool hitEffectStarted = false;
     std::chrono::steady_clock::time_point startedAt{};
 };
 
@@ -291,6 +292,35 @@ struct BrailleCell
     Gdiplus::Color color = Gdiplus::Color(255, 255, 255, 255);
 };
 
+// 전투 장면은 배경보다 캐릭터·몬스터·이펙트만 자주 움직입니다.
+// 그래서 최종 Braille 결과도 "화면 전체"가 아니라, 움직일 수 있는 영역만 다시 계산합니다.
+// 콘솔 출력 행 캐시와는 별개로, 이것은 픽셀 -> Braille 변환 자체를 줄이기 위한 캐시입니다.
+struct BattleBrailleCache
+{
+    std::vector<std::vector<BrailleCell>> cells;
+    std::vector<std::wstring> lines;
+    int outputPixelWidth = 0;
+    int outputPixelHeight = 0;
+    UINT sourceWidth = 0;
+    UINT sourceHeight = 0;
+    RenderSettings settings{};
+    const Gdiplus::Image* background = nullptr;
+    bool valid = false;
+};
+
+BattleBrailleCache gBattleBrailleCache;
+
+bool IsSameRenderSettings(const RenderSettings& left, const RenderSettings& right)
+{
+    return left.outputPixelWidth == right.outputPixelWidth &&
+        left.characterHeightScaleValue == right.characterHeightScaleValue &&
+        left.contrastValue == right.contrastValue &&
+        left.darknessBoostValue == right.darknessBoostValue &&
+        left.useOrderedDithering == right.useOrderedDithering &&
+        left.useAnsiColor == right.useAnsiColor &&
+        left.colorMode == right.colorMode;
+}
+
 BrailleCell CreateBrailleCell(
     Gdiplus::Bitmap& image,
     int cellX,
@@ -402,6 +432,131 @@ std::vector<std::wstring> CreateBrailleLines(Gdiplus::Bitmap& image, const Rende
         lines.push_back(line);
     }
     return lines;
+}
+
+std::wstring CreateBrailleLine(const std::vector<BrailleCell>& cells, const RenderSettings& settings)
+{
+    std::wstring line;
+    Gdiplus::Color previousColor;
+    bool hasPreviousColor = false;
+    for (const BrailleCell& cell : cells)
+    {
+        if (settings.useAnsiColor && cell.character != static_cast<wchar_t>(0x2800))
+        {
+            if (!hasPreviousColor || cell.color.GetValue() != previousColor.GetValue())
+            {
+                line += CreateAnsiColorCode(cell.color, settings.colorMode);
+                previousColor = cell.color;
+                hasPreviousColor = true;
+            }
+        }
+        line += cell.character;
+    }
+    if (settings.useAnsiColor)
+    {
+        line += L"\x1b[0m";
+    }
+    return line;
+}
+
+struct SceneRect
+{
+    float x = 0.0f;
+    float y = 0.0f;
+    float width = 0.0f;
+    float height = 0.0f;
+};
+
+void AddExpandedSceneRect(std::vector<SceneRect>& rectangles, float x, float y, float width, float height, float padding = 0.0f)
+{
+    rectangles.push_back({ x - padding, y - padding, width + padding * 2.0f, height + padding * 2.0f });
+}
+
+const std::vector<std::wstring>& UpdateBattleBrailleCache(
+    Gdiplus::Bitmap& image,
+    const RenderSettings& settings,
+    int maximumOutputPixelWidth,
+    const Gdiplus::Image* background,
+    const std::vector<SceneRect>& dynamicRectangles,
+    bool forceFullRefresh = false)
+{
+    const ArtResolution resolution = CalculateArtResolution(image, settings, maximumOutputPixelWidth);
+    const int cellColumns = resolution.pixelWidth / 2;
+    const int cellRows = resolution.pixelHeight / 4;
+    const bool needsFullBuild = forceFullRefresh || !gBattleBrailleCache.valid ||
+        gBattleBrailleCache.outputPixelWidth != resolution.pixelWidth ||
+        gBattleBrailleCache.outputPixelHeight != resolution.pixelHeight ||
+        gBattleBrailleCache.sourceWidth != image.GetWidth() ||
+        gBattleBrailleCache.sourceHeight != image.GetHeight() ||
+        gBattleBrailleCache.background != background ||
+        !IsSameRenderSettings(gBattleBrailleCache.settings, settings);
+
+    if (needsFullBuild)
+    {
+        gBattleBrailleCache.cells.assign(
+            static_cast<size_t>(cellRows),
+            std::vector<BrailleCell>(static_cast<size_t>(cellColumns)));
+        gBattleBrailleCache.lines.assign(static_cast<size_t>(cellRows), L"");
+        for (int cellY = 0; cellY < cellRows; ++cellY)
+        {
+            for (int cellX = 0; cellX < cellColumns; ++cellX)
+            {
+                gBattleBrailleCache.cells[static_cast<size_t>(cellY)][static_cast<size_t>(cellX)] =
+                    CreateBrailleCell(image, cellX, cellY, resolution.pixelWidth, resolution.pixelHeight, settings);
+            }
+            gBattleBrailleCache.lines[static_cast<size_t>(cellY)] =
+                CreateBrailleLine(gBattleBrailleCache.cells[static_cast<size_t>(cellY)], settings);
+        }
+        gBattleBrailleCache.outputPixelWidth = resolution.pixelWidth;
+        gBattleBrailleCache.outputPixelHeight = resolution.pixelHeight;
+        gBattleBrailleCache.sourceWidth = image.GetWidth();
+        gBattleBrailleCache.sourceHeight = image.GetHeight();
+        gBattleBrailleCache.settings = settings;
+        gBattleBrailleCache.background = background;
+        gBattleBrailleCache.valid = true;
+        return gBattleBrailleCache.lines;
+    }
+
+    // 배경은 캐시된 셀을 그대로 두고, 매 프레임 움직일 수 있는 사각 영역에 겹친 셀만 갱신합니다.
+    // 한 셀이 2x4 점을 담당하므로, 영역 양끝에 한 칸의 여유를 더해 잘림을 방지합니다.
+    std::vector<bool> dirtyRows(static_cast<size_t>(cellRows), false);
+    for (const SceneRect& rectangle : dynamicRectangles)
+    {
+        const float left = std::clamp(rectangle.x, 0.0f, static_cast<float>(image.GetWidth()));
+        const float top = std::clamp(rectangle.y, 0.0f, static_cast<float>(image.GetHeight()));
+        const float right = std::clamp(rectangle.x + rectangle.width, 0.0f, static_cast<float>(image.GetWidth()));
+        const float bottom = std::clamp(rectangle.y + rectangle.height, 0.0f, static_cast<float>(image.GetHeight()));
+        if (right <= left || bottom <= top) continue;
+
+        const int outputLeft = static_cast<int>(left * (resolution.pixelWidth - 1) / std::max<UINT>(1, image.GetWidth() - 1));
+        const int outputRight = static_cast<int>(right * (resolution.pixelWidth - 1) / std::max<UINT>(1, image.GetWidth() - 1));
+        const int outputTop = static_cast<int>(top * (resolution.pixelHeight - 1) / std::max<UINT>(1, image.GetHeight() - 1));
+        const int outputBottom = static_cast<int>(bottom * (resolution.pixelHeight - 1) / std::max<UINT>(1, image.GetHeight() - 1));
+        const int firstCellX = std::clamp(outputLeft / 2 - 1, 0, cellColumns - 1);
+        const int lastCellX = std::clamp(outputRight / 2 + 1, 0, cellColumns - 1);
+        const int firstCellY = std::clamp(outputTop / 4 - 1, 0, cellRows - 1);
+        const int lastCellY = std::clamp(outputBottom / 4 + 1, 0, cellRows - 1);
+        for (int cellY = firstCellY; cellY <= lastCellY; ++cellY)
+        {
+            for (int cellX = firstCellX; cellX <= lastCellX; ++cellX)
+            {
+                gBattleBrailleCache.cells[static_cast<size_t>(cellY)][static_cast<size_t>(cellX)] =
+                    CreateBrailleCell(image, cellX, cellY, resolution.pixelWidth, resolution.pixelHeight, settings);
+            }
+            dirtyRows[static_cast<size_t>(cellY)] = true;
+        }
+    }
+
+    for (int cellY = 0; cellY < cellRows; ++cellY)
+    {
+        if (dirtyRows[static_cast<size_t>(cellY)])
+        {
+            gBattleBrailleCache.lines[static_cast<size_t>(cellY)] =
+                CreateBrailleLine(gBattleBrailleCache.cells[static_cast<size_t>(cellY)], settings);
+        }
+    }
+
+    return gBattleBrailleCache.lines;
 }
 
 wchar_t GetLandscapeAsciiCharacter(
@@ -838,6 +993,131 @@ MonsterVisualArea GetMonsterVisualArea(const SceneConfig& config, const AsciiArt
     const MonsterVisualProfile& profile = GetMonsterVisualProfile(config, status);
     return { profile.x + sameTypeOrder * 46.0f, profile.y + sameTypeOrder * 24.0f,
              profile.width, profile.height };
+}
+
+// 일반 전투 중에는 이 목록 안의 오브젝트만 움직일 수 있습니다.
+// 여기에 포함된 사각형만 다시 Braille로 변환해서, 정적인 배경 변환 비용을 피합니다.
+std::vector<SceneRect> CollectBattleDynamicRectangles(
+    const SceneConfig& config,
+    const AsciiArt::BattleSceneState& battleState,
+    const AttackAnimation& attack,
+    bool showHealEffectPreview,
+    bool showPowerBuffEffectPreview)
+{
+    // 평상시에는 숨쉬기 애니메이션처럼 아주 작은 이동만 발생합니다.
+    // 공격/이펙트는 호출부에서 전체 갱신을 선택하므로, 여기에는 작은 여유만 둡니다.
+    constexpr float kCharacterPadding = 24.0f;
+    std::vector<SceneRect> rectangles;
+
+    AddExpandedSceneRect(rectangles, config.heroX, config.heroY, config.heroWidth, config.heroHeight, kCharacterPadding);
+    AddExpandedSceneRect(rectangles, config.hero2X, config.hero2Y, config.hero2Width, config.hero2Height, kCharacterPadding);
+    AddExpandedSceneRect(rectangles, config.tankX, config.tankY, config.tankWidth, config.tankHeight, kCharacterPadding);
+
+    // 무기는 독립 오브젝트이므로, 본체와 별도로 포함해야 공격 애니메이션 뒤가 남지 않습니다.
+    AddExpandedSceneRect(rectangles,
+        config.warriorWeaponX - config.warriorWeaponWidth * 0.5f,
+        config.warriorWeaponY - config.warriorWeaponHeight * 0.5f,
+        config.warriorWeaponWidth, config.warriorWeaponHeight, kCharacterPadding);
+    AddExpandedSceneRect(rectangles,
+        config.mageWeaponX - config.mageWeaponWidth * 0.5f,
+        config.mageWeaponY - config.mageWeaponHeight * 0.5f,
+        config.mageWeaponWidth, config.mageWeaponHeight, kCharacterPadding);
+    AddExpandedSceneRect(rectangles,
+        config.tankShieldX - config.tankShieldWidth * 0.5f,
+        config.tankShieldY - config.tankShieldHeight * 0.5f,
+        config.tankShieldWidth, config.tankShieldHeight, kCharacterPadding);
+
+    for (int index = 0; index < static_cast<int>(battleState.monsterStatuses.size()); ++index)
+    {
+        const MonsterVisualArea area = GetMonsterVisualArea(
+            config,
+            battleState.monsterStatuses[static_cast<size_t>(index)],
+            GetSameTypeMonsterOrder(battleState, index));
+        // 죽은 몬스터 자리도 한 프레임은 다시 계산해야, 이전 모습이 화면에 남지 않습니다.
+        AddExpandedSceneRect(rectangles, area.x, area.y, area.width, area.height, kCharacterPadding);
+    }
+
+    const auto addPlayerActionArea = [&](int playerIndex, float padding)
+    {
+        if (playerIndex == 0)
+        {
+            AddExpandedSceneRect(rectangles, config.heroX, config.heroY, config.heroWidth, config.heroHeight, padding);
+            AddExpandedSceneRect(rectangles,
+                config.warriorWeaponX - config.warriorWeaponWidth * 0.5f,
+                config.warriorWeaponY - config.warriorWeaponHeight * 0.5f,
+                config.warriorWeaponWidth, config.warriorWeaponHeight, padding);
+        }
+        else if (playerIndex == 1)
+        {
+            AddExpandedSceneRect(rectangles, config.hero2X, config.hero2Y, config.hero2Width, config.hero2Height, padding);
+            AddExpandedSceneRect(rectangles,
+                config.mageWeaponX - config.mageWeaponWidth * 0.5f,
+                config.mageWeaponY - config.mageWeaponHeight * 0.5f,
+                config.mageWeaponWidth, config.mageWeaponHeight, padding);
+        }
+        else
+        {
+            AddExpandedSceneRect(rectangles, config.tankX, config.tankY, config.tankWidth, config.tankHeight, padding);
+            AddExpandedSceneRect(rectangles,
+                config.tankShieldX - config.tankShieldWidth * 0.5f,
+                config.tankShieldY - config.tankShieldHeight * 0.5f,
+                config.tankShieldWidth, config.tankShieldHeight, padding);
+        }
+    };
+
+    // 공격 중에는 움직이는 공격자·무기·피격 이펙트 주변만 넓게 다시 계산합니다.
+    // 배경까지 전부 다시 Braille로 만들지 않아 큰 콘솔에서도 움직임이 늦게 보이지 않게 합니다.
+    if (attack.playing)
+    {
+        const float actionPadding = config.heroAttackAdvanceRange + 28.0f;
+        if (attack.monsterAttacking)
+        {
+            if (!battleState.monsterStatuses.empty())
+            {
+                const int attackerIndex = std::clamp(attack.attackerIndex, 0, static_cast<int>(battleState.monsterStatuses.size()) - 1);
+                const MonsterVisualArea attacker = GetMonsterVisualArea(
+                    config, battleState.monsterStatuses[static_cast<size_t>(attackerIndex)],
+                    GetSameTypeMonsterOrder(battleState, attackerIndex));
+                AddExpandedSceneRect(rectangles, attacker.x, attacker.y, attacker.width, attacker.height, actionPadding);
+            }
+            const int targetIndex = std::clamp(attack.targetIndex, 0, 2);
+            addPlayerActionArea(targetIndex, config.hitEffectWidth * 0.5f + 20.0f);
+        }
+        else
+        {
+            const int attackerIndex = std::clamp(attack.attackerIndex, 0, 2);
+            addPlayerActionArea(attackerIndex, actionPadding);
+            if (!battleState.monsterStatuses.empty())
+            {
+                const int targetIndex = std::clamp(attack.targetIndex, 0, static_cast<int>(battleState.monsterStatuses.size()) - 1);
+                const MonsterVisualArea target = GetMonsterVisualArea(
+                    config, battleState.monsterStatuses[static_cast<size_t>(targetIndex)],
+                    GetSameTypeMonsterOrder(battleState, targetIndex));
+                AddExpandedSceneRect(rectangles, target.x, target.y, target.width, target.height,
+                    config.hitEffectWidth * 0.5f + 20.0f);
+            }
+        }
+    }
+
+    // 회복/버프는 공격과 별개로 체력바 위에서 잠시 보이므로, 실제 대상 주변도 갱신합니다.
+    const bool supportEffectVisible = showHealEffectPreview || showPowerBuffEffectPreview ||
+        ((battleState.floatingTextIsHealing || battleState.floatingTextIsPowerBuff) &&
+            battleState.floatingTextAgeSeconds >= 0.0 && battleState.floatingTextAgeSeconds * gBattleSpeedMultiplier < 0.75);
+    if (supportEffectVisible)
+    {
+        int playerIndex = 0;
+        for (size_t index = 0; index < battleState.playerStatuses.size(); ++index)
+        {
+            if (battleState.playerStatuses[index].id == battleState.floatingTextTargetId)
+            {
+                playerIndex = static_cast<int>(index);
+                break;
+            }
+        }
+        addPlayerActionArea(playerIndex, std::max(config.healEffectWidth, config.powerBuffEffectWidth) * 0.5f + 20.0f);
+    }
+
+    return rectangles;
 }
 
 // 전투에 실제 등장한 순서대로 1~4번 고정 슬롯을 사용합니다.
@@ -2344,6 +2624,7 @@ void ProcessInput(
                         requestedMonsterIndex = index;
                         attack.playing = true;
                         attack.hitEffectVariant = PickRandomHitEffectVariant();
+                        attack.hitEffectStarted = false;
                         attack.monsterAttacking = false;
                         attack.attackerIndex = currentTurn;
                         attack.targetIndex = index;
@@ -3653,8 +3934,11 @@ int AsciiArt::RunStandaloneDemo(
     int heroTurnCount,
     const BattleActionCallback& onBattleAction,
     const BattleStateProvider& getBattleState,
-    bool potionOnlyTestMode)
+    bool potionOnlyTestMode,
+    const BattleHitEffectCallback& onHitEffectStarted)
 {
+    // 새 전투에서는 이전 전투의 캐릭터/몬스터 셀이 남지 않도록 한 번만 전체 변환합니다.
+    gBattleBrailleCache.valid = false;
     Gdiplus::GdiplusStartupInput startupInput;
     ULONG_PTR token = 0;
     if (Gdiplus::GdiplusStartup(&token, &startupInput, nullptr) != Gdiplus::Ok)
@@ -3825,6 +4109,8 @@ int AsciiArt::RunStandaloneDemo(
     int sameMonsterTestTypeIndex = 0;
     bool autoBattleMonsterPhase = false;
     bool battleRevealPlayed = false;
+    // 공격 직후 한 프레임은 전체를 갱신해, 사라진 이펙트의 잔상이 남지 않게 합니다.
+    bool previousFrameHadAttackAnimation = false;
     bool skipBattleRequested = false;
     std::deque<BattleAction> testActionQueue;
     std::map<std::string, float> displayedHp;
@@ -4084,6 +4370,7 @@ int AsciiArt::RunStandaloneDemo(
             testActionQueue.pop_front();
             attack.playing = true;
             attack.hitEffectVariant = PickRandomHitEffectVariant();
+            attack.hitEffectStarted = false;
             attack.monsterAttacking = nextAction.type == EBattleActionType::MonsterAttack;
             attack.playerUsingPotion = nextAction.type == EBattleActionType::PlayerUsePotion || nextAction.type == EBattleActionType::PlayerUsePowerPotion;
             attack.playerUsingPowerPotion = nextAction.type == EBattleActionType::PlayerUsePowerPotion;
@@ -4109,6 +4396,7 @@ int AsciiArt::RunStandaloneDemo(
             {
                 attack.playing = true;
                 attack.hitEffectVariant = PickRandomHitEffectVariant();
+                attack.hitEffectStarted = false;
                 attack.monsterAttacking = true;
                 attack.attackerIndex = currentMonsterTurn;
                 attack.targetIndex = currentMonsterTurn % std::max(1, playerCount);
@@ -4129,12 +4417,29 @@ int AsciiArt::RunStandaloneDemo(
             attack.playing = true;
             attack.playerUsingPotion = potionOnlyTestMode;
             attack.hitEffectVariant = PickRandomHitEffectVariant();
+            attack.hitEffectStarted = false;
             attack.monsterAttacking = false;
             attack.attackerIndex = currentTurn;
             attack.targetIndex = livingTargetIndex;
             attack.startedAt = std::chrono::steady_clock::now();
         }
-        if (attack.playing && GetBattleAnimationSeconds(attack.startedAt) >= 0.72)
+        const double currentAttackTime = attack.playing ? GetBattleAnimationSeconds(attack.startedAt) : -1.0;
+        // 타격 이펙트는 0.18초부터 보이므로, 효과음도 이 시점에 맞춥니다.
+        // 실제 HP 계산은 기존 0.72초 지점을 유지해 전투 계산과 화면 연출을 분리합니다.
+        if (attack.playing && !attack.playerUsingPotion && !attack.hitEffectStarted && currentAttackTime >= 0.18)
+        {
+            attack.hitEffectStarted = true;
+            if (onHitEffectStarted)
+            {
+                onHitEffectStarted({
+                    attack.monsterAttacking ? EBattleActionType::MonsterAttack : EBattleActionType::PlayerAttack,
+                    attack.attackerIndex,
+                    attack.targetIndex
+                });
+            }
+        }
+
+        if (attack.playing && currentAttackTime >= 0.72)
         {
             const BattleAction action{
                 attack.monsterAttacking ? EBattleActionType::MonsterAttack :
@@ -4225,7 +4530,19 @@ int AsciiArt::RunStandaloneDemo(
                     config, placement, attack, &battleState, displayedHp, GetElapsedSeconds(startedAt), showHealEffectPreview, showPowerBuffEffectPreview);
         const int maximumWidth = CalculateMaximumOutputPixelWidth(output, settings, layout, config);
         resolution = CalculateArtResolution(scene, settings, maximumWidth);
-        const std::vector<std::wstring> art = CreateBrailleLines(scene, settings, maximumWidth);
+        // 공격 중에는 공격자·대상·이펙트 주변만 갱신합니다.
+        // 단, 공격이 끝난 바로 다음 프레임만 전체를 갱신해 이펙트의 마지막 잔상을 지웁니다.
+        const bool requiresFullSceneRefresh = placement.active ||
+            (previousFrameHadAttackAnimation && !attack.playing) ||
+            showHealEffectPreview || showPowerBuffEffectPreview;
+        const std::vector<std::wstring>& art = UpdateBattleBrailleCache(
+            scene,
+            settings,
+            maximumWidth,
+            backgroundToRender,
+            CollectBattleDynamicRectangles(config, battleState, attack, showHealEffectPreview, showPowerBuffEffectPreview),
+            requiresFullSceneRefresh);
+        previousFrameHadAttackAnimation = attack.playing;
         const bool floatingTextVisible = !battleState.floatingTextTargetId.empty() &&
             battleState.floatingTextValue != 0 && battleState.floatingTextAgeSeconds * gBattleSpeedMultiplier < 0.72;
         if (!battleRevealPlayed)

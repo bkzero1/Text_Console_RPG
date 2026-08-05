@@ -197,8 +197,6 @@ bool AsciiArt::RunBattlePresentation(BattleManager& battleManager, MonsterPool& 
                 isMonsterTurn = false;
                 turnActorName = attacker->GetName() + "(이)가 " + target->GetName() + "을(를) 공격합니다.";
                 battleManager.PlayerHitMonster(target, attacker->GetPower());
-                // 타격 사운드
-                soundManager.PlaySFX(soundMap.at(SoundStates::ATTACK_01));
                 floatingTextTargetId = MakeActorId("monster_", target);
                 floatingTextValue = std::max(0, hpBefore - target->GetHp());
                 floatingTextIsHealing = false;
@@ -228,8 +226,6 @@ bool AsciiArt::RunBattlePresentation(BattleManager& battleManager, MonsterPool& 
                 isMonsterTurn = true;
                 turnActorName = attacker->GetName() + "(이)가 " + target->GetName() + "을(를) 공격합니다.";
                 battleManager.MonsterHitPlayer(target, attacker->GetPower());
-                // 타격 사운드 
-                soundManager.PlaySFX(soundMap.at(SoundStates::ATTACK_02));
                 floatingTextTargetId = MakeActorId("player_", target);
                 floatingTextValue = std::max(0, hpBefore - target->GetHp());
                 floatingTextIsHealing = false;
@@ -243,7 +239,14 @@ bool AsciiArt::RunBattlePresentation(BattleManager& battleManager, MonsterPool& 
             return !battleManager.IsMonstersDead() && !battleManager.IsPlayersDead();
         },
         makeSceneState,
-        kEnablePotionOnlyTest);
+        kEnablePotionOnlyTest,
+        [&](const BattleAction& action)
+        {
+            const SoundStates soundState = action.type == EBattleActionType::MonsterAttack
+                ? SoundStates::ATTACK_02
+                : SoundStates::ATTACK_01;
+            soundManager.PlaySFX(soundMap.at(soundState));
+        });
 
     return battleManager.IsMonstersDead();
 }

@@ -35,12 +35,16 @@ namespace AsciiArt
 
     using BattleActionCallback = std::function<bool(const BattleAction&)>;
     using BattleStateProvider = std::function<BattleSceneState()>;
+    // 실제 피해 계산 전, 타격 이펙트가 화면에 처음 보이는 순간에 호출합니다.
+    // 사운드처럼 연출 타이밍만 필요한 기능이 전투 계산을 앞당기지 않도록 분리합니다.
+    using BattleHitEffectCallback = std::function<void(const BattleAction&)>;
 
     int RunStandaloneDemo(
         int heroTurnCount = 2,
         const BattleActionCallback& onBattleAction = {},
         const BattleStateProvider& getBattleState = {},
-        bool potionOnlyTestMode = false);
+        bool potionOnlyTestMode = false,
+        const BattleHitEffectCallback& onHitEffectStarted = {});
 
     bool RenderStaticImage(
         const std::wstring& imagePath,
