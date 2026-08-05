@@ -46,11 +46,13 @@ std::string Monster::Deploy(const EMonsterID& eMonsterID, int playerLevel, bool 
 
     if (IsBoss)
     {
-        hp *= 1.5;
-        power *= 1.5;
-        gold *= 1.5;
-        exp *= 1.5;
+        hp = static_cast<int>(hp * 1.5);
+        power = static_cast<int>(power * 1.5);
+        gold = static_cast<int>(gold * 1.5);
+        exp = static_cast<int>(exp * 1.5);
     }
+    // 배치가 끝난 시점의 체력을 최대 체력으로 기록합니다.
+    hpMax = hp;
     // 몬스터 Goblin 등장 !체력 : 40, 공격력 : 8
     std::string nanori = "몬스터 " + name + " 등장! 체력 : " + std::to_string(hp) + ", 공격력 : " + std::to_string(power);
 

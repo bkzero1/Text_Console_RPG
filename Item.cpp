@@ -201,3 +201,4 @@ const std::map<EItemID, ItemData> ITEM_TABLE = {
                                                 "붉은 용의 힘이 응축된 최고급 재료.",
                                                 2778)},
 };
+

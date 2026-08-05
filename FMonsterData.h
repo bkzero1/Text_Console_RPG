@@ -14,8 +14,8 @@ struct FDropData
 
 enum class EMonsterID
 {
-	NONE,
-    
+    NONE,
+
     // 일반몹
     SLIME,
     GOBLIN,
@@ -37,6 +37,7 @@ enum class EMonsterID
     RED_DRAGON,
 };
 
+// 레벨 구간 경계값은 실제 몬스터가 아니므로 무작위 선택 대상에서 제외합니다.
 const std::set<EMonsterID> EXCLUDE_ID = {
     EMonsterID::NONE, EMonsterID::LV3, EMonsterID::LV6, EMonsterID::LV10
 };

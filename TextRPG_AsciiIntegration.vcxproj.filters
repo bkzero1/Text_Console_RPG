@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="&#xC18C;&#xC2A4; &#xD30C;&#xC77C;"><UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier></Filter>
+    <Filter Include="&#xD5E4;&#xB354; &#xD30C;&#xC77C;"><UniqueIdentifier>{93995380-89BD-4B04-88EB-625FBE52EBFB}</UniqueIdentifier></Filter>
+    <Filter Include="&#xB9AC;&#xC18C;&#xC2A4; &#xD30C;&#xC77C;"><UniqueIdentifier>{67DA6AB6-F800-4C08-B7A8-8B7A83BB121A}</UniqueIdentifier></Filter>
+    <Filter Include="&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\BattlePhase"><UniqueIdentifier>{11111111-1111-1111-1111-111111111111}</UniqueIdentifier></Filter>
+    <Filter Include="&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\Inventory"><UniqueIdentifier>{22222222-2222-2222-2222-222222222222}</UniqueIdentifier></Filter>
+    <Filter Include="&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\Item"><UniqueIdentifier>{33333333-3333-3333-3333-333333333333}</UniqueIdentifier></Filter>
+    <Filter Include="&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\Monster"><UniqueIdentifier>{44444444-4444-4444-4444-444444444444}</UniqueIdentifier></Filter>
+    <Filter Include="&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\Player"><UniqueIdentifier>{55555555-5555-5555-5555-555555555555}</UniqueIdentifier></Filter>
+    <Filter Include="&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\RpgLogger"><UniqueIdentifier>{66666666-6666-6666-6666-666666666666}</UniqueIdentifier></Filter>
+    <Filter Include="&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\Shop"><UniqueIdentifier>{77777777-7777-7777-7777-777777777777}</UniqueIdentifier></Filter>
+    <Filter Include="&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\AsciiArt"><UniqueIdentifier>{F1111111-1111-1111-1111-111111111111}</UniqueIdentifier></Filter>
+    <Filter Include="&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\AA"><UniqueIdentifier>{224C872A-9DB4-43AD-8F91-23DA36BE2FE0}</UniqueIdentifier></Filter>
+    <Filter Include="&#xD5E4;&#xB354; &#xD30C;&#xC77C;\BattlePhase"><UniqueIdentifier>{88888888-8888-8888-8888-888888888888}</UniqueIdentifier></Filter>
+    <Filter Include="&#xD5E4;&#xB354; &#xD30C;&#xC77C;\Inventory"><UniqueIdentifier>{99999999-9999-9999-9999-999999999999}</UniqueIdentifier></Filter>
+    <Filter Include="&#xD5E4;&#xB354; &#xD30C;&#xC77C;\Item"><UniqueIdentifier>{AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA}</UniqueIdentifier></Filter>
+    <Filter Include="&#xD5E4;&#xB354; &#xD30C;&#xC77C;\Monster"><UniqueIdentifier>{BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB}</UniqueIdentifier></Filter>
+    <Filter Include="&#xD5E4;&#xB354; &#xD30C;&#xC77C;\Player"><UniqueIdentifier>{CCCCCCCC-CCCC-CCCC-CCCC-CCCCCCCCCCCC}</UniqueIdentifier></Filter>
+    <Filter Include="&#xD5E4;&#xB354; &#xD30C;&#xC77C;\RpgLogger"><UniqueIdentifier>{DDDDDDDD-DDDD-DDDD-DDDD-DDDDDDDDDDDD}</UniqueIdentifier></Filter>
+    <Filter Include="&#xD5E4;&#xB354; &#xD30C;&#xC77C;\Shop"><UniqueIdentifier>{EEEEEEEE-EEEE-EEEE-EEEE-EEEEEEEEEEEE}</UniqueIdentifier></Filter>
+    <Filter Include="&#xD5E4;&#xB354; &#xD30C;&#xC77C;\AsciiArt"><UniqueIdentifier>{F2222222-2222-2222-2222-222222222222}</UniqueIdentifier></Filter>
+    <Filter Include="&#xD5E4;&#xB354; &#xD30C;&#xC77C;\AA"><UniqueIdentifier>{FDCBFF08-33EA-4939-830B-E1429AE47022}</UniqueIdentifier></Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="TextRPGSource\BattleManager.cpp"><Filter>&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\BattlePhase</Filter></ClCompile>
+    <ClCompile Include="TextRPGSource\Inventory.cpp"><Filter>&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\Inventory</Filter></ClCompile>
+    <ClCompile Include="TextRPGSource\InventorySlot.cpp"><Filter>&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\Inventory</Filter></ClCompile>
+    <ClCompile Include="TextRPGSource\Item.cpp"><Filter>&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\Item</Filter></ClCompile>
+    <ClCompile Include="TextRPGSource\ItemUseHandler.cpp"><Filter>&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\Item</Filter></ClCompile>
+    <ClCompile Include="TextRPGSource\Mage.cpp"><Filter>&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\Player</Filter></ClCompile>
+    <ClCompile Include="TextRPGSource\Monster.cpp"><Filter>&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\Monster</Filter></ClCompile>
+    <ClCompile Include="TextRPGSource\MonsterPool.cpp"><Filter>&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\Monster</Filter></ClCompile>
+    <ClCompile Include="TextRPGSource\Player.cpp"><Filter>&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\Player</Filter></ClCompile>
+    <ClCompile Include="TextRPGSource\RpgLogger.cpp"><Filter>&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\RpgLogger</Filter></ClCompile>
+    <ClCompile Include="TextRPGSource\ShopManager.cpp"><Filter>&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\Shop</Filter></ClCompile>
+    <ClCompile Include="TextRPGSource\Tank.cpp"><Filter>&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\Player</Filter></ClCompile>
+    <ClCompile Include="TextRPGSource\Warrior.cpp"><Filter>&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\Player</Filter></ClCompile>
+    <ClCompile Include="TextRPGSource\main.cpp"><Filter>&#xC18C;&#xC2A4; &#xD30C;&#xC77C;</Filter></ClCompile>
+    <ClCompile Include="TextRPGSource\AsciiArt\AsciiBattleDemo.cpp"><Filter>&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\AsciiArt</Filter></ClCompile>
+    <ClCompile Include="TextRPGSource\AsciiArt\AsciiBattleBridge.cpp"><Filter>&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\AsciiArt</Filter></ClCompile>
+    <ClCompile Include="TextRPGSource\StartScreen.cpp"><Filter>&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\AA</Filter></ClCompile>
+    <ClCompile Include="TextRPGSource\ShopScreen.cpp"><Filter>&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\AA</Filter></ClCompile>
+    <ClCompile Include="TextRPGSource\GameClearScreen.cpp"><Filter>&#xC18C;&#xC2A4; &#xD30C;&#xC77C;\AA</Filter></ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="TextRPGSource\BattleManager.h"><Filter>&#xD5E4;&#xB354; &#xD30C;&#xC77C;\BattlePhase</Filter></ClInclude>
+    <ClInclude Include="TextRPGSource\FMonsterData.h"><Filter>&#xD5E4;&#xB354; &#xD30C;&#xC77C;\Monster</Filter></ClInclude>
+    <ClInclude Include="TextRPGSource\Inventory.h"><Filter>&#xD5E4;&#xB354; &#xD30C;&#xC77C;\Inventory</Filter></ClInclude>
+    <ClInclude Include="TextRPGSource\InventorySlot.h"><Filter>&#xD5E4;&#xB354; &#xD30C;&#xC77C;\Inventory</Filter></ClInclude>
+    <ClInclude Include="TextRPGSource\Item.h"><Filter>&#xD5E4;&#xB354; &#xD30C;&#xC77C;\Item</Filter></ClInclude>
+    <ClInclude Include="TextRPGSource\ItemUseHandler.h"><Filter>&#xD5E4;&#xB354; &#xD30C;&#xC77C;\Item</Filter></ClInclude>
+    <ClInclude Include="TextRPGSource\Mage.h"><Filter>&#xD5E4;&#xB354; &#xD30C;&#xC77C;\Player</Filter></ClInclude>
+    <ClInclude Include="TextRPGSource\Monster.h"><Filter>&#xD5E4;&#xB354; &#xD30C;&#xC77C;\Monster</Filter></ClInclude>
+    <ClInclude Include="TextRPGSource\MonsterPool.h"><Filter>&#xD5E4;&#xB354; &#xD30C;&#xC77C;\Monster</Filter></ClInclude>
+    <ClInclude Include="TextRPGSource\Player.h"><Filter>&#xD5E4;&#xB354; &#xD30C;&#xC77C;\Player</Filter></ClInclude>
+    <ClInclude Include="TextRPGSource\RpgLogger.h"><Filter>&#xD5E4;&#xB354; &#xD30C;&#xC77C;\RpgLogger</Filter></ClInclude>
+    <ClInclude Include="TextRPGSource\ShopManager.h"><Filter>&#xD5E4;&#xB354; &#xD30C;&#xC77C;\Shop</Filter></ClInclude>
+    <ClInclude Include="TextRPGSource\Tank.h"><Filter>&#xD5E4;&#xB354; &#xD30C;&#xC77C;\Player</Filter></ClInclude>
+    <ClInclude Include="TextRPGSource\Warrior.h"><Filter>&#xD5E4;&#xB354; &#xD30C;&#xC77C;\Player</Filter></ClInclude>
+    <ClInclude Include="TextRPGSource\AsciiArt\AsciiBattleDemo.h"><Filter>&#xD5E4;&#xB354; &#xD30C;&#xC77C;\AsciiArt</Filter></ClInclude>
+    <ClInclude Include="TextRPGSource\AsciiArt\AsciiBattleBridge.h"><Filter>&#xD5E4;&#xB354; &#xD30C;&#xC77C;\AsciiArt</Filter></ClInclude>
+    <ClInclude Include="TextRPGSource\AsciiArt\AsciiBattleScene.h"><Filter>&#xD5E4;&#xB354; &#xD30C;&#xC77C;\AsciiArt</Filter></ClInclude>
+    <ClInclude Include="TextRPGSource\AsciiArt\SceneConfig.h"><Filter>&#xD5E4;&#xB354; &#xD30C;&#xC77C;\AsciiArt</Filter></ClInclude>
+    <ClInclude Include="TextRPGSource\StartScreen.h"><Filter>&#xD5E4;&#xB354; &#xD30C;&#xC77C;\AA</Filter></ClInclude>
+    <ClInclude Include="TextRPGSource\ShopScreen.h"><Filter>&#xD5E4;&#xB354; &#xD30C;&#xC77C;\AA</Filter></ClInclude>
+    <ClInclude Include="TextRPGSource\GameClearScreen.h"><Filter>&#xD5E4;&#xB354; &#xD30C;&#xC77C;\AA</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SceneConfig.jsonc"><Filter>&#xB9AC;&#xC18C;&#xC2A4; &#xD30C;&#xC77C;</Filter></None>
+    <None Include=".clang-format"><Filter>&#xB9AC;&#xC18C;&#xC2A4; &#xD30C;&#xC77C;</Filter></None>
+    <Image Include="resources\images\191af32bcae88d41.png"><Filter>&#xB9AC;&#xC18C;&#xC2A4; &#xD30C;&#xC77C;</Filter></Image>
+    <Image Include="resources\images\3561912736885df2.png"><Filter>&#xB9AC;&#xC18C;&#xC2A4; &#xD30C;&#xC77C;</Filter></Image>
+    <Image Include="resources\images\shop_background.png"><Filter>&#xB9AC;&#xC18C;&#xC2A4; &#xD30C;&#xC77C;</Filter></Image>
+    <Image Include="resources\images\shop_counter.png"><Filter>&#xB9AC;&#xC18C;&#xC2A4; &#xD30C;&#xC77C;</Filter></Image>
+    <Image Include="resources\images\shopkeeper.png"><Filter>&#xB9AC;&#xC18C;&#xC2A4; &#xD30C;&#xC77C;</Filter></Image>
+    <Image Include="resources\images\start_background_lowpoly.png"><Filter>&#xB9AC;&#xC18C;&#xC2A4; &#xD30C;&#xC77C;</Filter></Image>
+    <Image Include="resources\images\start_background_morning.png"><Filter>&#xB9AC;&#xC18C;&#xC2A4; &#xD30C;&#xC77C;</Filter></Image>
+    <Image Include="resources\images\start_background_valley.png"><Filter>&#xB9AC;&#xC18C;&#xC2A4; &#xD30C;&#xC77C;</Filter></Image>
+    <Image Include="resources\images\test.png"><Filter>&#xB9AC;&#xC18C;&#xC2A4; &#xD30C;&#xC77C;</Filter></Image>
+  </ItemGroup>
+</Project>

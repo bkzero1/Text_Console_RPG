@@ -17,6 +17,16 @@ int Player::GetLevel() const
     return level;
 }
 
+int Player::GetExp() const
+{
+    return exp;
+}
+
+int Player::GetExpMax() const
+{
+    return expMax;
+}
+
 void Player::AddExp(int exp)
 {
     this->exp += exp;

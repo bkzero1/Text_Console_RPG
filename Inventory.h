@@ -50,3 +50,4 @@ class Inventory
 
     void SortInventory(EInventorySortKey sortKey, bool reverse = false);  // 인벤토리 정렬
 };
+

@@ -3,9 +3,14 @@
 #include <random>
 #include <thread>
 
+#define NOMINMAX
+#include <windows.h>
+
+#include "AsciiArt/AsciiBattleBridge.h"
 #include "BattleManager.h"
 #include "Crafter.h"
 #include "FMonsterData.h"
+#include "GameClearScreen.h"
 #include "Inventory.h"
 #include "ItemUseHandler.h"
 #include "Mage.h"
@@ -14,37 +19,94 @@
 #include "Player.h"
 #include "RpgLogger.h"
 #include "ShopManager.h"
+#include "ShopScreen.h"
+#include "SoundManager.h"
+#include "StartScreen.h"
 #include "Tank.h"
 #include "Warrior.h"
 
 // 게임 상태
 enum class EGameState
 {
-    PLAYER_INIT,  // 캐릭터 생성 (이름, 스탯 초기 설정)
-
+    START_SCREEN,   // 게임 시작 화면
+    PLAYER_INIT,    // 캐릭터 생성 (이름, 스탯 초기 설정)
     NORMAL_BATTLE,  // 일반 전투
     BOSS_BATTLE,    // 보스 전투
-
-    MAIN_MEMU,  // 메인 메뉴
-    INN,        // 여관
-    SHOP,       // 상점
-    CRAFTING,   // 아이템 제작소
-
-    GAME_OVER,   // 게임 패배
-    GAME_CLEAR,  // 게임 승리
+    MAIN_MEMU,      // 메인 메뉴
+    SHOP,           // 상점
+    INN,            // 여관
+    CRAFTING,       // 아이템 제작소
+    GAME_OVER,      // 게임 패배
+    GAME_CLEAR,     // 게임 승리
 };
 
 // 전역 변수
-EGameState CurrentGameState = EGameState::PLAYER_INIT;
+EGameState CurrentGameState = EGameState::START_SCREEN;
 bool IsRunning = true;
 RpgLogger rpgLogger;
+SoundManager soundManager;
 
-Inventory* inventory;          // 인벤토리
-std::vector<Player*> players;  // 플레이어 목록
+// 메인 메뉴 전용 연출 상태입니다.
+// 처음 마을에 들어갈 때는 낮이며, 전투를 마치고 돌아올 때만 낮/밤이 바뀝니다.
+bool IsMainMenuNight = false;
+bool HasVisitedMainMenu = false;
+
+Inventory *inventory;           // 인벤토리
+std::vector<Player *> players;  // 플레이어 목록
+
+namespace
+{
+// 테스트 종료 후 false로 바꾸면 첫 전투 레벨 10 보정을 끌 수 있습니다.
+constexpr bool kEnableFirstBattleLevelTenTest = true;
+bool gHasAppliedFirstBattleLevelTenTest = false;
+
+void ApplyFirstBattleLevelTenTest(const std::vector<Player *> &currentPlayers)
+{
+    if (!kEnableFirstBattleLevelTenTest || gHasAppliedFirstBattleLevelTenTest)
+    {
+        return;
+    }
+
+    for (Player *player : currentPlayers)
+    {
+        if (player == nullptr)
+        {
+            continue;
+        }
+
+        while (player->GetLevel() < 10)
+        {
+            // 직업별 LevelUp() 규칙을 그대로 사용합니다.
+            player->LevelUp();
+        }
+    }
+
+    gHasAppliedFirstBattleLevelTenTest = true;
+    rpgLogger.AddLog("[테스트] 첫 전투 완료: 파티 레벨을 10으로 설정했습니다.");
+}
+}  // namespace
+
 // 게임 상태 전환
 void SwitchState(EGameState newGameState)
 {
     CurrentGameState = newGameState;
+}
+
+void ToggleMainMenuTimeOfDay()
+{
+    IsMainMenuNight = !IsMainMenuNight;
+}
+
+void AdvanceMainMenuTimeAfterBattle()
+{
+    // 첫 전투 뒤 도착하는 첫 마을은 항상 낮으로 시작합니다.
+    if (!HasVisitedMainMenu)
+    {
+        IsMainMenuNight = false;
+        return;
+    }
+
+    ToggleMainMenuTimeOfDay();
 }
 
 bool StringCompare(string a, string b)
@@ -124,117 +186,13 @@ void PlayerInit()
 
     // 인벤토리 생성
     inventory = new Inventory();
-
+    AsciiArt::GrantBattleTestPotions(*inventory);
     // 첫 전투 시작
     SwitchState(EGameState::NORMAL_BATTLE);
 }
-bool BattlePhase(BattleManager& battleManager, MonsterPool& monsterPool)
+bool BattlePhase(BattleManager &battleManager, MonsterPool &monsterPool)
 {
-    ItemUseHandler itemHandler;
-    std::set<Player*> buffedPlayer;
-    bool isWin = false;
-    // 랜덤 준비
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    while (true)
-    {
-        // 플레이어 턴 시작
-        std::vector<Player*> turnPlayers = battleManager.GetLivingPlayers();
-        for (int i = 0; i < turnPlayers.size(); i++)
-        {
-            Player* turnPlayer = turnPlayers[i];
-            std::map<EItemID, int> consumableItems = inventory->GetConsumableItems();
-
-            auto potionItr = consumableItems.find(EItemID::HP_POTION);
-            auto buffItr = consumableItems.find(EItemID::POWER_POTION);
-            if (potionItr != consumableItems.end() && turnPlayer->GetMissingHP() >= turnPlayer->GetHp())
-            {
-                inventory->ConsumeItem(EItemID::HP_POTION);
-                itemHandler.USE_ITEM(turnPlayer, EItemID::HP_POTION);
-                ItemData hpPotion = ITEM_TABLE.at(EItemID::HP_POTION);
-                rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + hpPotion.name + "을(를) 사용 체력 : " + to_string(turnPlayer->GetHp()));
-            }
-            else if (buffedPlayer.find(turnPlayer) == buffedPlayer.end() && buffItr != consumableItems.end())
-            {
-                inventory->ConsumeItem(EItemID::POWER_POTION);
-                itemHandler.USE_ITEM(turnPlayer, EItemID::POWER_POTION);
-                buffedPlayer.insert(turnPlayer);
-
-                ItemData powerPotion = ITEM_TABLE.at(EItemID::POWER_POTION);
-                rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + powerPotion.name + "을(를) 사용 공격력 : " + to_string(turnPlayer->GetPower()));
-            }
-            else
-            {
-                std::vector<Monster*> monster = battleManager.GetLivingMonsters();
-                std::uniform_int_distribution<size_t> monsterDist(0, monster.size() - 1);
-                Monster* targetMonster = monster[monsterDist(gen)];
-                battleManager.PlayerHitMonster(targetMonster, turnPlayer->GetPower());
-                if (targetMonster->IsDead())
-                {
-                    rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + targetMonster->GetName() + "을(를) 공격합니다! " + targetMonster->GetName() + " 처치!");
-                    rpgLogger.OnMonsterKilled(targetMonster->GetMonsterId());
-                    monsterPool.Release(targetMonster);
-                }
-                else
-                {
-                    rpgLogger.AddLog(turnPlayer->GetName() + "(이)가 " + targetMonster->GetName() + "을(를) 공격합니다! " + targetMonster->GetName() + " 체력 : " + to_string(targetMonster->GetHp()));
-                }
-            }
-
-            // 모든 몬스터가 다 죽었는지 확인
-            if (battleManager.IsMonstersDead())
-            {
-                break;
-            }
-            std::this_thread::sleep_for(std::chrono::seconds(1));  // 1초 대기
-        }
-        // 플레이어 턴 종료
-        if (battleManager.IsMonstersDead())
-        {
-            isWin = true;
-            break;
-        }
-
-        // 몬스터 턴 시작
-        std::vector<Monster*> turnMonsters = battleManager.GetLivingMonsters();
-        for (int i = 0; i < turnMonsters.size(); i++)
-        {
-            Monster* turnMonster = turnMonsters[i];
-            std::vector<Player*> livingPlayers = battleManager.GetLivingPlayers();
-            std::uniform_int_distribution<size_t> monsterDist(0, livingPlayers.size() - 1);
-            Player* targetPlayer = livingPlayers[monsterDist(gen)];
-            battleManager.MonsterHitPlayer(targetPlayer, turnMonster->GetPower());
-
-            // 플레이어가 죽었는지 확인
-            if (targetPlayer->IsDead())
-            {
-                rpgLogger.AddLog(turnMonster->GetName() + "(이)가 " + targetPlayer->GetName() + "을(를) 공격합니다! " + targetPlayer->GetName() + "(이)가 전투불능!");
-            }
-            else
-            {
-                rpgLogger.AddLog(turnMonster->GetName() + "(이)가 " + targetPlayer->GetName() + "을(를) 공격합니다! " + targetPlayer->GetName() + " 체력 : " + to_string(targetPlayer->GetHp()));
-            }
-
-            // 플레이어들이 다 죽었는지 확인
-            if (battleManager.IsPlayersDead())
-            {
-                break;
-            }
-
-            std::this_thread::sleep_for(std::chrono::seconds(1));  // 1초 대기
-        }
-
-        // 플레이어들이 다 죽었는지 확인
-        if (battleManager.IsPlayersDead())
-        {
-            break;
-        }
-    }
-    for (auto itr = buffedPlayer.begin(); itr != buffedPlayer.end(); itr++)
-    {
-        itemHandler.CLEAR_BUFF(*itr, EItemID::POWER_POTION);
-    }
-    return isWin;
+    return AsciiArt::RunBattlePresentation(battleManager, monsterPool, rpgLogger, *inventory);
 }
 
 // 일반 전투
@@ -252,19 +210,19 @@ void NormalBattle()
 
     int avgLv = totalLv / (int)players.size();
 
+    // 평균 레벨 2마다 한 마리씩 늘어나며, 기본 한 마리를 더 포함합니다.
     int monsterCount = std::max(1, avgLv / 2) + 1;
-
     vector<EMonsterID> monsterCards = battleManager.GetSpawanAbleMonsterIDs(avgLv);
 
     // 랜덤 준비
     std::random_device rd;
     std::mt19937 gen(rd());
-    // 몬스터 카드에서 가져올 몬스터 준비
+    // 현재 평균 레벨에서 등장 가능한 몬스터 카드 중 하나를 고릅니다.
     std::uniform_int_distribution<size_t> deployDist(0, monsterCards.size() - 1);
 
     for (int i = 0; i < monsterCount; i++)
     {
-        Monster* monster = monsterPool.Acquire();
+        Monster *monster = monsterPool.Acquire();
         EMonsterID randomMonster = monsterCards[deployDist(gen)];
         std::string nanori = monster->Deploy(randomMonster, avgLv);
         rpgLogger.AddLog(nanori);
@@ -283,6 +241,9 @@ void NormalBattle()
         CurrentGameState = EGameState::GAME_OVER;
         return;
     }
+
+    // 전투 종료 요약은 AA 화면 좌측 상단 로그 영역에서 이어서 표시합니다.
+    AsciiArt::Presentation::PrepareBattleSummaryArea();
 
     // 전리품 인벤토리에 추가
     // 골드 획득
@@ -324,6 +285,7 @@ void NormalBattle()
     }
     battleManager.EarnExpToParty();
     rpgLogger.AddLog("파티는 " + to_string(battleManager.GetEarnExp()) + " exp 를 얻었다");
+    ApplyFirstBattleLevelTenTest(players);
 
     // 전투 후 레벨 확인
     totalLv = 0;
@@ -340,6 +302,8 @@ void NormalBattle()
         std::cin >> answer;
         if (StringCompare(answer, "Y"))
         {
+            AsciiArt::ReturnToTownFromBattlePresentation();
+            AdvanceMainMenuTimeAfterBattle();
             SwitchState(EGameState::MAIN_MEMU);
             break;
         }
@@ -375,16 +339,13 @@ void BossBattle()
 
     int avgLv = totalLv / (int)players.size();
 
-    int monsterCount = 1;
-
-    vector<EMonsterID> monsterCards = battleManager.GetSpawanAbleMonsterIDs(avgLv);
-
-    // 보스 몬스터 레드 드래곤 하나
-    Monster* monster = monsterPool.Acquire();
-    std::string nanori = monster->Deploy(EMonsterID::RED_DRAGON, avgLv);
+    // 보스전은 레드 드래곤 한 마리로 고정합니다.
+    Monster *monster = monsterPool.Acquire();
+    std::string nanori = monster->Deploy(EMonsterID::RED_DRAGON, avgLv, true);
     rpgLogger.AddLog(nanori);
     battleManager.AddMonster(monster);
 
+    AsciiArt::PrepareBossBattlePresentation();
     bool isWin = BattlePhase(battleManager, monsterPool);
 
     if (!isWin)
@@ -409,7 +370,7 @@ void ShowItemTable()
 {
     std::cout << "\n========== 아이템 목록 ==========\n";
 
-    for (const auto& [itemID, itemData] : ITEM_TABLE)
+    for (const auto &[itemID, itemData] : ITEM_TABLE)
     {
         std::cout << "[" << static_cast<int>(itemID) << "] "
                   << itemData.name << '\n'
@@ -423,188 +384,479 @@ void ShowItemTable()
 // 메인 메뉴
 void MainMenu()
 {
-    std::cout << "========================================" << "\n";
-    std::cout << " 1. 전투" << "\n";
-    std::cout << " 2. 여관" << "\n";
-    std::cout << " 3. 상점" << "\n";
-    std::cout << " 4. 아이템 제작소" << "\n";
-    std::cout << " 5. 플레이어 정보 확인" << "\n";
-    std::cout << " 6. 몬스터 처치 기록 확인" << "\n";
-    std::cout << "========================================" << "\n";
-    std::cout << "입력: ";
-    int option;
-    std::cin >> option;
-    // 유효하지 않은 입력
-    if (option < 1 || 6 < option)
+    constexpr const wchar_t *kMainMenuDayBackground = L"Resources\\Images\\main_menu_day_final_candidate_v5.png";
+    constexpr const wchar_t *kMainMenuNightBackground = L"Resources\\Images\\main_menu_night.png";
+    const HANDLE input = GetStdHandle(STD_INPUT_HANDLE);
+    DWORD originalInputMode = 0;
+    const bool canRestoreInputMode = GetConsoleMode(input, &originalInputMode) != FALSE;
+    // 이 시점부터는 다음 전투 복귀에서 낮/밤을 교대할 수 있습니다.
+    HasVisitedMainMenu = true;
+    if (canRestoreInputMode)
     {
-        return;
+        // 상점과 같은 방식으로 키 이벤트를 받아 P와 숫자 키를 즉시 처리합니다.
+        SetConsoleMode(input,
+                       (originalInputMode | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS) &
+                           ~(ENABLE_QUICK_EDIT_MODE | ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT));
     }
 
-    // 플레이어 레벨
-    int totalLv = 0;
-    for (int i = 0; i < players.size(); i++)
+    while (true)
     {
-        totalLv += players[i]->GetLevel();
-    }
-    int avgLv = totalLv / (int)players.size();
+        const wchar_t *const mainMenuBackground =
+            IsMainMenuNight ? kMainMenuNightBackground : kMainMenuDayBackground;
 
-    // 상태 전이
-    switch (option)
-    {
-        case 1:  //  전투
-            if (avgLv < 10)
+        AsciiArt::Presentation::ClearScreen();
+        INPUT_RECORD record{};
+        DWORD read = 0;
+        const auto animationStartTime = std::chrono::steady_clock::now();
+        auto previousFrameTime = animationStartTime - std::chrono::milliseconds(100);
+
+        while (true)
+        {
+            const auto now = std::chrono::steady_clock::now();
+            // 빛 변화는 초당 10번만 갱신합니다. 원본 PNG는 바꾸지 않고,
+            // 달라진 Braille 행만 다시 출력하므로 메뉴 입력은 계속 받을 수 있습니다.
+            if (now - previousFrameTime >= std::chrono::milliseconds(100))
             {
-                SwitchState(EGameState::NORMAL_BATTLE);
+                const double elapsedSeconds = std::chrono::duration<double>(now - animationStartTime).count();
+                if (!AsciiArt::Presentation::RenderPulsingMainMenuImage(mainMenuBackground, elapsedSeconds))
+                {
+                    if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
+                    std::cout << "메인 메뉴 배경을 불러오지 못했습니다.\n";
+                    return;
+                }
+
+                // 메뉴는 이미지가 끝난 바로 다음 줄에 가로 한 줄로 표시합니다.
+                AsciiArt::Presentation::MoveCursorBelowStaticImage(0);
+                std::cout << "1. 전투    2. 여관    3. 상점    4. 아이템 제작소    5. 캐릭터 정보    6. 킬 로그    " << std::endl;
+                std::cout << "입력: ";
+                previousFrameTime = now;
             }
-            else
+
+            DWORD pendingCount = 0;
+            if (GetNumberOfConsoleInputEvents(input, &pendingCount) && pendingCount > 0)
             {
-                SwitchState(EGameState::BOSS_BATTLE);
+                ReadConsoleInputW(input, &record, 1, &read);
+                if (record.EventType == KEY_EVENT && record.Event.KeyEvent.bKeyDown)
+                {
+                    break;
+                }
             }
-            break;
-        case 2:  // 여관
-            SwitchState(EGameState::INN);
-            break;
-        case 3:  // 상점
-            SwitchState(EGameState::SHOP);
-            break;
-        case 4:  // 아이템 제작소
-            SwitchState(EGameState::CRAFTING);
-            break;
-        case 5:  // 플레이어 정보
-            for (const auto& player : players)
-                player->ShowStatus();
-            break;
-        case 6:  // 몬스터 처치 기록
-            // 킬 몬스터 로그 출력 메뉴
-            rpgLogger.ShowKillLogs();
-            break;
-        default:
-            break;
+            // 애니메이션을 멈추지 않게 짧게 입력을 확인합니다.
+            Sleep(10);
+        }
+
+        // 문자 자체가 아니라 가상 키 코드를 읽으므로 한글 입력 상태에서도 P가 동작합니다.
+        const WORD menuKey = record.Event.KeyEvent.wVirtualKeyCode;
+
+        if (menuKey == 'P')
+        {
+            // 상점·전투처럼 해상도, 세로 비율, 대비를 메인 메뉴 전용으로 조절합니다.
+            AsciiArt::Presentation::RunMainMenuImageTuner(mainMenuBackground);
+            continue;
+        }
+
+        // 숫자열과 키패드 숫자를 같은 메뉴 번호로 바꿉니다.
+        // 여관·제작소 번호를 나중에 바꿔도 위 상수만 수정하면 됩니다.
+        const int option =
+            menuKey >= '0' && menuKey <= '6' ? menuKey - '0' : menuKey >= VK_NUMPAD0 && menuKey <= VK_NUMPAD9 ? menuKey - VK_NUMPAD0
+                                                                                                              : 0;
+
+        if (option == 0)
+        {
+            continue;
+        }
+
+        // 유효하지 않은 입력
+        // 플레이어 레벨
+        int totalLv = 0;
+        for (int i = 0; i < players.size(); i++)
+        {
+            totalLv += players[i]->GetLevel();
+        }
+        int avgLv = totalLv / static_cast<int>(players.size());
+
+        // 상태 전이
+        switch (option)
+        {
+            case 1:
+                // 실제 일반/보스 전투 진입은 기존 게임 상태 흐름을 그대로 사용합니다.
+                if (avgLv < 10)
+                {
+                    SwitchState(EGameState::NORMAL_BATTLE);
+                }
+                else
+                {
+                    SwitchState(EGameState::BOSS_BATTLE);
+                }
+                if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
+                return;
+            case 2:
+                SwitchState(EGameState::INN);
+                if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
+                return;
+            case 3:
+                SwitchState(EGameState::SHOP);
+                if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
+                return;
+
+            case 4:
+                SwitchState(EGameState::CRAFTING);
+                if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
+                return;
+            case 5:
+            {
+                std::vector<std::string> statusLines;
+                statusLines.reserve(players.size() * 5);
+                for (const auto &player : players)
+                {
+                    statusLines.push_back("이름     : " + player->GetName());
+                    statusLines.push_back("레벨     : " + std::to_string(player->GetLevel()));
+                    statusLines.push_back("체력     : " + std::to_string(player->GetHp()) + " / " + std::to_string(player->GetHpMax()));
+                    statusLines.push_back("공격력   : " + std::to_string(player->GetPower()));
+                    statusLines.push_back("경험치   : " + std::to_string(player->GetExp()) + " / " + std::to_string(player->GetExpMax()));
+                    statusLines.push_back("");
+                }
+                AsciiArt::Presentation::ShowInfoPanel("캐릭터 정보", statusLines);
+                if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
+                return;
+            }
+            case 6:
+                AsciiArt::Presentation::ShowInfoPanel("몬스터 처치 기록", rpgLogger.GetKillLogLines());
+                if (canRestoreInputMode) SetConsoleMode(input, originalInputMode);
+                return;
+            default:
+                break;
+        }
     }
 }
 
 // 여관
+// 실제 회복 비용과 회복 규칙은 팀 기획이 정해지면 이 함수 안에만 추가하면 됩니다.
 void Inn()
 {
-    // 회복 시 골드 소모량: INN_BASE_COST + ceil(INN_COST_PER_HP * 회복량)
-    const int INN_BASE_COST = 10;       // 기본 골드 소모량
-    const float INN_COST_PER_HP = 0.5;  // 회복 HP당 골드 소모량
+    const int INN_BASE_COST = 10;
 
-    // 회복 가능한 HP량 반환
-    auto GetMaxHealHP = [&INN_BASE_COST, &INN_COST_PER_HP](const Player* player, const Inventory* inventory) -> int
+    auto GetMaxHealHP = [&INN_BASE_COST](const Player *player, int gold) -> int
     {
-        int missingHP = player->GetMissingHP();                                                          // 부족한 HP
-        int maxHealByGold = std::max(int((inventory->GetGold() - INN_BASE_COST) / INN_COST_PER_HP), 0);  // 골드로 회복 가능한 최대 HP
+        const int missingHP = player->GetMissingHP();
+        const int maxHealByGold = std::max((gold - INN_BASE_COST) * 2, 0);
         return std::min(missingHP, maxHealByGold);
     };
-    // 회복 시 소모하는 골드량 반환
-    auto GetHealCost = [&INN_BASE_COST, &INN_COST_PER_HP](const int& healHP) -> int
+
+    auto GetHealCost = [&INN_BASE_COST](int healHP) -> int
     {
-        return INN_BASE_COST + std::ceil(INN_COST_PER_HP * healHP);
+        if (healHP <= 0)
+        {
+            return 0;
+        }
+
+        return INN_BASE_COST + (healHP + 1) / 2;
     };
 
-    // 회복 메뉴 출력
-    std::cout << "=============== [ 여관 ] ===============" << "\n";
-    std::cout << " 💰 보유 골드: " << inventory->GetGold() << " G" << "\n";
-    std::cout << "----------------------------------------" << "\n";
-    for (int i = 0; i < (int)players.size(); i++)
+    auto ToWideString = [](const std::string &str) -> std::wstring
     {
-        const Player* player = players.at(i);
-        int maxHealHP = GetMaxHealHP(player, inventory);  // 최대 회복 가능한 HP
-        int healCost = GetHealCost(maxHealHP);            // 회복 비용
-
-        std::cout << " " << i + 1 << ". [" << player->GetName() << "] (" << player->GetHp() << "/" << player->GetHpMax() << ")";
-
-        if (player->GetMissingHP() <= 0)
+        if (str.empty())
         {
-            std::cout << " | [최대 체력]" << "\n";
+            return std::wstring();
+        }
+
+        // CP_UTF8 환경에서 string(UTF-8)을 wstring(UTF-16)으로 올바르게 변환
+        int targetLength = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
+        if (targetLength <= 0)
+        {
+            return std::wstring();
+        }
+
+        std::wstring wstr(targetLength, 0);
+        MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wstr[0], targetLength);
+
+        // 널 문자 제거
+        if (!wstr.empty() && wstr.back() == L'\0')
+        {
+            wstr.pop_back();
+        }
+        return wstr;
+    };
+
+    auto GetDisplayWidth = [](const std::wstring &text) -> size_t
+    {
+        size_t width = 0;
+        for (wchar_t ch : text)
+        {
+            if (ch == L'\0')
+            {
+                continue;
+            }
+
+            // ASCII는 1칸, 그 외 문자는 2칸으로 간주합니다.
+            width += (ch <= 0x7F) ? 1 : 2;
+        }
+        return width;
+    };
+
+    auto PadRightByDisplayWidth = [&](std::wstring text, size_t width) -> std::wstring
+    {
+        const size_t currentWidth = GetDisplayWidth(text);
+        if (currentWidth < width)
+        {
+            text.append(width - currentWidth, L' ');
+        }
+        return text;
+    };
+
+    const HANDLE input = GetStdHandle(STD_INPUT_HANDLE);
+    DWORD originalInputMode = 0;
+    const bool canRestoreInputMode = GetConsoleMode(input, &originalInputMode) != FALSE;
+
+    if (canRestoreInputMode)
+    {
+        // 메인 메뉴와 동일하게 즉시 키 입력을 받도록 설정합니다.
+        SetConsoleMode(
+            input,
+            (originalInputMode | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS) &
+                ~(ENABLE_QUICK_EDIT_MODE | ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT));
+    }
+
+    auto WaitForKeyDown = [&]() -> WORD
+    {
+        INPUT_RECORD record{};
+        DWORD read = 0;
+
+        while (true)
+        {
+            DWORD pendingCount = 0;
+            if (GetNumberOfConsoleInputEvents(input, &pendingCount) && pendingCount > 0)
+            {
+                ReadConsoleInputW(input, &record, 1, &read);
+                if (record.EventType == KEY_EVENT && record.Event.KeyEvent.bKeyDown)
+                {
+                    return record.Event.KeyEvent.wVirtualKeyCode;
+                }
+            }
+
+            Sleep(10);
+        }
+    };
+
+    while (true)
+    {
+        struct InnMenuEntry
+        {
+            std::wstring name;
+            std::wstring hp;
+            std::wstring action;
+            std::wstring cost;
+            std::wstring state;
+        };
+
+        std::vector<InnMenuEntry> entries;
+        entries.reserve(players.size());
+
+        size_t nameWidth = 0;
+        size_t hpWidth = 0;
+        size_t actionWidth = 0;
+        size_t costWidth = 0;
+        size_t stateWidth = 0;
+
+        for (int i = 0; i < static_cast<int>(players.size()); i++)
+        {
+            const Player *player = players.at(i);
+            const int gold = inventory->GetGold();
+            const int missingHP = player->GetMissingHP();
+            const int healHP = player->IsFullHP() ? 0 : GetMaxHealHP(player, gold);
+            const int healCost = GetHealCost(healHP);
+
+            InnMenuEntry entry;
+            entry.name = L"[" + ToWideString(player->GetName()) + L"]";
+            entry.hp = std::to_wstring(player->GetHp()) + L"/" + std::to_wstring(player->GetHpMax()) + L" HP";
+
+            if (player->IsFullHP())
+            {
+                entry.action = L"[최대 체력]";
+            }
+            else if (healHP == 0)
+            {
+                entry.action = L"[골드 부족]";
+                entry.cost = L"[회복 불가]";
+            }
+            else
+            {
+                entry.action = L"♥ +" + std::to_wstring(healHP) + L" 회복";
+                entry.cost = L"비용: " + std::to_wstring(healCost) + L"G";
+                entry.state = healHP >= missingHP ? L"[완치 가능]" : L"[일부회복]";
+            }
+
+            nameWidth = std::max(nameWidth, GetDisplayWidth(entry.name));
+            hpWidth = std::max(hpWidth, GetDisplayWidth(entry.hp));
+            actionWidth = std::max(actionWidth, GetDisplayWidth(entry.action));
+            costWidth = std::max(costWidth, GetDisplayWidth(entry.cost));
+            stateWidth = std::max(stateWidth, GetDisplayWidth(entry.state));
+
+            entries.push_back(std::move(entry));
+        }
+
+        // 너무 좁아 보이지 않도록 최소 폭을 유지합니다.
+        nameWidth = std::max(nameWidth, static_cast<size_t>(8));
+        hpWidth = std::max(hpWidth, static_cast<size_t>(14));
+        actionWidth = std::max(actionWidth, static_cast<size_t>(14));
+        costWidth = std::max(costWidth, static_cast<size_t>(12));
+        stateWidth = std::max(stateWidth, static_cast<size_t>(12));
+
+        std::vector<std::wstring> rawMenuLines;
+        rawMenuLines.reserve(players.size() + 2);
+        rawMenuLines.push_back(L"따뜻한 불빛이 비추는 여관입니다.");
+
+        const size_t indexWidth = std::to_wstring(players.size()).size();
+
+        for (int i = 0; i < static_cast<int>(entries.size()); i++)
+        {
+            const InnMenuEntry &entry = entries.at(i);
+
+            std::wstring indexText = std::to_wstring(i + 1);
+            if (indexText.size() < indexWidth)
+            {
+                indexText.insert(indexText.begin(), indexWidth - indexText.size(), L' ');
+            }
+
+            std::wstring line;
+            line += L" ";
+            line += indexText;
+            line += L". ";
+            line += PadRightByDisplayWidth(entry.name, nameWidth);
+            line += L" ";
+            line += PadRightByDisplayWidth(entry.hp, hpWidth);
+            line += L" | ";
+            line += PadRightByDisplayWidth(entry.action, actionWidth);
+            line += L" | ";
+            line += PadRightByDisplayWidth(entry.cost, costWidth);
+            line += L" | ";
+            line += PadRightByDisplayWidth(entry.state, stateWidth);
+
+            rawMenuLines.push_back(std::move(line));
+        }
+
+        rawMenuLines.push_back(L"0. 마을로 돌아가기");
+
+        size_t maxLineWidth = 0;
+        for (const std::wstring &line : rawMenuLines)
+        {
+            maxLineWidth = std::max(maxLineWidth, GetDisplayWidth(line));
+        }
+
+        std::vector<std::wstring> menuLines;
+        menuLines.reserve(rawMenuLines.size());
+        for (const std::wstring &line : rawMenuLines)
+        {
+            menuLines.push_back(PadRightByDisplayWidth(line, maxLineWidth));
+        }
+
+        AsciiArt::Presentation::ClearScreen();
+        AsciiArt::Presentation::RenderStaticScene(AsciiArt::EStaticScene::Inn);
+        AsciiArt::Presentation::DrawStaticSceneMenu(
+            L"[ TEAM_3 TRPG INN ]",
+            inventory->GetGold(),
+            menuLines);
+        AsciiArt::Presentation::MoveCursorBelowStaticImage(2);
+
+        // 숫자열 / 키패드 입력을 즉시 받습니다.
+        const WORD menuKey = WaitForKeyDown();
+        const int option =
+            menuKey >= '0' && menuKey <= '9'                 ? menuKey - '0'
+            : menuKey >= VK_NUMPAD0 && menuKey <= VK_NUMPAD9 ? menuKey - VK_NUMPAD0
+                                                             : -1;
+
+        if (option == 0)
+        {
+            if (canRestoreInputMode)
+            {
+                SetConsoleMode(input, originalInputMode);
+            }
+            SwitchState(EGameState::MAIN_MEMU);
+            return;
+        }
+
+        if (option < 1 || option > static_cast<int>(players.size()))
+        {
             continue;
         }
 
-        int fullHealCost = INN_BASE_COST + std::ceil(INN_COST_PER_HP * player->GetMissingHP());
-        std::cout << " | 필요: " << fullHealCost << " G ➔ ";
+        Player *player = players.at(option - 1);
 
-        if (inventory->GetGold() <= INN_BASE_COST)
+        // 결과창은 회복 전 상태를 기준으로 표시합니다.
+        const int beforeHP = player->GetHp();
+        const int beforeGold = inventory->GetGold();
+        const int missingHP = player->GetMissingHP();
+        const int healHP = player->IsFullHP() ? 0 : GetMaxHealHP(player, beforeGold);
+        const int healCost = GetHealCost(healHP);
+
+        std::vector<std::wstring> resultLines;
+        resultLines.reserve(5);
+        resultLines.push_back(L"이름 : " + ToWideString(player->GetName()));
+        resultLines.push_back(L"체력 ★ : " + std::to_wstring(beforeHP) + L" / " + std::to_wstring(player->GetHpMax()) +
+                              L" -> " + std::to_wstring(beforeHP + healHP) + L" / " + std::to_wstring(player->GetHpMax()));
+
+        if (player->IsFullHP())
         {
-            std::cout << "(골드 부족)" << "\n";
+            resultLines.push_back(L"상태 : 이미 최대 체력입니다.");
+            resultLines.push_back(L"골드 : " + std::to_wstring(beforeGold) + L" G");
+        }
+        else if (beforeGold <= INN_BASE_COST)
+        {
+            resultLines.push_back(L"상태 : 골드가 부족하여 회복하지 못했습니다.");
+            resultLines.push_back(L"골드 : " + std::to_wstring(beforeGold) + L" G");
+        }
+        else if (healHP >= missingHP)
+        {
+            resultLines.push_back(L"상태 : 전체 회복되었습니다.");
+            resultLines.push_back(L"골드 : " + std::to_wstring(beforeGold) + L" G -> " +
+                                  std::to_wstring(beforeGold - healCost) + L" G");
         }
         else
         {
-            maxHealHP = GetMaxHealHP(player, inventory);
-            healCost = GetHealCost(maxHealHP);
-            std::cout << "회복 후: " << player->GetHp() + maxHealHP << " (+" << maxHealHP << ")" << (player->GetHp() + maxHealHP == player->GetHpMax() ? " [완치]" : "") << "\n";
+            resultLines.push_back(L"상태 : 일부 회복되었습니다.");
+            resultLines.push_back(L"골드 : " + std::to_wstring(beforeGold) + L" G -> " +
+                                  std::to_wstring(beforeGold - healCost) + L" G");
+        }
+
+        resultLines.push_back(L"아무 키나 누르면 여관으로 돌아갑니다.");
+
+        AsciiArt::Presentation::ClearScreen();
+        AsciiArt::Presentation::RenderStaticScene(AsciiArt::EStaticScene::Inn);
+        AsciiArt::Presentation::DrawStaticSceneMenu(
+            L"[ 여관 회복 결과 ]",
+            beforeGold,
+            resultLines);
+        AsciiArt::Presentation::MoveCursorBelowStaticImage(2);
+
+        // 결과 확인 후 실제 회복과 골드 차감을 적용합니다.
+        WaitForKeyDown();
+
+        if (healHP > 0)
+        {
+            player->HealHP(healHP);
+            inventory->AddGold(-healCost);
         }
     }
-    std::cout << "----------------------------------------" << "\n";
-    std::cout << " 0. 마을로 돌아가기" << "\n";
-    std::cout << "========================================" << "\n";
-
-    // 선택지 입력
-    std::cout << "입력: ";
-    int option = 0;
-    if (!(std::cin >> option))
-    {
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        return;
-    }
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-
-    // 유효하지 않은 입력
-    if (option < 0 || (int)players.size() < option)
-    {
-        return;
-    }
-
-    // 마을로 돌아가기
-    if (option == 0)
-    {
-        SwitchState(EGameState::MAIN_MEMU);
-        return;
-    }
-
-    // 특정 캐릭터 회복
-    Player* player = players.at(option - 1);
-    int maxHealHP = GetMaxHealHP(player, inventory);  // 실제로 회복할 체력
-    int healCost = GetHealCost(maxHealHP);            // 회복 비용
-
-    // 회복 메시지 출력
-    std::cout << "\n";
-    std::cout << "========================================" << "\n";
-    std::cout << " 🛌 [" << player->GetName() << "]이(가) 여관에서 휴식을 취했습니다.\n";
-
-    if (player->IsFullHP())
-    {
-        std::cout << " ✨ HP가 완전히 회복되었습니다.\n";
-    }
-    else
-    {
-        std::cout << " ⚠️ 골드가 부족하여 일부만 회복되었습니다.\n";
-    }
-
-    std::cout << " ➔ HP: " << player->GetHp() << " / " << player->GetHpMax()
-              << "  ➔  " << player->GetHp() + maxHealHP << " / " << player->GetHpMax()
-              << " (+" << maxHealHP << " 회복)\n";
-
-    std::cout << " 💰 -" << healCost << " Gold 소모 (남은 골드: " << inventory->GetGold() - healCost << " G)\n";
-    std::cout << "========================================\n";
-
-    player->HealHP(maxHealHP);      // 체력 회복
-    inventory->AddGold(-healCost);  // 골드 소모
 }
 
 // 상점
 void Shop()
 {
+    // 구매/판매 목록이 콘솔을 스크롤한 뒤 상점으로 돌아와도 AA 장면을 처음부터 다시 그립니다.
+    AsciiArt::Presentation::ClearScreen();
+
+    // 상점에서 보이는 모든 메뉴 문구는 여기 한 곳에서 관리합니다.
+    const ShopScreen::FMenuText shopMenuText{
+        L"[ TEAM_3 TRPG SHOP ]",
+        L"1. 아이템 구매",
+        L"2. 아이템 판매",
+        L"0. 돌아가기",
+    };
     ShopManager shop;
-    std::cout << "---------- TEAM_3 TRPG SHOP ----------" << std::endl;
-    std::cout << "1. 아이템 구매" << std::endl;
-    std::cout << "2. 아이템 판매" << std::endl;
-    std::cout << "0. 돌아가기" << std::endl;
-    std::cout << "보유 골드: " << inventory->GetGold() << std::endl;
-    std::cout << "선택해주세요: ";
-    int select = 0;
-    std::cin >> select;
+    const int select = ShopScreen::RunAnimatedMenu(shopMenuText, inventory->GetGold());
+
+    // AA 이미지 끝 다음 줄을 비운 뒤, 기존 상점의 구매/판매 목록을 출력합니다.
+    AsciiArt::Presentation::MoveCursorBelowStaticImage(2);
 
     if (select >= 0 && select <= 2)
     {
@@ -629,7 +881,7 @@ void Shop()
                         std::cin >> buyCount;
                         // 유저가 선택한 choice의 id값, 아이템 정보 찾기
                         EItemID id = buyItemIDs.at(itemChoice - 1);
-                        const ItemData& itemTarget = ITEM_TABLE.at(id);
+                        const ItemData &itemTarget = ITEM_TABLE.at(id);
                         if (buyCount > 0)
                         {
                             shop.BuyItem(itemTarget, buyCount);
@@ -686,7 +938,7 @@ void Shop()
 
                     // 유저가 choice한 아이템의 ID값, 아이템 정보 찾기
                     EItemID id = itemIDs.at(choice - 1);
-                    const ItemData& item = ITEM_TABLE.at(id);
+                    const ItemData &item = ITEM_TABLE.at(id);
 
                     shop.SellItem(item, sellCount);
                 }
@@ -707,17 +959,22 @@ void Crafting()
 {
     Crafter crafter = Crafter();
 
-    std::cout << "=========== [ 아이템 제작소 ] ===========" << "\n";
-    std::cout << " 1. 인벤토리 확인" << "\n";
-    std::cout << " 2. 전체 레시피 확인" << "\n";
-    std::cout << " 3. 전체 검색" << "\n";
-    std::cout << " 4. 제작 아이템 검색" << "\n";
-    std::cout << " 5. 재료 아이템 검색" << "\n";
-    std::cout << "----------------------------------------" << "\n";
-    std::cout << " 0. 마을로 돌아가기" << "\n";
-    std::cout << "========================================" << "\n";
+    AsciiArt::Presentation::ClearScreen();
+    AsciiArt::Presentation::RenderStaticScene(AsciiArt::EStaticScene::Crafting);
+    AsciiArt::Presentation::DrawStaticSceneMenu(
+        L"[ TEAM_3 TRPG CRAFTING ]",
+        inventory->GetGold(),
+        {
+            L"1. 인벤토리 확인",
+            L"2. 전체 레시피 확인",
+            L"3. 전체 검색",
+            L"4. 제작 아이템 검색",
+            L"5. 재료 아이템 검색",
+            L"0. 마을로 돌아가기",
+        });
+    AsciiArt::Presentation::MoveCursorBelowStaticImage(2);
 
-    std::cout << "입력: ";
+    std::cout << "선택해주세요: ";
     int option = 0;
     if (!(std::cin >> option))
     {
@@ -743,8 +1000,28 @@ void Crafting()
             SwitchState(EGameState::MAIN_MEMU);
             return;
         case 1:
-            inventory->ShowInventory();
+        {
+            std::vector<std::string> inventoryLines;
+            const auto &slots = inventory->GetSlots();
+            inventoryLines.reserve(slots.size() + 2);
+
+            for (size_t i = 0; i < slots.size(); ++i)
+            {
+                const InventorySlot &slot = slots[i];
+                const ItemData &item = ITEM_TABLE.at(slot.id);
+                inventoryLines.push_back(std::to_string(i + 1) + ". " + item.name + " x " + std::to_string(slot.count));
+            }
+
+            if (inventoryLines.empty())
+            {
+                inventoryLines.push_back("인벤토리가 비어 있습니다.");
+            }
+
+            inventoryLines.push_back("");
+            inventoryLines.push_back("보유 골드 : " + std::to_string(inventory->GetGold()) + " G");
+            AsciiArt::Presentation::ShowInfoPanel("인벤토리", inventoryLines);
             return;
+        }
         case 2:
             crafter.ClearFilter();
             break;
@@ -834,7 +1111,7 @@ void Crafting()
     }
 
     // 제작 시도 - 실제 제작한 개수 반환
-    const CraftingRecipe* craftingRecipe = crafter.GetCraftingRecipeByIndex(craftinigItemNum - 1);
+    const CraftingRecipe *craftingRecipe = crafter.GetCraftingRecipeByIndex(craftinigItemNum - 1);
     int finalCraftingCount = crafter.TRY_CRAFT_ITEM(inventory, craftingRecipe, craftingCount);
 
     std::cout << " [" << ITEM_TABLE.at(craftingRecipe->itemID).name << "] (" << finalCraftingCount << ")개 제작 성공!" << "\n";
@@ -845,6 +1122,7 @@ void Crafting()
 void GameOver()
 {
     rpgLogger.AddLog("상대가 너무 강하다! 일단 후퇴하자.");
+    AdvanceMainMenuTimeAfterBattle();
     SwitchState(EGameState::MAIN_MEMU);
 }
 
@@ -852,35 +1130,64 @@ void GameOver()
 void GameClear()
 {
     rpgLogger.AddLog("게임 클리어.");
+    GameClearScreen::Show();
     IsRunning = false;
 }
 
 // 게임 실행
 void Run()
 {
+    soundManager.Init();
+
     while (IsRunning)
     {
         switch (CurrentGameState)
         {
+            case EGameState::START_SCREEN:
+            {
+                StartScreen::Render();
+
+                const StartScreen::EAction action = StartScreen::HandleInput();
+
+                if (action == StartScreen::EAction::StartGame)
+                {
+                    SwitchState(EGameState::PLAYER_INIT);
+                }
+                else if (action == StartScreen::EAction::ExitGame)
+                {
+                    IsRunning = false;
+                    std::cout << "게임을 종료합니다\n";
+                }
+
+                break;
+            }
             case EGameState::PLAYER_INIT:
+                soundManager.PlayBGM(soundMap.at(SoundStates::INTRO));
                 PlayerInit();
                 break;
             case EGameState::NORMAL_BATTLE:
+                soundManager.StopBGM();
+                soundManager.PlayBGM(soundMap.at(SoundStates::NORMAL_BATTLE));
                 NormalBattle();
                 break;
             case EGameState::BOSS_BATTLE:
+                soundManager.PlayBGM(soundMap.at(SoundStates::BOSS_BATTLE));
                 BossBattle();
                 break;
             case EGameState::MAIN_MEMU:
+                soundManager.PlayBGM(soundMap.at(SoundStates::VILLAGE));
                 MainMenu();
                 break;
             case EGameState::INN:
+                soundManager.PlayBGM(soundMap.at(SoundStates::VILLAGE));
                 Inn();
                 break;
             case EGameState::SHOP:
+                soundManager.PlayBGM(soundMap.at(SoundStates::SHOP));
                 Shop();
                 break;
             case EGameState::CRAFTING:
+                soundManager.PlayBGM(soundMap.at(SoundStates::VILLAGE));
                 Crafting();
                 break;
             case EGameState::GAME_OVER:
@@ -894,9 +1201,11 @@ void Run()
         }
     }
 
+    soundManager.Shutdown();
+
     // 메모리 해제
     delete inventory;
-    for (Player* player : players)
+    for (Player *player : players)
     {
         delete player;
     }
@@ -906,5 +1215,10 @@ int main()
 {
     // TestMonster(3);
     // ShowItemTable();
+
+    // 이 파일은 통합 테스트용 복사본입니다. UTF-8 문자열을 콘솔이 올바르게 표시하게 합니다.
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+
     Run();
 }

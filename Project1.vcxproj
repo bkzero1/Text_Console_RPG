@@ -76,6 +76,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -134,37 +136,63 @@
     <ClInclude Include="CraftingRecipe.h" />
     <ClInclude Include="MonsterPool.h" />
     <ClInclude Include="FMonsterData.h" />
-    <ClInclude Include="Monster.h" />
-    <ClInclude Include="Item.h" />
-    <ClInclude Include="RpgLogger.h" />
     <ClInclude Include="Inventory.h" />
-    <ClInclude Include="ItemUseHandler.h" />
     <ClInclude Include="InventorySlot.h" />
+    <ClInclude Include="Item.h" />
+    <ClInclude Include="ItemUseHandler.h" />
+    <ClInclude Include="Monster.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="RpgLogger.h" />
+    <ClInclude Include="ShopManager.h" />
+    <ClInclude Include="StartScreen.h" />
+    <ClInclude Include="ShopScreen.h" />
+    <ClInclude Include="GameClearScreen.h" />
     <ClInclude Include="Tank.h" />
     <ClInclude Include="Warrior.h" />
-    <ClInclude Include="ShopManager.h" />
+    <ClInclude Include="AsciiArt\AsciiBattleDemo.h" />
+    <ClInclude Include="AsciiArt\AsciiBattleBridge.h" />
+    <ClInclude Include="AsciiArt\AsciiBattleScene.h" />
+    <ClInclude Include="AsciiArt\SceneConfig.h" />
+    <ClInclude Include="SoundManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BattleManager.cpp" />
+    <ClCompile Include="Inventory.cpp" />
+    <ClCompile Include="InventorySlot.cpp" />
+    <ClCompile Include="Item.cpp" />
+    <ClCompile Include="ItemUseHandler.cpp" />
     <ClCompile Include="Mage.cpp" />
     <ClCompile Include="Crafter.cpp" />
     <ClCompile Include="CraftingRecipe.cpp" />
     <ClCompile Include="MonsterPool.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Monster.cpp" />
-    <ClCompile Include="Item.cpp" />
-    <ClCompile Include="RpgLogger.cpp" />
-    <ClCompile Include="Inventory.cpp" />
-    <ClCompile Include="ItemUseHandler.cpp" />
-    <ClCompile Include="InventorySlot.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="RpgLogger.cpp" />
+    <ClCompile Include="ShopManager.cpp" />
     <ClCompile Include="Tank.cpp" />
     <ClCompile Include="Warrior.cpp" />
-    <ClCompile Include="ShopManager.cpp" />
+    <ClCompile Include="AsciiArt\AsciiBattleDemo.cpp" />
+    <ClCompile Include="AsciiArt\AsciiBattleBridge.cpp" />
+    <ClCompile Include="StartScreen.cpp" />
+    <ClCompile Include="ShopScreen.cpp" />
+    <ClCompile Include="GameClearScreen.cpp" />
+    <ClCompile Include="SoundManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="SceneConfig.jsonc" />
     <None Include=".clang-format" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="..\..\..\..\Downloads\intro.wav" />
+    <Media Include="assets\attack-01.wav" />
+    <Media Include="assets\attack-02.wav" />
+    <Media Include="assets\attack-03.wav" />
+    <Media Include="assets\BOSS.mp3" />
+    <Media Include="assets\charity-shop.wav" />
+    <Media Include="assets\INBATTLE.mp3" />
+    <Media Include="assets\intro.wav" />
+    <Media Include="assets\village.mp3" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
