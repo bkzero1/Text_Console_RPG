@@ -28,7 +28,7 @@ std::vector<EItemID> ShopManager::GetBuyableItemIDs() const
     return ids;
 }
 
-void ShopManager::BuyItem(const ItemData& item, int count, SoundManager soundManager) const
+void ShopManager::BuyItem(const ItemData& item, int count, SoundManager& soundManager) const
 {
     // 총 비용
     int totalPrice = item.purchasePrice * count;
@@ -99,7 +99,7 @@ std::vector<EItemID> ShopManager::GetSellableItemIDs() const
     return ids;
 }
 
-void ShopManager::SellItem(const ItemData& item, int count, SoundManager soundManager) const
+void ShopManager::SellItem(const ItemData& item, int count, SoundManager& soundManager) const
 {
     // 아이템 소모(판매)
     bool isConsumed = inventory->ConsumeItem(item.id, count);
